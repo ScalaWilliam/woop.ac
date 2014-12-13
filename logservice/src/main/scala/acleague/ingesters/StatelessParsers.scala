@@ -2,7 +2,7 @@ package acleague.ingesters
 
 case class DemoRecorded(dateTime: String, mode: String, map: String, size: String)
 object DemoRecorded {
-  val capture = """Demo "(.*):\s+(.*), maps\/([^\s]+), ([^\s]+)" recorded\.""".r
+  val capture = """Demo "(.*):\s+(.*), ([^\s]+), (\d+[^\s]+), .*" recorded\.""".r
   def unapply(input: String): Option[DemoRecorded] = {
     input match {
       case capture(dateTime, mode, map, size) =>
@@ -26,7 +26,7 @@ object DemoWritten {
 
 case class GameFinishedHeader(mode: GameMode.GameMode, map: String, state: String)
 object GameFinishedHeader {
-  val capture = """Game status:\s+(.*)\s+on\s+([^\s]+), game finished, ([^\s]+)""".r
+  val capture = """Game status:\s+(.*)\s+on\s+([^\s]+), game finished, ([^\s]+), \d+ clients""".r
   def unapply(input: String): Option[GameFinishedHeader] = {
     input match {
       case capture(mode, map, state) =>
@@ -48,14 +48,14 @@ object TeamModes {
 
   object FragStyle {
 
-    case class IndividualScore(cn: Int, name: String, team: String, frag: Int, death: Int, tk: Int, ping: Int, role: String, host: String)
+    case class IndividualScore(cn: Int, name: String, team: String, score: Int, frag: Int, death: Int, tk: Int, ping: Int, role: String, host: String)
 
     object IndividualScore {
       def unapply(input: String): Option[IndividualScore] = {
-        val capture = """\s?(\d+)\s([^\s]+)\s+([^\s]+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+([^\s]+)\s+([^\s]+)\s*""".r
+        val capture = """\s?(\d+)\s([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+([^\s]+)\s+([^\s]+)\s*""".r
         input match {
-          case capture(cn, name, team, frag, death, tk, ping, role, host) =>
-            Option(IndividualScore(cn.toInt, name, team, frag.toInt, death.toInt, tk.toInt, ping.toInt, role, host))
+          case capture(cn, name, team, score, frag, death, tk, ping, role, host) =>
+            Option(IndividualScore(cn.toInt, name, team, score.toInt, frag.toInt, death.toInt, tk.toInt, ping.toInt, role, host))
         }
       }
     }
@@ -76,14 +76,14 @@ object TeamModes {
 
   object FlagStyle {
 
-    case class IndividualScore(cn: Int, name: String, team: String, flag: Int, frag: Int, death: Int, tk: Int, ping: Int, role: String, host: String)
+    case class IndividualScore(cn: Int, name: String, team: String, flag: Int, score: Int, frag: Int, death: Int, tk: Int, ping: Int, role: String, host: String)
 
     object IndividualScore {
       def unapply(input: String): Option[IndividualScore] = {
-        val capture = """\s?(\d+)\s([^\s]+)\s+([^\s]+)\s+(\d+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+([^\s]+)\s+([^\s]+)\s*""".r
+        val capture = """\s?(\d+)\s([^\s]+)\s+([^\s]+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+([^\s]+)\s+([^\s]+)\s*""".r
         input match {
-          case capture(cn, name, team, flag, frag, death, tk, ping, role, host) =>
-            Option(IndividualScore(cn.toInt, name, team, flag.toInt, frag.toInt, death.toInt, tk.toInt, ping.toInt, role, host))
+          case capture(cn, name, team, flag, score, frag, death, tk, ping, role, host) =>
+            Option(IndividualScore(cn.toInt, name, team, flag.toInt, score.toInt, frag.toInt, death.toInt, tk.toInt, ping.toInt, role, host))
           case _ => None
         }
       }

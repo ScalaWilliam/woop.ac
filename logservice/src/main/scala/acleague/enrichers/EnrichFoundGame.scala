@@ -46,13 +46,13 @@ object EnrichFoundGame {
         for { team <- teamScores.sortBy(_.flags).reverse }
         yield <team name={team.name} flags={team.flags.toString} frags={team.frags.toString}>
           { for { player <- scores.filter(_.team == team.name).sortBy(_.flag).reverse }
-            yield <player flags={player.flag.toString} frags={player.frag.toString} name={player.name} host={player.host}/>
+            yield <player score={player.score.toString} flags={player.flag.toString} frags={player.frag.toString} name={player.name} host={player.host}/>
             } </team>
       case Right(FragGameBuilder(_, scores, teamScores)) =>
         for { team <- teamScores.sortBy(_.frags).reverse }
         yield <team name={team.teamName} frags={team.frags.toString}>
             { for { player <- scores.filter(_.team == team.teamName).sortBy(_.frag).reverse }
-            yield <player frags={player.frag.toString} name={player.name} host={player.host}/>
+            yield <player score={player.score.toString} frags={player.frag.toString} name={player.name} host={player.host}/>
             } </team>
     }}
     </game>

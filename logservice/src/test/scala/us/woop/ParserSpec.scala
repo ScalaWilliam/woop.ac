@@ -7,9 +7,9 @@ class ParserSpec extends WordSpec with Inside with Inspectors with Matchers {
       val inputSequence = """
                             |Status at 12-12-2014 20:41:07: 1 remote clients, 0.0 send, 0.3 rec (K/sec)
                             |
-                            |Game status: hunt the flag on ac_depot, game finished, open
-                            |cn name             team flag frag death tk ping role    host
-                            |0 Drakas           RVSF    0    0     0  0   12 normal  127.0.0.1
+                            |Game status: hunt the flag on ac_depot, game finished, open, 2 clients
+                            |cn name             team flag score frag death tk ping role    host
+                            | 0 Drakas           RVSF    0   9  0     0  0   12 normal  127.0.0.1
                             |Team  CLA:  0 players,    0 frags,    0 flags
                             |Team RVSF:  1 players,    0 frags,    0 flags
                             |
@@ -46,11 +46,12 @@ class ParserSpec extends WordSpec with Inside with Inspectors with Matchers {
 
               forExactly(1, scores) {
                 score => inside(score) {
-                  case TeamModes.FlagStyle.IndividualScore(cn, name, team, flag, frag, death, tk, ping, role, host) =>
+                  case TeamModes.FlagStyle.IndividualScore(cn, name, team, flag, score, frag, death, tk, ping, role, host) =>
                     cn shouldBe 0
                     name shouldBe "Drakas"
                     team shouldBe "RVSF"
                     flag shouldBe 0
+                    score shouldBe 9
                     frag shouldBe 0
                     death shouldBe 0
                     tk shouldBe 0

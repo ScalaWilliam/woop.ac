@@ -85,8 +85,8 @@ object FoundGame {
       game = Left(FlagGameBuilder(
       header = gameFinishedHeader,
       scores = List(
-        TeamModes.FlagStyle.IndividualScore(1,"Drakas", "RVSF", 5,1,2,3,4,"admin", "12.2.2.2"),
-        TeamModes.FlagStyle.IndividualScore(2,"Fragg", "CLA", 15,11,12,13,14,"normal", "12.2.2.5")
+        TeamModes.FlagStyle.IndividualScore(1,"Drakas", "RVSF",1, 5,1,2,3,4,"admin", "12.2.2.2"),
+        TeamModes.FlagStyle.IndividualScore(2,"Fragg", "CLA", 2,15,11,12,13,14,"normal", "12.2.2.5")
       ),
       teamScores = List(
         TeamModes.FlagStyle.TeamScore("RVSF", 1, 1, 5),
