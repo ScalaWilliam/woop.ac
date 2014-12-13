@@ -16,7 +16,8 @@ class MessagePublisherActor(options: ConnectionOptions) extends Act with ActorLo
   become {
     case game @ GameXmlReady(xml) =>
       log.info("Received game to publish: {}", game)
-      MessagePublisher.publishMessage(options)(game)
+      val publishResult = MessagePublisher.publishMessage(options)(game)
+      context.system.eventStream.publish(publishResult)
   }
   whenFailing {
     case (failure, Some(game: GameXmlReady)) =>

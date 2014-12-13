@@ -1,6 +1,6 @@
 enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
 name := "acleague"
-version := "1.0"
+version := "1.0.1"
 scalaVersion := "2.11.4"
 resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
 libraryDependencies ++= Seq(
@@ -16,7 +16,7 @@ libraryDependencies ++= Seq(
   "com.hazelcast" % "hazelcast" % "3.4-EA",
   "com.typesafe" % "config" % "1.2.1"
 )
-mainClass in Compile := Option("us.woop.EverythingIntegrated")
+mainClass in Compile := Option("acleague.app.LeagueApp")
 publishArtifact in (Compile, packageBin) := false
 publishArtifact in (Universal, packageZipTarball) := true
 publishArtifact in (Compile, packageDoc) := false

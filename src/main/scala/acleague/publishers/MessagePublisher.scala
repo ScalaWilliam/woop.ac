@@ -13,13 +13,38 @@ object MessagePublisher {
   def apply(options: ConnectionOptions)(foundGame: FoundGame)(date: Date, server: String) = {
     publishMessage(options)(EnrichFoundGame(foundGame)(date, server))
   }
-  def publishMessage(options: ConnectionOptions)(game: GameXmlReady) = {
+  sealed trait PushResult {
+    def id: String
+  }
+  case class NewlyAdded(id: String) extends PushResult
+  case class WasThere(id: String) extends PushResult
+  def publishMessage(options: ConnectionOptions)(game: GameXmlReady): PushResult = {
+    val id = Option(scala.xml.XML.loadString(game.xml) \@ "id").filterNot(_.isEmpty)
     // no @id ==> we won't publish it!
-    if ( Option(scala.xml.XML.loadString(game.xml) \@ "id").filterNot(_.isEmpty).isEmpty ) {
+    if ( id.isEmpty ) {
       throw new IllegalArgumentException(s"Received a game without ID: $game")
     }
+
     val session = new ClientSession(options.host, options.port, options.user, options.password)
     try {
+      def isItThere = {
+        // check if it was already there
+        val queryA = session.query(
+          s"""
+         |declare variable $$id external;
+         |not(empty(db:open("${options.database}")/game[@id=$$id]))
+       """.stripMargin
+        )
+        try {
+          queryA.bind("id", id.get)
+          queryA.execute() == "true"
+        } finally {
+          queryA.close()
+        }
+      }
+
+      val wasThere = isItThere
+
       // push using idempotence
       val query = session.query(
         s"""
@@ -32,6 +57,14 @@ object MessagePublisher {
         // http://docs.basex.org/wiki/Server_Protocol:_Types
         query.context(game.xml, "document-node(element())")
         query.execute()
+        val isThere = isItThere
+        if ( wasThere && isThere ) {
+          WasThere(id.get)
+        } else if ( isThere ) {
+          NewlyAdded(id.get)
+        } else {
+          throw new IllegalStateException(s"Failed to add ID $id")
+        }
       } finally {
         query.close()
       }

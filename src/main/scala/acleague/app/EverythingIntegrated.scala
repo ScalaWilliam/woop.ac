@@ -13,6 +13,10 @@ object AppConfig {
   val syslogHost = conf.getString("acleague.syslog.host")
   val syslogPort = conf.getInt("acleague.syslog.port")
   val syslogProtocol = conf.getString("acleague.syslog.protocol")
+  val hazelcastTopicName = conf.getString("acleague.hazelcast.topic")
+  val hazelcastEnable = conf.getBoolean("acleague.hazelcast.enable")
+  val journalEnable = conf.getBoolean("acleague.journal.enable")
+  val diagnosticEnable = conf.getBoolean("acleague.diagnostic.enable")
 }
 
 object Util {
