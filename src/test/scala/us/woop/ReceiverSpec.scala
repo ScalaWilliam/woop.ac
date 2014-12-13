@@ -1,9 +1,11 @@
 package us.woop
 
+import acleague.actors.SyslogServerEventProcessorActor
+import acleague.enrichers.EnrichFoundGame.GameXmlReady
+import acleague.syslog.SyslogServerEventIFScala
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, DefaultTimeout, TestKit}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import us.woop.ServerProcessor.GameXmlReady
 
 class ReceiverSpec
   extends TestKit(ActorSystem("TestKitUsageSpec"))
@@ -17,13 +19,12 @@ class ReceiverSpec
   "Thingy" should {
     "Produce events after receiving some mesasges" in {
       system.eventStream.subscribe(testActor, classOf[Any])
-      val yay = system.actorOf(MessageProcessor.props, "goody")
+      val yay = system.actorOf(SyslogServerEventProcessorActor.props, "goody")
       val lines = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/long-log.log")).getLines()
       for { line <- lines }
         yay ! SyslogServerEventIFScala(0, None, 0, Some("stuff"), line)
       import concurrent.duration._
-      receiveN(25)
-      val msg = expectMsgClass(classOf[GameXmlReady])
+      val msg = fishForMessage() { case m: GameXmlReady => true; case _ => false }
       println(msg)
     }
   }

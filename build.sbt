@@ -12,7 +12,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.3.6",
   "com.typesafe.akka" %% "akka-slf4j" % "2.3.6",
   "com.typesafe.akka" %% "akka-testkit" % "2.3.6" % "test",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
+  "com.hazelcast" % "hazelcast" % "3.4-EA",
+  "com.typesafe" % "config" % "1.2.1"
 )
 mainClass in Compile := Option("us.woop.EverythingIntegrated")
 publishArtifact in (Compile, packageBin) := false

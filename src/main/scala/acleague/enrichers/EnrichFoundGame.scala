@@ -1,8 +1,27 @@
-package us.woop
+package acleague.enrichers
 
-import us.woop.CaptureGames.Parser.{FragGameBuilder, FlagGameBuilder, FoundGame}
+import java.util.Date
+import acleague.ingesters.{FlagGameBuilder, FoundGame, FragGameBuilder}
+import scala.util.hashing.MurmurHash3
+import scala.xml.UnprefixedAttribute
 
-object XmlGames {
+object EnrichFoundGame {
+
+  case class GameXmlReady(xml: String)
+
+  def apply(foundGame: FoundGame)(date: Date, serverId: String): GameXmlReady = {
+    val gameXml = foundGameXml(foundGame)
+    val gameId = MurmurHash3.productHash(serverId, date, -1337)
+    val newGameXml = gameXml.copy(attributes =
+      new UnprefixedAttribute("id", s"$gameId",
+        new UnprefixedAttribute("date", s"$date",
+          new UnprefixedAttribute("server", serverId,
+            gameXml.attributes)
+        )
+      )
+    )
+    GameXmlReady(s"$newGameXml")
+  }
 
   def foundGameXml(foundGame: FoundGame): scala.xml.Elem = {
     <game map={foundGame.header.map} mode={foundGame.header.mode.name} state={foundGame.header.state} winner={

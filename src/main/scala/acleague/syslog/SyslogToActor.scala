@@ -1,19 +1,23 @@
-package us.woop
+package acleague.syslog
+
 import java.util.Date
-import akka.actor.{ActorSystem, ActorRef, Actor}
+
+import akka.actor.{ActorRef, ActorSystem}
 import org.productivity.java.syslog4j.server._
-import akka.actor.ActorDSL._
 
-class SyslogServerActor() extends Act {
-
-}
 case class SyslogServerEventIFScala(facility: Int, date: Option[Date], level: Int, host: Option[String], message: String)
 
 object SyslogServerEventIFScala {
-  def apply(event: SyslogServerEventIF): SyslogServerEventIFScala =
-    SyslogServerEventIFScala(event.getFacility, Option(event.getDate), event.getLevel, Option(event.getHost), event.getMessage)
-}
-object SimpleSyslogServer {
+
+  def apply(event: SyslogServerEventIF): SyslogServerEventIFScala = {
+    SyslogServerEventIFScala(
+      facility = event.getFacility,
+      date = Option(event.getDate),
+      level = event.getLevel,
+      host = Option(event.getHost),
+      message = event.getMessage
+    )
+  }
 
   implicit class toDateAddition(input: String) {
     def toDate: Date = new Date(input)

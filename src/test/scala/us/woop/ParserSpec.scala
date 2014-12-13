@@ -1,6 +1,5 @@
+import acleague.ingesters._
 import org.scalatest.{Matchers, Inspectors, Inside, WordSpec}
-import us.woop.CaptureGames.{TeamModes, GameMode, GameFinishedHeader}
-import us.woop.CaptureGames.Parser.{FlagGameBuilder, FoundGame, ParserState, NothingFound}
 
 class ParserSpec extends WordSpec with Inside with Inspectors with Matchers {
   "Game capture" must {
