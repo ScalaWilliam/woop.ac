@@ -1,23 +1,15 @@
-enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
-name := "acleague"
+organization := "acleague"
+name:="root"
 version := "1.0.2"
 scalaVersion := "2.11.4"
-resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
-libraryDependencies ++= Seq(
-  "org.syslog4j" % "syslog4j" % "0.9.30",
-  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-  "org.scala-lang.modules" %% "scala-xml" % "1.0.2",
-  "org.basex" % "basex" % "7.9",
-  "ch.qos.logback" % "logback-classic" % "1.1.2",
-  "com.typesafe.akka" %% "akka-actor" % "2.3.6",
-  "com.typesafe.akka" %% "akka-slf4j" % "2.3.6",
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.6" % "test",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
-  "com.hazelcast" % "hazelcast" % "3.4-EA",
-  "com.typesafe" % "config" % "1.2.1"
-)
-mainClass in Compile := Option("acleague.app.LeagueApp")
-publishArtifact in (Compile, packageBin) := false
-publishArtifact in (Universal, packageZipTarball) := true
-publishArtifact in (Compile, packageDoc) := false
-
+//lazy val root = project.in( file(".") )
+//  .aggregate(frontend, logservice)
+//  .dependsOn(frontend, logservice)
+//
+//lazy val logservice = (project in file("logservice") enablePlugins (JavaAppPackaging, LinuxPlugin, UniversalPlugin))
+//
+//lazy val frontend = (project in file("frontend") enablePlugins PlayScala)
+//
+//resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+//
+//addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.7")
