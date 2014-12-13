@@ -1,7 +1,10 @@
 package acleague.enrichers
 
-import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.{TimeZone, Date}
 import acleague.ingesters.{FlagGameBuilder, FoundGame, FragGameBuilder}
+import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.format.ISODateTimeFormat
 import scala.util.hashing.MurmurHash3
 import scala.xml.UnprefixedAttribute
 
@@ -12,9 +15,14 @@ object EnrichFoundGame {
   def apply(foundGame: FoundGame)(date: Date, serverId: String): GameXmlReady = {
     val gameXml = foundGameXml(foundGame)
     val gameId = Math.abs(MurmurHash3.productHash(serverId, date, 1337))
+    val utcDate = {
+      val utcDatetime = new DateTime(date).withZone(DateTimeZone.forID("UTC"))
+      ISODateTimeFormat.dateTimeNoMillis().print(utcDatetime)
+    }
+
     val newGameXml = gameXml.copy(attributes =
       new UnprefixedAttribute("id", s"$gameId",
-        new UnprefixedAttribute("date", s"$date",
+        new UnprefixedAttribute("date", utcDate,
           new UnprefixedAttribute("server", serverId,
             gameXml.attributes)
         )

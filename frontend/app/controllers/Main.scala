@@ -13,7 +13,12 @@ object Main extends Controller {
     request =>
       val conn = new ClientSession("odin", 1236, "admin", "admin")
       conn.execute("open acleague")
-      val result = using(conn.query("/")) {
+      val result = using(conn.query(
+        """
+          |for $game in /game
+          |let $date := xs:dateTime($game/@date)
+          |return $date
+        """.stripMargin)) {
         _.execute()
       }
 
