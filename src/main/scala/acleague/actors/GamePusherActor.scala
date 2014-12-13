@@ -1,22 +1,22 @@
 package acleague.actors
 
 import acleague.enrichers.EnrichFoundGame.GameXmlReady
-import acleague.publishers.MessagePublisher
-import MessagePublisher.ConnectionOptions
-import acleague.publishers.MessagePublisher
+import acleague.publishers.GamePublisher
+import GamePublisher.ConnectionOptions
+import acleague.publishers.GamePublisher
 import akka.actor.ActorDSL._
 import akka.actor.{ActorLogging, Props}
-object MessagePublisherActor {
-  def props(options: ConnectionOptions) = Props(new MessagePublisherActor(options))
+object GamePusherActor {
+  def props(options: ConnectionOptions) = Props(new GamePusherActor(options))
 }
-class MessagePublisherActor(options: ConnectionOptions) extends Act with ActorLogging {
+class GamePusherActor(options: ConnectionOptions) extends Act with ActorLogging {
   whenStarting {
     log.info("Started message publisher actor with options {}", options)
   }
   become {
     case game @ GameXmlReady(xml) =>
       log.info("Received game to publish: {}", game)
-      val publishResult = MessagePublisher.publishMessage(options)(game)
+      val publishResult = GamePublisher.publishMessage(options)(game)
       context.system.eventStream.publish(publishResult)
   }
   whenFailing {

@@ -1,6 +1,6 @@
 package us.woop
 
-import acleague.actors.SyslogServerEventProcessorActor
+import acleague.actors.{GameDemoFound, SyslogServerEventProcessorActor}
 import acleague.enrichers.EnrichFoundGame.GameXmlReady
 import acleague.syslog.SyslogServerEventIFScala
 import akka.actor.ActorSystem
@@ -26,6 +26,8 @@ class ReceiverSpec
       import concurrent.duration._
       val msg = fishForMessage() { case m: GameXmlReady => true; case _ => false }
       println(msg)
+      val demoFound = fishForMessage() { case m: GameDemoFound => true; case _ => false }
+      println(demoFound)
     }
   }
 

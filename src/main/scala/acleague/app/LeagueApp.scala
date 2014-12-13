@@ -4,7 +4,7 @@ import acleague.actors.ReceiveMessages.RealMessage
 import acleague.actors.SyslogServerActor.SyslogServerOptions
 import acleague.actors._
 import acleague.enrichers.EnrichFoundGame.GameXmlReady
-import acleague.publishers.MessagePublisher.{NewlyAdded, ConnectionOptions}
+import acleague.publishers.GamePublisher.{NewlyAdded, ConnectionOptions}
 import acleague.syslog.SyslogServerEventIFScala
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.LazyLogging
@@ -29,11 +29,19 @@ object LeagueApp extends App with LazyLogging {
     val syslog = Syslog.getInstance(options.protocol)
     syslog.getConfig.setHost(options.host)
     syslog.getConfig.setPort(options.port)
-    scala.io.Source.fromInputStream(getClass.getResourceAsStream("/test-run.log")).getLines.foreach(syslog.info)
+    scala.io.Source.fromInputStream(getClass.getResourceAsStream("/test-run.log")).getLines().foreach(syslog.info)
   }
-  val messagePublisher = system.actorOf(
-    name = "messagePublisher",
-    props = MessagePublisherActor.props(options)
+  val gamePublisher = system.actorOf(
+    name = "gamePublisher",
+    props = GamePusherActor.props(options)
+  )
+  val demoPublisher = system.actorOf(
+    name = "demoPublisher",
+    props = DemoPusherActor.props(options)
+  )
+  system.eventStream.subscribe(
+    subscriber = demoPublisher,
+    channel = classOf[GameDemoFound]
   )
   val syslogServer = system.actorOf(
     name = "syslogServer",
@@ -48,7 +56,7 @@ object LeagueApp extends App with LazyLogging {
     channel = classOf[SyslogServerEventIFScala]
   )
   system.eventStream.subscribe(
-    subscriber = messagePublisher,
+    subscriber = gamePublisher,
     channel = classOf[GameXmlReady]
   )
   if ( AppConfig.journalEnable ) {
@@ -64,11 +72,15 @@ object LeagueApp extends App with LazyLogging {
   if ( AppConfig.hazelcastEnable ) {
     val hazelcastInstance = system.actorOf(
       name = "hazelcastInstance",
-      props = HazelcastPublisherActor.props(topicName = AppConfig.hazelcastTopicName)
+      props = HazelcastPublisherActor.props(topicName = AppConfig.hazelcastGameTopicName, demoTopicName = AppConfig.hazelcastDemoTopicName)
     )
     system.eventStream.subscribe(
       subscriber = hazelcastInstance,
       channel = classOf[NewlyAdded]
+    )
+    system.eventStream.subscribe(
+      subscriber = hazelcastInstance,
+      channel = classOf[GameDemoFound]
     )
   }
 

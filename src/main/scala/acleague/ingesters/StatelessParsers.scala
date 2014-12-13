@@ -1,5 +1,29 @@
 package acleague.ingesters
 
+case class DemoRecorded(dateTime: String, mode: String, map: String, size: String)
+object DemoRecorded {
+  val capture = """Demo "(.*):\s+(.*), maps\/([^\s]+), ([^\s]+)" recorded\.""".r
+  def unapply(input: String): Option[DemoRecorded] = {
+    input match {
+      case capture(dateTime, mode, map, size) =>
+        Option(DemoRecorded(dateTime, mode, map, size))
+      case _ =>
+        None
+    }
+  }
+}
+
+case class DemoWritten(filename: String, size: String)
+object DemoWritten {
+  val capture = """demo written to file "([^"]+)" \(([^\)]+)\)""".r
+  def unapply(input: String): Option[DemoWritten] = {
+    input match {
+      case capture(filename, size) => Some(DemoWritten(filename, size))
+      case _ => None
+    }
+  }
+}
+
 case class GameFinishedHeader(mode: GameMode.GameMode, map: String, state: String)
 object GameFinishedHeader {
   val capture = """Game status:\s+(.*)\s+on\s+([^\s]+), game finished, ([^\s]+)""".r

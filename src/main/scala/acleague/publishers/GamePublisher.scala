@@ -8,7 +8,7 @@ import acleague.ingesters.FoundGame
 import org.basex.server.ClientSession
 
 
-object MessagePublisher {
+object GamePublisher {
   case class ConnectionOptions(host: String = "127.0.0.1", port: Int = 1984, user: String = "admin", password: String = "admin", database: String)
   def apply(options: ConnectionOptions)(foundGame: FoundGame)(date: Date, server: String) = {
     publishMessage(options)(EnrichFoundGame(foundGame)(date, server))
