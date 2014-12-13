@@ -4,7 +4,7 @@ import java.io.File
 
 import java.io.{FileOutputStream, File}
 import java.util.Date
-import akka.actor.Props
+import akka.actor.{ActorLogging, Props}
 import akka.pattern._
 import akka.actor.ActorDSL._
 import us.woop.ReceiveMessages.RealMessage
@@ -35,8 +35,9 @@ import us.woop.ReceiveMessages.RealMessage
 //  def localProps = Props(new ElasticLogger(ElasticClient.local))
 //}
 
-class FileLogger(to: File) extends Act {
-  val os = new FileOutputStream(to)
+class FileLogger(to: File) extends Act with ActorLogging {
+  val os = new FileOutputStream(to, true)
+  log.info(s"Journalling to $to")
   become {
     case message @ RealMessage(date, serverName, payload) =>
       val realDate = date.getOrElse((new Date).toString)

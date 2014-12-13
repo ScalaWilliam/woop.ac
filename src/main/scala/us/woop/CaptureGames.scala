@@ -94,7 +94,7 @@ object CaptureGames {
     }
     sealed abstract class GameMode(val name: String) extends Style
     case object HTF extends GameMode("hunt the flag") with FlagStyle
-    case object CTF extends GameMode("capture the flag") with FlagStyle
+    case object CTF extends GameMode("ctf") with FlagStyle
     case object TOSOK extends GameMode("team one shot, one kill") with FragStyle
     case object TDM extends GameMode("team deathmatch") with FragStyle
     case object TS extends GameMode("team survivor") with FragStyle

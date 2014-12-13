@@ -1,6 +1,6 @@
 package us.woop
 
-import akka.actor.{Props, ActorRef, ActorSystem}
+import akka.actor.{ActorLogging, Props, ActorRef, ActorSystem}
 import org.basex.core.Context
 import org.basex.core.cmd.Add
 import org.basex.server.ClientSession
@@ -9,11 +9,13 @@ import akka.actor.ActorDSL._
 import us.woop.ReceiveMessages.RealMessage
 import us.woop.ServerProcessor.GameXmlReady
 import scala.xml.UnprefixedAttribute
-class ServerProcessor(serverId: String) extends Act {
+class ServerProcessor(serverId: String) extends Act with ActorLogging {
   var state = NothingFound: ParserState
   become {
     case RealMessage(date, serverName, message) =>
+      val previousState = state
       state = state.next(message)
+      log.debug("[{}] {}x{} -> {}", serverName, previousState, message, state)
       state match {
         case fg @ FoundGame(header, game) =>
           val gameXml = XmlGames.foundGameXml(fg)
@@ -33,7 +35,7 @@ object ServerProcessor {
   case class GameXmlReady(xml: String)
   def props(serverId: String) = Props(new ServerProcessor(serverId))
 }
-class MessageProcessor extends Act {
+class MessageProcessor extends Act with ActorLogging {
   val registeredServers = scala.collection.mutable.Map.empty[String, ActorRef]
   become {
     case SyslogServerEventIFScala(_, date, _, host, message) =>
@@ -54,6 +56,7 @@ class MessageProcessor extends Act {
           val matcher = """(.*): Status at [^ ]+ [^ ]+: \d+.*""".r
           fullMessage match {
             case matcher(serverId) =>
+              log.info("Registered new server {}", serverId)
               registeredServers += serverId -> context.actorOf(ServerProcessor.props(serverId))
             case other =>
               // ignore - looks like another service
