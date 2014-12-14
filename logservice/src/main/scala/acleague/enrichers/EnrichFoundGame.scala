@@ -52,7 +52,7 @@ object EnrichFoundGame {
       for { team <- teams.sortBy(team => (team.flags, team.frags)).reverse }
         yield <team name={team.name} flags={team.flags.map(_.toString).orNull} frags={team.frags.toString}>
         {
-        for { player <- players.filter(_.team == team.name).sortBy(p => (p.flag, p.frag)) }
+        for { player <- players.filter(_.team == team.name).sortBy(p => (p.flag, p.frag)).reverse }
           yield <player name={player.name} host={player.host.orNull} score={player.score.toString} flags={player.flag.map(_.toString).orNull} frags={player.frag.toString}/>
         }
       </team>
