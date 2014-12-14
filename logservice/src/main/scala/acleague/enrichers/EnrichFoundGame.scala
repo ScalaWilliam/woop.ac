@@ -1,7 +1,6 @@
 package acleague.enrichers
 
-import java.text.SimpleDateFormat
-import java.util.{TimeZone, Date}
+import java.util.{Date}
 import acleague.ingesters.{FlagGameBuilder, FoundGame, FragGameBuilder}
 import org.joda.time.{DateTimeZone, DateTime}
 import org.joda.time.format.ISODateTimeFormat
@@ -32,29 +31,32 @@ object EnrichFoundGame {
   }
 
   def foundGameXml(foundGame: FoundGame): scala.xml.Elem = {
+
+
     <game map={foundGame.header.map} mode={foundGame.header.mode.name} state={foundGame.header.state} winner={
     (foundGame.game match {
-      case Left(FlagGameBuilder(_, _, List(a, b))) if a.flags > b.flags => Option(a.name)
-      case Left(FlagGameBuilder(_, _, List(a, b))) if a.flags < b.flags => Option(b.name)
-      case Right(FragGameBuilder(_, _, List(a, b))) if a.frags > b.frags => Option(a.teamName)
-      case Right(FragGameBuilder(_, _, List(a, b))) if a.frags < b.frags => Option(b.teamName)
+      case Left(FlagGameBuilder(_, _, _, List(a, b))) if a.flags > b.flags => Option(a.name)
+      case Left(FlagGameBuilder(_, _, _, List(a, b))) if a.flags < b.flags => Option(b.name)
+      case Right(FragGameBuilder(_, _, _, List(a, b))) if a.frags > b.frags => Option(a.teamName)
+      case Right(FragGameBuilder(_, _, _, List(a, b))) if a.frags < b.frags => Option(b.teamName)
       case _ => None
     }).orNull
     }>
-    {foundGame.game match {
-      case Left(FlagGameBuilder(_, scores, teamScores)) =>
-        for { team <- teamScores.sortBy(_.flags).reverse }
-        yield <team name={team.name} flags={team.flags.toString} frags={team.frags.toString}>
-          { for { player <- scores.filter(_.team == team.name).sortBy(_.flag).reverse }
-            yield <player score={player.score.toString} flags={player.flag.toString} frags={player.frag.toString} name={player.name} host={player.host}/>
-            } </team>
-      case Right(FragGameBuilder(_, scores, teamScores)) =>
-        for { team <- teamScores.sortBy(_.frags).reverse }
-        yield <team name={team.teamName} frags={team.frags.toString}>
-            { for { player <- scores.filter(_.team == team.teamName).sortBy(_.frag).reverse }
-            yield <player score={player.score.toString} frags={player.frag.toString} name={player.name} host={player.host}/>
-            } </team>
-    }}
+    {
+      val (teams, players) = foundGame.game match {
+        case Left(FlagGameBuilder(_, scores, disconnectedScores, teamScores)) =>
+          teamScores.map(_.project) -> (scores ++ disconnectedScores).map(_.project)
+        case Right(FragGameBuilder(_, scores, disconnectedScores, teamScores)) =>
+          teamScores.map(_.project) -> (scores ++ disconnectedScores).map(_.project)
+      }
+      for { team <- teams.sortBy(team => (team.flags, team.frags)).reverse }
+        yield <team name={team.name} flags={team.flags.map(_.toString).orNull} frags={team.frags.toString}>
+        {
+        for { player <- players.filter(_.team == team.name).sortBy(p => (p.flag, p.frag)) }
+          yield <player name={player.name} host={player.host.orNull} score={player.score.toString} flags={player.flag.map(_.toString).orNull} frags={player.frag.toString}/>
+        }
+      </team>
+    }
     </game>
   }
 

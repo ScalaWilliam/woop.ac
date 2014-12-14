@@ -10,6 +10,7 @@ class ParserSpec extends WordSpec with Inside with Inspectors with Matchers {
                             |Game status: hunt the flag on ac_depot, game finished, open, 2 clients
                             |cn name             team flag score frag death tk ping role    host
                             | 0 Drakas           RVSF    0   9  0     0  0   12 normal  127.0.0.1
+                            |   w00p|Sanzo       RVSF    8   33    35  -    - disconnected
                             |Team  CLA:  0 players,    0 frags,    0 flags
                             |Team RVSF:  1 players,    0 frags,    0 flags
                             |
@@ -30,10 +31,19 @@ class ParserSpec extends WordSpec with Inside with Inspectors with Matchers {
               state shouldBe "open"
           }
           inside(flagGame) {
-            case FlagGameBuilder(_, scores, teamScores) =>
+            case FlagGameBuilder(_, scores, disconnectedScores, teamScores) =>
               teamScores should have size 2
               scores should have size 1
-
+              forExactly(1, disconnectedScores) {
+                disconnectedScore => inside(disconnectedScore) {
+                  case TeamModes.FlagStyle.IndividualScoreDisconnected(name, team, flag, score, frag) =>
+                    name shouldBe "w00p|Sanzo"
+                    team shouldBe "RVSF"
+                    flag shouldBe 8
+                    score shouldBe 33
+                    frag shouldBe 35
+                }
+              }
               forExactly(1, teamScores) {
                 score => inside(score) {
                   case TeamModes.FlagStyle.TeamScore(name, players, frags, flags) =>
