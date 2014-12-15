@@ -1,7 +1,7 @@
 enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
 organization := "acleague"
 name := "logservice"
-version := "1.0.5"
+version := "1.0.6"
 scalaVersion := "2.11.4"
 resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
 libraryDependencies ++= Seq(
@@ -24,3 +24,7 @@ publishArtifact in (Compile, packageBin) := false
 publishArtifact in (Universal, packageZipTarball) := true
 publishArtifact in (Compile, packageDoc) := false
 
+
+ideaExcludeFolders += ".idea"
+
+ideaExcludeFolders += ".idea_modules"

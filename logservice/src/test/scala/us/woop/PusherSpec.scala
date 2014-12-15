@@ -13,7 +13,7 @@ import org.basex.server.ClientSession
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 class PusherSpec extends WordSpec with Matchers with BeforeAndAfterAll {
   import Util.using
-  val server = new BaseXServer("-p12391")
+  val server = new BaseXServer("-p12391", "-e12392")
   val connectionOptions = ConnectionOptions(port = 12391, database = "for-testing")
   override def afterAll(): Unit = {
     server.stop()

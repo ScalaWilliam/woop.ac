@@ -3,40 +3,31 @@ package acleague.ingesters
 case class DemoRecorded(dateTime: String, mode: String, map: String, size: String)
 object DemoRecorded {
   val capture = """Demo "(.*):\s+(.*), ([^\s]+), (\d+[^\s]+), .*" recorded\.""".r
-  def unapply(input: String): Option[DemoRecorded] = {
-    input match {
-      case capture(dateTime, mode, map, size) =>
-        Option(DemoRecorded(dateTime, mode, map, size))
-      case _ =>
-        None
-    }
-  }
+  def unapply(input: String): Option[DemoRecorded] =
+    for { capture(dateTime, mode, map, size) <- Option(input) }
+    yield DemoRecorded(dateTime, mode, map, size)
 }
 
 case class DemoWritten(filename: String, size: String)
 object DemoWritten {
   val capture = """demo written to file "([^"]+)" \(([^\)]+)\)""".r
-  def unapply(input: String): Option[DemoWritten] = {
-    input match {
-      case capture(filename, size) => Some(DemoWritten(filename, size))
-      case _ => None
-    }
-  }
+  def unapply(input: String): Option[DemoWritten] =
+    for { capture(filename, size) <- Option(input) }
+    yield DemoWritten(filename, size)
 }
 
 case class GameFinishedHeader(mode: GameMode.GameMode, map: String, state: String)
 object GameFinishedHeader {
   val capture = """Game status:\s+(.*)\s+on\s+([^\s]+), game finished, ([^\s]+), \d+ clients""".r
-  def unapply(input: String): Option[GameFinishedHeader] = {
-    input match {
-      case capture(mode, map, state) =>
-        GameMode.gamemodes.find(_.name == mode).map(foundMode => GameFinishedHeader(foundMode, map, state))
-      case _ => None
-    }
-  }
+  def unapply(input: String): Option[GameFinishedHeader] =
+    for {
+      capture(mode, map, state) <- Option(input)
+      foundMode <- GameMode.gamemodes.find(_.name == mode)
+    } yield GameFinishedHeader(foundMode, map, state)
 }
 object VerifyTableHeader {
   def unapply(input: String): Boolean = {
+
     val capture = """cn\s+name\s+.*""".r
     input match {
       case capture() => true
@@ -53,13 +44,10 @@ object TeamModes {
     }
 
     object IndividualScore {
-      def unapply(input: String): Option[IndividualScore] = {
-        val capture = """\s?(\d+)\s([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+([^\s]+)\s+([^\s]+)\s*""".r
-        input match {
-          case capture(cn, name, team, score, frag, death, tk, ping, role, host) =>
-            Option(IndividualScore(cn.toInt, name, team, score.toInt, frag.toInt, death.toInt, tk.toInt, ping.toInt, role, host))
-        }
-      }
+      val capture = """\s?(\d+)\s([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+([^\s]+)\s+([^\s]+)\s*""".r
+      def unapply(input: String): Option[IndividualScore] =
+        for { capture(cn, name, team, score, frag, death, tk, ping, role, host) <- Option(input) }
+        yield IndividualScore(cn.toInt, name, team, score.toInt, frag.toInt, death.toInt, tk.toInt, ping.toInt, role, host)
     }
 
     case class IndividualScoreDisconnected(name: String, team: String, score: Int, frag: Int) extends CreatesGenericIndividualScore {
@@ -69,11 +57,8 @@ object TeamModes {
     object IndividualScoreDisconnected {
       def unapply(input: String): Option[IndividualScoreDisconnected] = {
         val capture = """\s+([^\s]+)\s+(RVSF|CLA)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
-        input match {
-          case capture(name, team, flag, score, frag) =>
-            Option(IndividualScoreDisconnected(name, team, score.toInt, frag.toInt))
-          case _ => None
-        }
+        for { capture(name, team, flag, score, frag) <- Option(input) }
+        yield IndividualScoreDisconnected(name, team, score.toInt, frag.toInt)
       }
     }
     case class TeamScore(teamName: String, players: Int, frags: Int)  extends CreatesGenericTeamScore {
@@ -81,13 +66,10 @@ object TeamModes {
     }
 
     object TeamScore {
-      def unapply(input: String): Option[TeamScore] = {
-        val capture = """Team\s+([^\s]+):\s+(\d+)\s+players,\s+(-?\d+)\s+frags.*""".r
-        input match {
-          case capture(teamName, players, frags) =>
-            Option(TeamScore(teamName, players.toInt, frags.toInt))
-        }
-      }
+      val capture = """Team\s+([^\s]+):\s+(\d+)\s+players,\s+(-?\d+)\s+frags.*""".r
+      def unapply(input: String): Option[TeamScore] =
+        for { capture(teamName, players, frags) <- Option(input) }
+        yield TeamScore(teamName, players.toInt, frags.toInt)
     }
 
   }
@@ -108,13 +90,10 @@ object TeamModes {
     }
 
     object IndividualScore {
+      val capture = """\s?(\d+)\s([^\s]+)\s+([^\s]+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+([^\s]+)\s+([^\s]+)\s*""".r
       def unapply(input: String): Option[IndividualScore] = {
-        val capture = """\s?(\d+)\s([^\s]+)\s+([^\s]+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+([^\s]+)\s+([^\s]+)\s*""".r
-        input match {
-          case capture(cn, name, team, flag, score, frag, death, tk, ping, role, host) =>
-            Option(IndividualScore(cn.toInt, name, team, flag.toInt, score.toInt, frag.toInt, death.toInt, tk.toInt, ping.toInt, role, host))
-          case _ => None
-        }
+        for { capture(cn, name, team, flag, score, frag, death, tk, ping, role, host) <- Option(input) }
+        yield IndividualScore(cn.toInt, name, team, flag.toInt, score.toInt, frag.toInt, death.toInt, tk.toInt, ping.toInt, role, host)
       }
     }
 
@@ -123,13 +102,10 @@ object TeamModes {
     }
 
     object IndividualScoreDisconnected {
+      val capture = """\s+([^\s]+)\s+(RVSF|CLA)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
       def unapply(input: String): Option[IndividualScoreDisconnected] = {
-        val capture = """\s+([^\s]+)\s+(RVSF|CLA)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
-        input match {
-          case capture(name, team, flag, score, frag) =>
-            Option(IndividualScoreDisconnected(name, team, flag.toInt, score.toInt, frag.toInt))
-          case _ => None
-        }
+        for { capture(name, team, flag, score, frag) <- Option(input) }
+        yield IndividualScoreDisconnected(name, team, flag.toInt, score.toInt, frag.toInt)
       }
     }
 
@@ -138,14 +114,10 @@ object TeamModes {
     }
 
     object TeamScore {
-      def unapply(input: String): Option[TeamScore] = {
-        val capture = """Team\s+([^\s]+):\s+(\d+)\s+players,\s+(-?\d+)\s+frags,\s+(\d+)\s+flags""".r
-        input match {
-          case capture(name, players, frags, flags) =>
-            Option(TeamScore(name, players.toInt, frags.toInt, flags.toInt))
-          case _ => None
-        }
-      }
+      val capture = """Team\s+([^\s]+):\s+(\d+)\s+players,\s+(-?\d+)\s+frags,\s+(\d+)\s+flags""".r
+      def unapply(input: String): Option[TeamScore] =
+        for { capture(name, players, frags, flags) <- Option(input) }
+        yield TeamScore(name, players.toInt, frags.toInt, flags.toInt)
     }
 
   }
