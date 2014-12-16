@@ -28,13 +28,13 @@ object Main extends Controller {
 
       Ok(result)
   }
+  def servers = Action {
+    request =>
+              Ok(views.html.servers())
+  }
   def questions = Action {
     request =>
               Ok(views.html.questions())
-//      withSession { conn =>
-//        val header = using(conn.query("/article[@id='questions']"))(_.execute())
-//        Ok(views.html.main("Questions")(Html(""), Html(header)))
-//      }
   }
   def withSession[T](x: ClientSession => T): T = {
     using(new ClientSession("odin", 1236, "admin", "admin")) { c =>
