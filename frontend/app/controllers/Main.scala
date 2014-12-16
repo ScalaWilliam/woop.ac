@@ -34,15 +34,23 @@ object Main extends Controller {
       conn.execute("open acleague")
       val result = using(conn.query(
         """
-          |let $earliest := string(current-dateTime() - xs:dayTimeDuration("P7D"))
+          |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P7D"), ())) cast as xs:date
           |for $game in /game
-          |let $date := data($game/@date)
+          |let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
+          |let $date := xs:date($dateTime cast as xs:date)
+          |let $day-ago := adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P1D"), ()) cast as xs:date
+          |let $date-text :=
+          | if ( $date = xs:date(current-date()) ) then (" today")
+          | else if ( $date = $day-ago ) then (" yesterday")
+          | else (" on "|| $date)
           |let $has-flags := not(empty($game//@flags))
           |where $date ge $earliest
-          |order by $date descending
+          |where count($game//player) ge 4
+          |order by data($game/@date) descending
+          |
           |return
-          |<article class="game">
-          |<header><h2>{data($game/@mode)} @ {data($game/@map)} on {data($date)}</h2></header>
+          |<article class="game" style="{"background-image:url('/assets/maps/"||data($game/@map)||".jpg')"}">
+          |<header><h2>{data($game/@mode)} @ {data($game/@map)} {$date-text}</h2></header>
           |<div class="teams">
           |{
           |for $team in $game/team[@name]
@@ -50,11 +58,14 @@ object Main extends Controller {
           |let $low-name := lower-case($name)
           |return
           |<div class="{$low-name || " team"}">
-          |
-          |<h3>{$name}</h3>
+          |<div class="team-header">
+          |<h3><img src="{"/assets/"||$low-name||".png"}"/></h3>
+          |<div class="result">
           |
           |<span class="score">{if ( $has-flags ) then (data($team/@flags)) else (data($team/@frags))}</span>
           |{if ( $has-flags ) then (<span class="subscore">{data($team/@frags)}</span>) else ()}
+          |</div>
+          |</div>
           |<table class="players">
           |<tbody>
           |{ for $player in $team/player
@@ -74,7 +85,6 @@ object Main extends Controller {
         """.stripMargin)) {
         _.execute()
       }
-
       Ok(views.html.main(Html(result)))
   }
 }

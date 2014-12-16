@@ -1,75 +1,15 @@
 @(data: Html)
 <link href='http://fonts.googleapis.com/css?family=Permanent+Marker|Signika:400,700' rel='stylesheet' type='text/css'>
-
+<link href='/assets/stylesheets/main.css' rel="stylesheet" type="text/css"/>
 <style>
-body {
-background-color: mintcream;
-color:#333;
-font-family: Signika, sans-serif;
-cursor: default;
-}
-.teams {
-display:flex;
-}
-.team {
-flex:1;
-}
-.game {
-width:36em;
-margin-bottom:2em;
-margin-left:auto;
-margin-right: auto;
-background: beige;
-border-radius: 2em;
-padding:1.6em;
-}
-.game header h2 {
-
-text-align: center;;
-margin-top:0em;
-}
-
-.team h3 {
-font-size:2.5em;
-text-align: center;
-margin-bottom: 0;;
-}
-.team > .score {
-font-size:4em;
-display: block;
-text-align: center;
-}
-.team > .subscore:before {
-content:"(";
-}
-.team > .subscore:after {
-content:")";
-}
-.team > .subscore {
-display:block;
-margin-top:-0.4em;
-text-align: center;
-font-size:2em;
-}
-
-table.players {
-margin-left:auto;
-margin-right:auto;
-font-size:1.6em;
-margin-top:0.6em;
-}
-.cla {
-color:darkred;
-}
-.rvsf {
-color:darkblue;
-}
-th,td {
-padding:0.2em;
-vertical-align: baseline;
-}
-th.score {
-}
 </style>
-
-@data
+<body>
+    <div role="main">
+    <header>
+        <h1>AssaultCube Match League</h1>
+        <h2>By w00p</h2>
+    </header>
+    <article>
+        @data
+    </article></div>
+</body>
