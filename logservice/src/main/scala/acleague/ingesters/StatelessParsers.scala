@@ -25,6 +25,15 @@ object GameFinishedHeader {
       foundMode <- GameMode.gamemodes.find(_.name == mode)
     } yield GameFinishedHeader(foundMode, map, state)
 }
+case class GameInProgressHeader(mode: GameMode.GameMode, remaining: Int, map: String, state: String)
+object GameInProgressHeader {
+  val capture = """Game status:\s+(.*)\s+on\s+([^\s]+), (\d+) minutes remaining, ([^\s]+), \d+ clients""".r
+  def unapply(input: String): Option[GameInProgressHeader] =
+    for {
+      capture(mode, map, remain, state) <- Option(input)
+      foundMode <- GameMode.gamemodes.find(_.name == mode)
+    } yield GameInProgressHeader(foundMode, remain.toInt, map, state)
+}
 object VerifyTableHeader {
   def unapply(input: String): Boolean = {
 
@@ -56,8 +65,8 @@ object TeamModes {
 
     object IndividualScoreDisconnected {
       def unapply(input: String): Option[IndividualScoreDisconnected] = {
-        val capture = """\s+([^\s]+)\s+(RVSF|CLA)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
-        for { capture(name, team, flag, score, frag) <- Option(input) }
+        val capture = """\s+([^\s]+)\s+([^\s]+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
+        for { capture(name, team, score, frag) <- Option(input) }
         yield IndividualScoreDisconnected(name, team, score.toInt, frag.toInt)
       }
     }
@@ -102,7 +111,7 @@ object TeamModes {
     }
 
     object IndividualScoreDisconnected {
-      val capture = """\s+([^\s]+)\s+(RVSF|CLA)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
+      val capture = """\s+([^\s]+)\s+([^\s]+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
       def unapply(input: String): Option[IndividualScoreDisconnected] = {
         for { capture(name, team, flag, score, frag) <- Option(input) }
         yield IndividualScoreDisconnected(name, team, flag.toInt, score.toInt, frag.toInt)

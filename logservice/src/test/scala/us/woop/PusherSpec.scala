@@ -25,7 +25,8 @@ class PusherSpec extends WordSpec with Matchers with BeforeAndAfterAll {
         session.execute(new Check("for-testing"))
         def getCount = using(session.query("count(/game[@id])"))(_.execute).toInt
         val startCount = getCount
-        GamePublisher.publishMessage(connectionOptions)(EnrichFoundGame(FoundGame.example)(new Date, "test-server"))
+
+        GamePublisher.publishMessage(connectionOptions)(EnrichFoundGame(FoundGame.example)(new Date, "test-server", 15))
         val endCount = getCount
         endCount shouldBe (startCount + 1)
       }
