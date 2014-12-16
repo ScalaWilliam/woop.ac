@@ -49,7 +49,7 @@ object Main extends Controller {
           |order by data($game/@date) descending
           |
           |return
-          |<article class="game" style="{"background-image:url('/assets/maps/"||data($game/@map)||".jpg')"}">
+          |<article class="game" style="{"background-image:url('/assets/maps/"||data($game/@map)||".jpg')"}"><div class="w">
           |<header><h2>{data($game/@mode)} @ {data($game/@map)} {$date-text}</h2></header>
           |<div class="teams">
           |{
@@ -79,7 +79,7 @@ object Main extends Controller {
           |</table>
           |</div>
           |}
-          |</div>
+          |</div></div>
           |</article>
           |
         """.stripMargin)) {
