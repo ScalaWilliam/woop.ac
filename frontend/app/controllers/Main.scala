@@ -32,6 +32,7 @@ object Main extends Controller {
     request =>
       val conn = new ClientSession("odin", 1236, "admin", "admin")
       conn.execute("open acleague")
+      val header = using(conn.query("/article"))(_.execute())
       val result = using(conn.query(
         """
           |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P7D"), ())) cast as xs:date
@@ -85,6 +86,6 @@ object Main extends Controller {
         """.stripMargin)) {
         _.execute()
       }
-      Ok(views.html.main(Html(result)))
+      Ok(views.html.main(Html(header), Html(result)))
   }
 }

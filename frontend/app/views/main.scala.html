@@ -1,4 +1,4 @@
-@(data: Html)
+@(top:Html, data: Html)
 <link href='http://fonts.googleapis.com/css?family=Permanent+Marker|Signika:400,700' rel='stylesheet' type='text/css'>
 <link href='/assets/stylesheets/main.css' rel="stylesheet" type="text/css"/>
 <style>
@@ -9,6 +9,7 @@
         <h1>AssaultCube Match League</h1>
         <h2>By w00p</h2>
     </header>
+        <div id="top">@top</div>
     <article>
         @data
     </article></div>
