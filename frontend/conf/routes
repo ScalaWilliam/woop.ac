@@ -1,2 +1,3 @@
 GET        /        controllers.Main.read
+GET        /questions        controllers.Main.questions
 GET        /assets/*file        controllers.Assets.versioned(path="/public", file: Asset)

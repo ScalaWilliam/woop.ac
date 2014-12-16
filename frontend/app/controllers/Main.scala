@@ -28,13 +28,26 @@ object Main extends Controller {
 
       Ok(result)
   }
+  def questions = Action {
+    request =>
+              Ok(views.html.questions())
+//      withSession { conn =>
+//        val header = using(conn.query("/article[@id='questions']"))(_.execute())
+//        Ok(views.html.main("Questions")(Html(""), Html(header)))
+//      }
+  }
+  def withSession[T](x: ClientSession => T): T = {
+    using(new ClientSession("odin", 1236, "admin", "admin")) { c =>
+      c.execute("open acleague")
+      x(c)
+    }
+  }
   def read = Action{
     request =>
-      val conn = new ClientSession("odin", 1236, "admin", "admin")
-      conn.execute("open acleague")
-      val header = using(conn.query("/article"))(_.execute())
-      val result = using(conn.query(
-        """
+      withSession { conn =>
+//        val header = using(conn.query("/article[@id='top']"))(_.execute())
+        val result = using(conn.query(
+          """
           |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P7D"), ())) cast as xs:date
           |for $game in /game
           |let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
@@ -84,8 +97,12 @@ object Main extends Controller {
           |</article>
           |
         """.stripMargin)) {
-        _.execute()
+        _.
+          execute()
       }
-      Ok(views.html.main(Html(header), Html(result)))
+      Ok(views.
+        html.main("Woop AssaultCube Match league")(Html(""))(Html(
+        result)))
+        }
   }
 }

@@ -1,16 +1,23 @@
-@(top:Html, data: Html)
+@(title: String)(top:Html)(data: Html)
+<!doctype html><html>
+<head>
+    <meta charset="utf-8"/>
+
+<title>@title</title>
 <link href='http://fonts.googleapis.com/css?family=Permanent+Marker|Signika:400,700' rel='stylesheet' type='text/css'>
 <link href='/assets/stylesheets/main.css' rel="stylesheet" type="text/css"/>
-<style>
-</style>
+</head>
 <body>
     <div role="main">
     <header>
-        <h1>AssaultCube Match League</h1>
-        <h2>By w00p</h2>
+        <h1><a href="/">AssaultCube Match League</a></h1>
+        <h2>by <a href="http://woop.us/" target="_blank">Woop clan</a></h2>
     </header>
-        <div id="top">@top</div>
-    <article>
+    <div id="top">
+    <article><a href="questions">Questions</a> &bull; <a href="questions">Servers</a></article>
+    </div>
+    <div id="content">
         @data
-    </article></div>
+    </div></div>
 </body>
+    </html>
