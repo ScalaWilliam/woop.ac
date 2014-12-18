@@ -1,7 +1,5 @@
 package acleague.ingesters
 
-import acleague.ingesters.GameInProgressHeader
-
 sealed trait GameDuration {
   def next(input: String): GameDuration
 }
