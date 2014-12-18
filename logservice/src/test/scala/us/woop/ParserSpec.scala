@@ -4,6 +4,21 @@ import org.scalatest._
 
 class ParserSpec extends WordSpec with Inside with Inspectors with Matchers with OptionValues {
   "Demo capture" must {
+    "Not fail another demo" in {
+      val inputSequence =
+        """
+          |Demo "Thu Dec 18 19:24:56 2014: ctf, ac_gothic, 610.60kB" recorded.
+          |demo written to file "demos/20141218_1824_local_ac_gothic_15min_CTF.dmo" (625252 bytes)
+          |
+        """.stripMargin.split("\r?\n")
+
+      val outputs = inputSequence.scanLeft(NoDemosCollected: DemoCollector)(_.next(_))
+
+      forExactly(1, outputs) {
+        output =>
+          output shouldBe a[DemoWrittenCollected]
+      }
+    }
     "Not fail a simple demo (1.2)" in {
       val inputSequence =
         """

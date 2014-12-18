@@ -3,9 +3,12 @@ package acleague.ingesters
 case class DemoRecorded(dateTime: String, mode: String, map: String, size: String)
 object DemoRecorded {
   val capture = """Demo "(.*):\s+(.*), ([^\s]+), (\d+[^\s]+), .*" recorded\.""".r
-  def unapply(input: String): Option[DemoRecorded] =
-    for { capture(dateTime, mode, map, size) <- Option(input) }
-    yield DemoRecorded(dateTime, mode, map, size)
+  val capture2 = """Demo "(.*):\s+(.*), ([^\s]+), (\d+[^\s]+)" recorded\.""".r
+  def unapply(input: String): Option[DemoRecorded] = input match {
+    case capture(dateTime, mode, map, size) => Option(DemoRecorded(dateTime, mode, map, size))
+    case capture2(dateTime, mode, map, size) => Option(DemoRecorded(dateTime, mode, map, size))
+    case _ => None
+  }
 }
 
 case class DemoWritten(filename: String, size: String)
