@@ -23,8 +23,8 @@ class HazelcastPublisherActor(topicName: String, demoTopicName: String, demoDown
     case NewlyAdded(newId) =>
       topic.publish(newId)
     case GameDemoFound(gameId, _, _) =>
-      demoTopic.publish(gameId)
+      demoTopic.publish(gameId.toString)
     case DemoDownloaded(gameId, _, _) =>
-      demoDownloadTopic.publish(gameId)
+      demoDownloadTopic.publish(gameId.toString)
   }
 }

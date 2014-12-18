@@ -48,7 +48,7 @@ class IndividualServerActor(serverId: String) extends Act with ActorLogging {
         for {
           lastGame <- lastGameO
           lastGameXml = scala.xml.XML.loadString(lastGame.xml)
-          id = lastGameXml \@ "id"
+          id = (lastGameXml \@ "id").toInt
           lastMode = lastGameXml \@ "mode"
           lastMap = lastGameXml \@ "map"
           if lastMode == demoMode
@@ -61,7 +61,7 @@ class IndividualServerActor(serverId: String) extends Act with ActorLogging {
       
   }
 }
-case class GameDemoFound(gameId: String, demoRecorded: DemoRecorded, demoWritten: DemoWritten)
+case class GameDemoFound(gameId: Int, demoRecorded: DemoRecorded, demoWritten: DemoWritten)
 object GameDemoFound {
-  def example = GameDemoFound("abcd", DemoRecorded("a", "b", "c", "d"), DemoWritten("e", "f"))
+  def example = GameDemoFound(2141423, DemoRecorded("a", "b", "c", "d"), DemoWritten("e", "f"))
 }

@@ -27,11 +27,26 @@ class DemoDownloaderSpec
       tempDirectory.mkdir()
       try {
         val yay = system.actorOf(DemoDownloaderActor.props(tempDirectory), "goody")
-        yay ! GameDemoFound("1234", null, DemoWritten("demos/20141216_1638_local_ac_aqueous_2min_TDM.dmo", "whatever"))
+        yay ! GameDemoFound(1234, null, DemoWritten("demos/20141216_1638_local_ac_aqueous_2min_TDM.dmo", "whatever"))
         import concurrent.duration._
         val downloadedMsg = expectMsgClass(10.seconds, classOf[DemoDownloaded])
         downloadedMsg.destination.exists() shouldBe true
         println(downloadedMsg)
+      } finally {
+        tempDirectory.delete()
+      }
+    }
+    "Fail stuff" in {
+      system.eventStream.subscribe(testActor, classOf[DemoDownloaded])
+      val tempDirectory = Files.createTempDirectory("demos").toFile
+      tempDirectory.mkdir()
+      try {
+        tempDirectory.listFiles().toList shouldBe empty
+        val yay = system.actorOf(DemoDownloaderActor.props(tempDirectory), "goodye")
+        yay ! GameDemoFound(1234, null, DemoWritten("demos/201412dwwqdw16_1638_local_ac_aqqueous_2min_TDM.dmo", "whatever"))
+        import concurrent.duration._
+        expectNoMsg(10.seconds)
+        tempDirectory.listFiles().toList shouldBe empty
       } finally {
         tempDirectory.delete()
       }

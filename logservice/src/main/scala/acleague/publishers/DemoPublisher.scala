@@ -12,7 +12,7 @@ object DemoPublisher {
     publishDemo(options)(demo)
   }
   def publishLocaldemo(options: ConnectionOptions)(downloaded: DemoDownloaded): Unit = {
-    val demoXml = <local-demo game-id={downloaded.gameId} from={downloaded.source.toString} to={downloaded.destination.toString}/>
+    val demoXml = <local-demo game-id={downloaded.gameId.toString} from={downloaded.source.toString} to={downloaded.destination.toString}/>
 
     val session = new ClientSession(options.host, options.port, options.user, options.password)
     try {
@@ -38,7 +38,7 @@ object DemoPublisher {
   }
   def publishDemo(options: ConnectionOptions)(demo: GameDemoFound): Unit = {
     val demoXml = <demo
-      game-id={demo.gameId}
+      game-id={demo.gameId.toString}
       date={demo.demoRecorded.dateTime}
       map={demo.demoRecorded.map}
       mode={demo.demoRecorded.mode}

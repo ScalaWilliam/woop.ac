@@ -1,5 +1,6 @@
 package us.woop
 
+import acleague.actors.DemoDownloaderActor.DemoDownloaded
 import acleague.actors.{GameDemoFound, SyslogServerEventProcessorActor}
 import acleague.enrichers.EnrichFoundGame.GameXmlReady
 import acleague.syslog.SyslogServerEventIFScala

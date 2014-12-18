@@ -41,7 +41,7 @@ class PusherSpec extends WordSpec with Matchers with BeforeAndAfterAll {
       withSession { session =>
         session.execute(new Check("for-testing"))
         def getCount = using(session.query("count(/demo[@game-id])"))(_.execute).toInt
-        val simpleDemo = GameDemoFound.example.copy(gameId = UUID.randomUUID().toString)
+        val simpleDemo = GameDemoFound.example.copy(gameId = new scala.util.Random().nextInt)
         val startCount = getCount
         DemoPublisher.publishDemo(connectionOptions)(simpleDemo)
         val endCount = getCount
@@ -52,7 +52,7 @@ class PusherSpec extends WordSpec with Matchers with BeforeAndAfterAll {
       withSession { session =>
         session.execute(new Check("for-testing"))
         def getCount = using(session.query("count(/local-demo[@game-id])"))(_.execute).toInt
-        val simpleDemo = DemoDownloaded(gameId = new scala.util.Random().nextInt.toString, new URI("abc:test"), new File("wat.dmo"))
+        val simpleDemo = DemoDownloaded(gameId = new scala.util.Random().nextInt, new URI("abc:test"), new File("wat.dmo"))
         val startCount = getCount
         DemoPublisher.publishLocaldemo(connectionOptions)(simpleDemo)
         val endCount = getCount
