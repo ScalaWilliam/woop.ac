@@ -1,6 +1,9 @@
 package controllers
 
+import java.io.File
+
 import org.basex.server.ClientSession
+import play.api.Play
 import play.api.mvc._
 import play.twirl.api.Html
 
@@ -42,63 +45,53 @@ object Main extends Controller {
       x(c)
     }
   }
+  lazy val processGameXQuery = {
+    import play.api.Play.current
+    scala.io.Source.fromInputStream(Play.resourceAsStream("/process-game.xq").get).mkString
+  }
+  def getGameQueryText =
+    processGameXQuery +
+      """
+        |declare variable $game-id as xs:integer external;
+        |let $games := if ( $game-id = 0 ) then (/game) else (/game[@id=$game-id])
+        |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P5D"), ())) cast as xs:date
+        |for $game in $games
+        |let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
+        |let $date := xs:date($dateTime cast as xs:date)
+        |where $date ge $earliest
+        |where count($game//player) ge 4
+        |order by data($game/@date) descending
+        |let $has-demo := exists(/local-demo[@game-id = data($game/@id)])
+        |return local:display-game($game, $has-demo)
+        |
+      """.stripMargin
+
   def read = Action{
     request =>
       withSession { conn =>
 //        val header = using(conn.query("/article[@id='top']"))(_.execute())
-        val result = using(conn.query(
-          """
-          |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P7D"), ())) cast as xs:date
-          |for $game in /game
-          |let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
-          |let $date := xs:date($dateTime cast as xs:date)
-          |let $day-ago := adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P1D"), ()) cast as xs:date
-          |let $date-text :=
-          | if ( $date = xs:date(current-date()) ) then (" today")
-          | else if ( $date = $day-ago ) then (" yesterday")
-          | else (" on "|| $date)
-          |let $has-flags := not(empty($game//@flags))
-          |where $date ge $earliest
-          |where count($game//player) ge 4
-          |order by data($game/@date) descending
-          |
-          |return
-          |<article class="game" style="{"background-image:url('/assets/maps/"||data($game/@map)||".jpg')"}"><div class="w">
-          |<header><h2>{data($game/@mode)} @ {data($game/@map)} {$date-text}</h2></header>
-          |<div class="teams">
-          |{
-          |for $team in $game/team[@name]
-          |let $name := data($team/@name)
-          |let $low-name := lower-case($name)
-          |return
-          |<div class="{$low-name || " team"}">
-          |<div class="team-header">
-          |<h3><img src="{"/assets/"||$low-name||".png"}"/></h3>
-          |<div class="result">
-          |
-          |<span class="score">{if ( $has-flags ) then (data($team/@flags)) else (data($team/@frags))}</span>
-          |{if ( $has-flags ) then (<span class="subscore">{data($team/@frags)}</span>) else ()}
-          |</div>
-          |</div>
-          |<table class="players">
-          |<tbody>
-          |{ for $player in $team/player
-          |return <tr>
-          |<th class="score">{if ( $has-flags ) then (data($player/@flags)) else (data($player/@frags))}</th>
-          |{if ( $has-flags ) then (<th class="subscore">{data($player/@frags)}</th>) else ()}
-          |<td class="name">{data($player/@name)}</td>
-          |</tr>
-          |}
-          |</tbody>
-          |</table>
-          |</div>
-          |}
-          |</div></div>
-          |</article>
-          |
-        """.stripMargin)) {
-        _.
-          execute()
+        val result = using(conn.query(getGameQueryText)) {
+        x =>
+          x.bind("game-id", 0, "xs:integer")
+          x.execute()
+      }
+      Ok(views.
+        html.main("Woop AssaultCube Match league")(Html(""))(Html(
+        result)))
+        }
+  }
+  lazy val directory = new File(Play.current.configuration.getString("demos.directory").getOrElse(s"${scala.util.Properties.userHome}/demos")).getCanonicalFile
+  def readDemo(id: Int) = {
+    controllers.ExternalAssets.at(directory.getAbsolutePath, s"$id.dmo")
+  }
+  def readGame(id: Int) = Action{
+    request =>
+      withSession { conn =>
+//        val header = using(conn.query("/article[@id='top']"))(_.execute())
+        val result = using(conn.query(getGameQueryText)) {
+        x =>
+          x.bind("game-id", id, "xs:integer")
+          x.execute()
       }
       Ok(views.
         html.main("Woop AssaultCube Match league")(Html(""))(Html(

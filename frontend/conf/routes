@@ -1,4 +1,6 @@
-GET        /        controllers.Main.read
-GET        /questions        controllers.Main.questions
-GET        /servers        controllers.Main.servers
+GET        /                    controllers.Main.read
+GET        /questions           controllers.Main.questions
+GET        /servers             controllers.Main.servers
 GET        /assets/*file        controllers.Assets.versioned(path="/public", file: Asset)
+GET        /game/:id            controllers.Main.readGame(id: Int)
+GET        /demos/:id.dmo       controllers.Main.readDemo(id: Int)
