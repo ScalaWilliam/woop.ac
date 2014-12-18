@@ -151,7 +151,7 @@ object FoundGame {
       ),
       disconnectedScores = List.empty,
       teamScores = List(
-        TeamModes.FlagStyle.TeamScore("RVSF", 1, 1, 5),
+        TeamModes.FlagStyle.TeamScore("RVSF", 1, 10, 5),
         TeamModes.FlagStyle.TeamScore("CLA", 1, 15, 11)
       ))
     )

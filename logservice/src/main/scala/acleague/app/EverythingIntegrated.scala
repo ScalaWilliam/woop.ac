@@ -15,9 +15,12 @@ object AppConfig {
   val syslogProtocol = conf.getString("acleague.syslog.protocol")
   val hazelcastGameTopicName = conf.getString("acleague.hazelcast.game.topic")
   val hazelcastDemoTopicName = conf.getString("acleague.hazelcast.demo.topic")
+  val hazelcastDemoDownloadTopicName = conf.getString("acleague.hazelcast.demodownload.topic")
   val hazelcastEnable = conf.getBoolean("acleague.hazelcast.enable")
   val journalEnable = conf.getBoolean("acleague.journal.enable")
   val diagnosticEnable = conf.getBoolean("acleague.diagnostic.enable")
+  val downloadDemos = conf.getBoolean("acleague.demos.download.enable")
+  val downloadDemosPath = new File(conf.getString("acleague.demos.download.path")).getCanonicalFile
 }
 
 object Util {

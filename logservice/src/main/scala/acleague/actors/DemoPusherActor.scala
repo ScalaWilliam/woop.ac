@@ -1,5 +1,6 @@
 package acleague.actors
 
+import acleague.actors.DemoDownloaderActor.DemoDownloaded
 import acleague.publishers.DemoPublisher
 import acleague.publishers.GamePublisher.ConnectionOptions
 
@@ -17,10 +18,18 @@ class DemoPusherActor(options: ConnectionOptions) extends Act with ActorLogging 
     case demo: GameDemoFound =>
       log.debug("Received demo to publish: {}", demo)
       DemoPublisher(options)(demo)
+    case demo: DemoDownloaded =>
+      log.debug("Received local demo to publish: {}", demo)
+      DemoPublisher.publishLocaldemo(options)(demo)
   }
   whenFailing {
     case (failure, Some(demo: GameDemoFound)) =>
       log.error(failure, "Failed to push demo, trying again: {}", demo)
+      import concurrent.duration._
+      import context.dispatcher
+      context.system.scheduler.scheduleOnce(5.seconds, self, demo)
+    case (failure, Some(demo: DemoDownloaded)) =>
+      log.error(failure, "Failed to push local demo, trying again: {}", demo)
       import concurrent.duration._
       import context.dispatcher
       context.system.scheduler.scheduleOnce(5.seconds, self, demo)

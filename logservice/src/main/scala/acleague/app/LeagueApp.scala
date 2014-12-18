@@ -1,5 +1,6 @@
 package acleague.app
 
+import acleague.actors.DemoDownloaderActor.DemoDownloaded
 import acleague.actors.ReceiveMessages.RealMessage
 import acleague.actors.SyslogServerActor.SyslogServerOptions
 import acleague.actors._
@@ -43,6 +44,10 @@ object LeagueApp extends App with LazyLogging {
     subscriber = demoPublisher,
     channel = classOf[GameDemoFound]
   )
+  system.eventStream.subscribe(
+    subscriber = demoPublisher,
+    channel = classOf[DemoDownloaded]
+  )
   val syslogServer = system.actorOf(
     name = "syslogServer",
     props = SyslogServerActor.props(syslogOptions)
@@ -69,10 +74,24 @@ object LeagueApp extends App with LazyLogging {
       channel = classOf[RealMessage]
     )
   }
+  if ( AppConfig.downloadDemos ) {
+    val downloader = system.actorOf(
+      name = "demoDownloader",
+      props = DemoDownloaderActor.props(AppConfig.downloadDemosPath)
+    )
+    system.eventStream.subscribe(
+      subscriber = downloader,
+      channel = classOf[GameDemoFound]
+    )
+  }
   if ( AppConfig.hazelcastEnable ) {
     val hazelcastInstance = system.actorOf(
       name = "hazelcastInstance",
-      props = HazelcastPublisherActor.props(topicName = AppConfig.hazelcastGameTopicName, demoTopicName = AppConfig.hazelcastDemoTopicName)
+      props = HazelcastPublisherActor.props(
+        topicName = AppConfig.hazelcastGameTopicName,
+        demoTopicName = AppConfig.hazelcastDemoTopicName,
+        demoDownloadTopicName = AppConfig.hazelcastDemoDownloadTopicName
+      )
     )
     system.eventStream.subscribe(
       subscriber = hazelcastInstance,
@@ -81,6 +100,10 @@ object LeagueApp extends App with LazyLogging {
     system.eventStream.subscribe(
       subscriber = hazelcastInstance,
       channel = classOf[GameDemoFound]
+    )
+    system.eventStream.subscribe(
+      subscriber = hazelcastInstance,
+      channel = classOf[DemoDownloaded]
     )
   }
 

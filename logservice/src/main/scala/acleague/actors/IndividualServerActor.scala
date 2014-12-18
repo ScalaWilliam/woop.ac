@@ -29,7 +29,10 @@ class IndividualServerActor(serverId: String) extends Act with ActorLogging {
         fg @ FoundGame(header, game) <- Option(state)
         GameFinished(duration) <- Option(durationState)
         if duration >= 10
-        enrichedGame = EnrichFoundGame(fg)(date, serverId, duration)
+        enrichedGame @ GameXmlReady(xmlContent) = EnrichFoundGame(fg)(date, serverId, duration)
+        xmlElem = scala.xml.XML.loadString(xmlContent)
+        fragsSeq = (xmlElem \ "team").flatMap(_ \ "@frags").map(_.text.toInt)
+        if fragsSeq.forall(_>=10)
       } {
         lastGameO = Option(enrichedGame)
         context.system.eventStream.publish(enrichedGame)

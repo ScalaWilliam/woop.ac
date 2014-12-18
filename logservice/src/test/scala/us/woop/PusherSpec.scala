@@ -1,6 +1,9 @@
 package us.woop
 
+import java.io.File
+import java.net.URI
 import java.util.{Date, UUID}
+import acleague.actors.DemoDownloaderActor.DemoDownloaded
 import acleague.actors.{GameDemoFound, IndividualServerActor}
 import acleague.app.Util
 import acleague.enrichers.EnrichFoundGame
@@ -18,26 +21,40 @@ class PusherSpec extends WordSpec with Matchers with BeforeAndAfterAll {
   override def afterAll(): Unit = {
     server.stop()
   }
-
+  def withSession[T](f: ClientSession => T): T = {
+    using(new ClientSession("localhost", 12391, "admin", "admin")) { session =>
+      f(session)
+    }
+  }
   "Pusher" must {
     "Push properly" in {
-      using(new ClientSession("localhost", 12391, "admin", "admin")) { session =>
+      withSession { session =>
         session.execute(new Check("for-testing"))
         def getCount = using(session.query("count(/game[@id])"))(_.execute).toInt
         val startCount = getCount
-
         GamePublisher.publishMessage(connectionOptions)(EnrichFoundGame(FoundGame.example)(new Date, "test-server", 15))
         val endCount = getCount
         endCount shouldBe (startCount + 1)
       }
     }
     "Push demos properly" in {
-      using(new ClientSession("localhost", 12391, "admin", "admin")) { session =>
+      withSession { session =>
         session.execute(new Check("for-testing"))
         def getCount = using(session.query("count(/demo[@game-id])"))(_.execute).toInt
         val simpleDemo = GameDemoFound.example.copy(gameId = UUID.randomUUID().toString)
         val startCount = getCount
         DemoPublisher.publishDemo(connectionOptions)(simpleDemo)
+        val endCount = getCount
+        endCount shouldBe (startCount + 1)
+      }
+    }
+    "Push local demos properly" in {
+      withSession { session =>
+        session.execute(new Check("for-testing"))
+        def getCount = using(session.query("count(/local-demo[@game-id])"))(_.execute).toInt
+        val simpleDemo = DemoDownloaded(gameId = new scala.util.Random().nextInt.toString, new URI("abc:test"), new File("wat.dmo"))
+        val startCount = getCount
+        DemoPublisher.publishLocaldemo(connectionOptions)(simpleDemo)
         val endCount = getCount
         endCount shouldBe (startCount + 1)
       }
