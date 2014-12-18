@@ -3,7 +3,7 @@ package controllers
 import java.io.File
 
 import org.basex.server.ClientSession
-import play.api.Play
+import play.api.{Logger, Play}
 import play.api.mvc._
 import play.twirl.api.Html
 
@@ -80,7 +80,11 @@ object Main extends Controller {
         result)))
         }
   }
-  lazy val directory = new File(Play.current.configuration.getString("demos.directory").getOrElse(s"${scala.util.Properties.userHome}/demos")).getCanonicalFile
+  lazy val directory = {
+    val f= new File(Play.current.configuration.getString("demos.directory").getOrElse(s"${scala.util.Properties.userHome}/demos")).getCanonicalFile
+    Logger.info(s"Serving demos from: $f")
+    f
+  }
   def readDemo(id: Int) = {
     controllers.ExternalAssets.at(directory.getAbsolutePath, s"$id.dmo")
   }
