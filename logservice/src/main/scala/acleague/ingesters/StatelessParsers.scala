@@ -52,7 +52,8 @@ object TeamModes {
   object FragStyle {
 
     case class IndividualScore(cn: Int, name: String, team: String, score: Int, frag: Int, death: Int, tk: Int, ping: Int, role: String, host: String) extends CreatesGenericIndividualScore {
-      override def project: GenericIndividualScore = GenericIndividualScore(name, team, None, score, frag, Option(host))
+      override def project: GenericIndividualScore =
+        GenericIndividualScore(name, team, None, Option(score), frag, death, Option(host))
     }
 
     object IndividualScore {
@@ -62,15 +63,17 @@ object TeamModes {
         yield IndividualScore(cn.toInt, name, team, score.toInt, frag.toInt, death.toInt, tk.toInt, ping.toInt, role, host)
     }
 
-    case class IndividualScoreDisconnected(name: String, team: String, score: Int, frag: Int) extends CreatesGenericIndividualScore {
-      override def project: GenericIndividualScore = GenericIndividualScore(name, team, None, score, frag, None)
+    case class IndividualScoreDisconnected(name: String, team: String, frag: Int, death: Int) extends CreatesGenericIndividualScore {
+      override def project: GenericIndividualScore = GenericIndividualScore(
+        name, team, None, None, frag, death, None
+      )
     }
 
     object IndividualScoreDisconnected {
       def unapply(input: String): Option[IndividualScoreDisconnected] = {
         val capture = """\s+([^\s]+)\s+([^\s]+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
-        for { capture(name, team, score, frag) <- Option(input) }
-        yield IndividualScoreDisconnected(name, team, score.toInt, frag.toInt)
+        for { capture(name, team, frag, death) <- Option(input) }
+        yield IndividualScoreDisconnected(name, team, frag.toInt, death.toInt)
       }
     }
     case class TeamScore(teamName: String, players: Int, frags: Int)  extends CreatesGenericTeamScore {
@@ -92,13 +95,13 @@ object TeamModes {
     def project: GenericTeamScore
   }
 
-  case class GenericIndividualScore(name: String, team: String, flag: Option[Int], score: Int, frag: Int, host: Option[String])
+  case class GenericIndividualScore(name: String, team: String, flag: Option[Int], score: Option[Int], frag: Int, death:Int, host: Option[String])
   trait CreatesGenericIndividualScore {
     def project: GenericIndividualScore
   }
   object FlagStyle {
     case class IndividualScore(cn: Int, name: String, team: String, flag: Int, score: Int, frag: Int, death: Int, tk: Int, ping: Int, role: String, host: String) extends CreatesGenericIndividualScore {
-      def project = GenericIndividualScore(name, team, Option(flag), score, frag, Option(host))
+      def project = GenericIndividualScore(name, team, Option(flag), Option(score), frag, death, Option(host))
     }
 
     object IndividualScore {
@@ -109,15 +112,16 @@ object TeamModes {
       }
     }
 
-    case class IndividualScoreDisconnected(name: String, team: String, flag: Int, score: Int, frag: Int)  extends CreatesGenericIndividualScore {
-      override def project: GenericIndividualScore = GenericIndividualScore(name, team, Option(flag), score, frag, None)
+    case class IndividualScoreDisconnected(name: String, team: String, flag: Int, frag: Int, death: Int)  extends CreatesGenericIndividualScore {
+      override def project: GenericIndividualScore = GenericIndividualScore(
+        name, team, Option(flag), None, frag, death, None)
     }
 
     object IndividualScoreDisconnected {
       val capture = """\s+([^\s]+)\s+([^\s]+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
       def unapply(input: String): Option[IndividualScoreDisconnected] = {
-        for { capture(name, team, flag, score, frag) <- Option(input) }
-        yield IndividualScoreDisconnected(name, team, flag.toInt, score.toInt, frag.toInt)
+        for { capture(name, team, flag, frag, death) <- Option(input) }
+        yield IndividualScoreDisconnected(name, team, flag.toInt, frag.toInt, death.toInt)
       }
     }
 

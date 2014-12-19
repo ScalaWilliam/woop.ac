@@ -120,11 +120,11 @@ class ParserSpec extends WordSpec with Inside with Inspectors with Matchers with
 
               forExactly(1, disconnectedScores) {
                 score => inside(score) {
-                  case TeamModes.FragStyle.IndividualScoreDisconnected(name, team, score, frag) =>
+                  case TeamModes.FragStyle.IndividualScoreDisconnected(name, team, frag, death) =>
                     name shouldBe "~FEL~MR.JAM"
                     team shouldBe "RVSF"
-                    score shouldBe 1
-                    frag shouldBe 7
+                    frag shouldBe 1
+                    death shouldBe 7
                 }
               }
               forExactly(1, teamScores) {
