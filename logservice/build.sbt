@@ -1,7 +1,7 @@
 enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
 organization := "acleague"
 name := "logservice"
-version := "1.0.11"
+version := "1.0.12"
 scalaVersion := "2.11.4"
 resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
 libraryDependencies ++= Seq(

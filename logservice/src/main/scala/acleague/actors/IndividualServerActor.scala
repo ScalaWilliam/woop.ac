@@ -28,11 +28,16 @@ class IndividualServerActor(serverId: String) extends Act with ActorLogging {
       for {
         fg @ FoundGame(header, game) <- Option(state)
         GameFinished(duration) <- Option(durationState)
+        _ = { if ( !(duration >= 10) ) log.info(s"Rejecting this game because duration is $duration")}
         if duration >= 10
         enrichedGame @ GameXmlReady(xmlContent) = EnrichFoundGame(fg)(date, serverId, duration)
         xmlElem = scala.xml.XML.loadString(xmlContent)
-        fragsSeq = (xmlElem \ "team").flatMap(_ \ "@frags").map(_.text.toInt)
-        if fragsSeq.forall(_>=23)
+        fragsSeq = (xmlElem \\ "player").flatMap(_ \ "@frags").map(_.text.toInt)
+        _ = { if ( !(fragsSeq.size >= 4) ) log.info(s"Rejecting this game because there are <4 frag counts: $fragsSeq")}
+        if fragsSeq.size >= 4
+        averageFrags = fragsSeq.sum / fragsSeq.size
+        _ = { if ( !(averageFrags >= 15) ) log.info(s"Rejecting this game because average frags < 15: $averageFrags")}
+        if averageFrags >= 15
       } {
         lastGameO = Option(enrichedGame)
         context.system.eventStream.publish(enrichedGame)

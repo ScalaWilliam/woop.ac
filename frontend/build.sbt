@@ -1,6 +1,6 @@
 organization := "acleague"
 name:="frontend"
-version := "1.0.4"
+version := "1.0.5"
 scalaVersion := "2.11.4"
 enablePlugins(PlayScala)
 enablePlugins(SbtWeb)
