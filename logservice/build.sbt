@@ -1,7 +1,7 @@
 enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
 organization := "acleague"
 name := "logservice"
-version := "1.0.12"
+version := "1.0.13"
 scalaVersion := "2.11.4"
 resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
 libraryDependencies ++= Seq(
@@ -23,8 +23,9 @@ mainClass in Compile := Option("acleague.app.LeagueApp")
 publishArtifact in (Compile, packageBin) := false
 publishArtifact in (Universal, packageZipTarball) := true
 publishArtifact in (Compile, packageDoc) := false
-
+bashScriptConfigLocation := Some("${app_home}/../conf/jvmopts")
 
 ideaExcludeFolders += ".idea"
 
 ideaExcludeFolders += ".idea_modules"
+
