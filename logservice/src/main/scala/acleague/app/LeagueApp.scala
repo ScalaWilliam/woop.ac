@@ -74,6 +74,14 @@ object LeagueApp extends App with LazyLogging {
       channel = classOf[RealMessage]
     )
   }
+  val debugger = system.actorOf(
+    name = "gameDebugger",
+    props = JournallingDebugActor.localProps
+  )
+  system.eventStream.subscribe(
+    subscriber = debugger,
+    channel = classOf[RealMessage]
+  )
   if ( AppConfig.downloadDemos ) {
     val downloader = system.actorOf(
       name = "demoDownloader",
