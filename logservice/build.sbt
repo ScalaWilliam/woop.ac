@@ -1,7 +1,7 @@
 enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
 organization := "acleague"
 name := "logservice"
-version := "1.0.14"
+version := "1.0.15"
 scalaVersion := "2.11.4"
 resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
 libraryDependencies ++= Seq(
@@ -24,8 +24,7 @@ publishArtifact in (Compile, packageBin) := false
 publishArtifact in (Universal, packageZipTarball) := true
 publishArtifact in (Compile, packageDoc) := false
 bashScriptConfigLocation := Some("${app_home}/../conf/jvmopts")
-
-ideaExcludeFolders += ".idea"
-
-ideaExcludeFolders += ".idea_modules"
-
+libraryDependencies += "org.gnieh" % "logback-journal" % "0.1.0-SNAPSHOT"
+ideaExcludeFolders ++= Seq(".idea", ".idea_modules")
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+unmanagedResourceDirectories in Compile += baseDirectory.value / "src/universal/conf"

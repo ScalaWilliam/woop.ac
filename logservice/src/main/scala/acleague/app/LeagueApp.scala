@@ -116,7 +116,8 @@ object LeagueApp extends App with LazyLogging {
   }
 
   if ( AppConfig.diagnosticEnable ) {
-    Thread.sleep(1000)
+    logger.info("Performing a diagnostic push...")
+    Thread.sleep(2000)
     pushSyslog(syslogOptions)
   }
 
