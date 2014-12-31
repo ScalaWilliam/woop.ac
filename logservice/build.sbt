@@ -27,4 +27,4 @@ bashScriptConfigLocation := Some("${app_home}/../conf/jvmopts")
 libraryDependencies += "org.gnieh" % "logback-journal" % "0.1.0-SNAPSHOT"
 ideaExcludeFolders ++= Seq(".idea", ".idea_modules")
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-unmanagedResourceDirectories in Compile += baseDirectory.value / "src/universal/conf"
+unmanagedClasspath in Runtime += baseDirectory.value / "src/universal/conf"
