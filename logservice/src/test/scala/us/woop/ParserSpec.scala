@@ -236,5 +236,46 @@ class ParserSpec extends WordSpec with Inside with Inspectors with Matchers with
           }
       }
     }
+
+
+
+    "Capture RSPC/CSPC" in {
+
+      val inputSequence =
+        """
+          |Status at 12-12-2014 20:41:07: 1 remote clients, 0.0 send, 0.3 rec (K/sec)
+          |[90.208.48.65] |oNe|OpTic says: 'i dont want to play 2v2'
+          |
+          |Game status: ctf on ac_power, game finished, open, 2 clients
+          |cn name             team flag  score frag death tk ping role    host
+          | 0 w00p|Sanzouille  RVSF    1     29   15     0  0   11 admin   90.25.162.189
+          | 1 w00p|Drakas      CSPC     0      2   16     0  0   56 normal  77.44.45.26
+          | 2 w00p|RedBull     RSPC    0      3   16     0  0   56 normal  77.44.45.26
+          | 3 w00p|LiFe.       CLA     0      4   19     0  0   56 normal  77.44.45.26
+          |Team  CLA:  2 players,   23 frags,    0 flags
+          |Team RVSF:  2 players,   25 frags,    1 flags
+          |
+        """.stripMargin.split("\r?\n")
+
+      val outputs = inputSequence.scanLeft(NothingFound: ParserState)(_.next(_))
+
+      outputs foreach println
+      val foundGame = outputs.find(_.isInstanceOf[FoundGame]).value
+
+
+      inside(outputs(outputs.size-2)) {
+        case FoundGame(header, Left(flagGame)) =>
+          inside(flagGame) {
+            case FlagGameBuilder(_, scores, disconnectedScores, teamScores) =>
+              val teamPlayers = scores.groupBy(_.team).mapValues(_.map(_.name))
+              teamPlayers("RVSF") should contain only ("w00p|Sanzouille", "w00p|RedBull")
+              teamPlayers("CLA") should contain only ("w00p|Drakas", "w00p|LiFe.")
+              teamPlayers should have size 2
+          }
+      }
+    }
+
   }
+
+
 }

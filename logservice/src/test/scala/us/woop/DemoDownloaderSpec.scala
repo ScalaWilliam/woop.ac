@@ -27,7 +27,7 @@ class DemoDownloaderSpec
       tempDirectory.mkdir()
       try {
         val yay = system.actorOf(DemoDownloaderActor.props(tempDirectory), "goody")
-        yay ! GameDemoFound(1234, null, DemoWritten("demos/20141216_1638_local_ac_aqueous_2min_TDM.dmo", "whatever"))
+        yay ! GameDemoFound(1234, null, DemoWritten("demos/1999/20150102_1106_local_ac_desert_1min_DM.dmo", "whatever"))
         import concurrent.duration._
         val downloadedMsg = expectMsgClass(10.seconds, classOf[DemoDownloaded])
         downloadedMsg.destination.exists() shouldBe true
