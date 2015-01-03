@@ -252,6 +252,8 @@ class ParserSpec extends WordSpec with Inside with Inspectors with Matchers with
           | 1 w00p|Drakas      CSPC     0      2   16     0  0   56 normal  77.44.45.26
           | 2 w00p|RedBull     RSPC    0      3   16     0  0   56 normal  77.44.45.26
           | 3 w00p|LiFe.       CLA     0      4   19     0  0   56 normal  77.44.45.26
+          |   w00p|Dam.        CSPC    2    2     2  -    - disconnected
+          |   w00p|DamD        RSPC    0    0     0  -    - disconnected
           |Team  CLA:  2 players,   23 frags,    0 flags
           |Team RVSF:  2 players,   25 frags,    1 flags
           |
@@ -271,6 +273,9 @@ class ParserSpec extends WordSpec with Inside with Inspectors with Matchers with
               teamPlayers("RVSF") should contain only ("w00p|Sanzouille", "w00p|RedBull")
               teamPlayers("CLA") should contain only ("w00p|Drakas", "w00p|LiFe.")
               teamPlayers should have size 2
+              val teamPlayersDisconnected = disconnectedScores.groupBy(_.team).mapValues(_.map(_.name))
+              teamPlayersDisconnected should have size 1
+              teamPlayersDisconnected("CLA") should contain only "w00p|Dam."
           }
       }
     }

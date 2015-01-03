@@ -105,7 +105,7 @@ case class ReadingFlagScores(builder: FlagGameBuilder) extends ParserState {
         } else this
       case text if TeamModes.FlagStyle.IndividualScoreDisconnected.unapply(text).isDefined =>
         val newScore = TeamModes.FlagStyle.IndividualScoreDisconnected.unapply(text).get
-        if ( FoundGame.teamsMap.contains(newScore.team) ) {
+        if ( FoundGame.teamsMap.contains(newScore.team) && (newScore.frag != 0) ) {
           ReadingFlagScores(builder.copy(disconnectedScores = builder.disconnectedScores :+ newScore.copy(team = FoundGame.teamsMap(newScore.team))))
         } else this
       case text if TeamModes.FlagStyle.TeamScore.unapply(text).isDefined =>
