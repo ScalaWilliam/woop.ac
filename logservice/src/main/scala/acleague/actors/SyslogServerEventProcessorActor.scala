@@ -35,8 +35,21 @@ class SyslogServerEventProcessorActor extends Act with ActorLogging {
 
         case None =>
           val matcher = """(.*): Status at [^ ]+ [^ ]+: \d+.*""".r
+/** IE
+  *
+[85.69.34.170] w00p|Sanzo busted .rC|xemi
+[31.52.34.203] .rC|Shieldybear sprayed w00p|Sanzo
+[90.35.208.230] w00p|Redbull sprayed .rC|f0rest
+[31.52.34.203] .rC|Shieldybear stole the flag
+[145.118.113.26] w00p|Harrek sprayed .rC|xemi
+[145.118.113.26] w00p|Harrek stole the flag
+            */
+          val matcher2 = """(.*): \[\d+\.\d+\.\d+\.\d+\] [^ ]+ (sprayed|busted|gibbed|punctured) [^ ]+""".r
           fullMessage match {
             case matcher(serverId) =>
+              log.info("Registered new server: '{}'", serverId)
+              registeredServers += serverId -> context.actorOf(IndividualServerActor.props(serverId))
+            case matcher2(serverId, _) =>
               log.info("Registered new server: '{}'", serverId)
               registeredServers += serverId -> context.actorOf(IndividualServerActor.props(serverId))
             case other =>

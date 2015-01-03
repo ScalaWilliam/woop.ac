@@ -7,6 +7,7 @@ import com.typesafe.scalalogging.LazyLogging
 
 object AppConfig {
   val conf = ConfigFactory.load()
+  val basexEnabled = conf.getBoolean("acleague.basex.enable")
   val basexPort = conf.getInt("acleague.basex.port")
   val basexDatabaseName = conf.getString("acleague.basex.database")
   val journalPath = new File(conf.getString("acleague.journal.path")).getCanonicalFile

@@ -15,7 +15,8 @@ import org.productivity.java.syslog4j.Syslog
 object LeagueApp extends App with LazyLogging {
   System.setProperty("hazelcast.logging.type", System.getProperty("hazelcast.logging.type", "slf4j"))
   logger.info(s"Application configuration: ${AppConfig.conf}")
-  val server = new BaseXServer(s"-p${AppConfig.basexPort}", s"-e${AppConfig.basexPort + 1}")
+
+  val server = if ( AppConfig.basexEnabled ) Some(new BaseXServer(s"-p${AppConfig.basexPort}", s"-e${AppConfig.basexPort + 1}")) else None
   implicit val system = ActorSystem("acleague")
   val options = ConnectionOptions(
     port = AppConfig.basexPort,
@@ -122,5 +123,5 @@ object LeagueApp extends App with LazyLogging {
   }
 
   system.awaitTermination()
-  server.stop()
+  server.foreach(_.stop())
 }
