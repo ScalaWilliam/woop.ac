@@ -6,7 +6,7 @@ import acleague.actors.ReceiveMessages.RealMessage
 import acleague.syslog.SyslogServerEventIFScala
 import akka.actor.ActorDSL._
 import akka.actor.{ActorRef, ActorLogging, Props}
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{LocalDateTime, DateTimeZone, DateTime}
 
 object SyslogServerEventProcessorActor {
   def props = Props(new SyslogServerEventProcessorActor)
@@ -26,8 +26,7 @@ class SyslogServerEventProcessorActor extends Act with ActorLogging {
           val newDate = {
             (date, foundServer) match {
               case (Some(sourceDate), serverString) if serverString contains " aura " =>
-                val timeZone = DateTimeZone.forID("Europe/Paris")
-                new DateTime(sourceDate, timeZone)
+                new LocalDateTime(sourceDate).toDateTime(DateTimeZone.forID("CET"))
               case (Some(sourceDate), _) =>
                 new DateTime(sourceDate, DateTimeZone.forID("UTC"))
               case _ =>
