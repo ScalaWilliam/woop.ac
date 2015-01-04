@@ -6,6 +6,7 @@ import acleague.actors.ReceiveMessages.RealMessage
 import acleague.syslog.SyslogServerEventIFScala
 import akka.actor.ActorDSL._
 import akka.actor.{ActorRef, ActorLogging, Props}
+import org.joda.time.{DateTimeZone, DateTime}
 
 object SyslogServerEventProcessorActor {
   def props = Props(new SyslogServerEventProcessorActor)
@@ -22,13 +23,23 @@ class SyslogServerEventProcessorActor extends Act with ActorLogging {
       val fullMessage = host.map(h => s"$h ").getOrElse("") + message
       registeredServers.find(s => fullMessage.startsWith(s._1)) match {
         case Some((foundServer, actor)) =>
-
+          val newDate = {
+            (date, foundServer) match {
+              case (Some(sourceDate), serverString) if serverString contains " aura " =>
+                val timeZone = DateTimeZone.forID("Europe/Paris")
+                new DateTime(sourceDate, timeZone)
+              case (Some(sourceDate), _) =>
+                new DateTime(sourceDate, DateTimeZone.forID("UTC"))
+              case _ =>
+                new DateTime(DateTimeZone.forID("UTC"))
+            }
+          }
           val minN = foundServer.length + 2
           val contained = if ( fullMessage.length >= minN ) {
             val actualMessage = fullMessage.substring(minN)
-            RealMessage(date.getOrElse(new Date), foundServer, actualMessage)
+            RealMessage(newDate, foundServer, actualMessage)
           } else {
-            RealMessage(date.getOrElse(new Date), foundServer, "")
+            RealMessage(newDate, foundServer, "")
           }
           context.system.eventStream.publish(contained)
           actor ! contained

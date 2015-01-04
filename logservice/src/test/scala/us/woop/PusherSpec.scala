@@ -13,6 +13,7 @@ import acleague.publishers.GamePublisher.ConnectionOptions
 import org.basex.BaseXServer
 import org.basex.core.cmd._
 import org.basex.server.ClientSession
+import org.joda.time.DateTime
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 class PusherSpec extends WordSpec with Matchers with BeforeAndAfterAll {
   import Util.using
@@ -32,7 +33,7 @@ class PusherSpec extends WordSpec with Matchers with BeforeAndAfterAll {
         session.execute(new Check("for-testing"))
         def getCount = using(session.query("count(/game[@id])"))(_.execute).toInt
         val startCount = getCount
-        GamePublisher.publishMessage(connectionOptions)(EnrichFoundGame(FoundGame.example)(new Date, "test-server", 15))
+        GamePublisher.publishMessage(connectionOptions)(EnrichFoundGame(FoundGame.example)(new DateTime(), "test-server", 15))
         val endCount = getCount
         endCount shouldBe (startCount + 1)
       }

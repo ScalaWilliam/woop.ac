@@ -11,7 +11,7 @@ object EnrichFoundGame {
 
   case class GameXmlReady(xml: String)
 
-  def apply(foundGame: FoundGame)(date: Date, serverId: String, duration: Int): GameXmlReady = {
+  def apply(foundGame: FoundGame)(date: DateTime, serverId: String, duration: Int): GameXmlReady = {
     val gameXml = foundGameXml(foundGame)
     val gameId = Math.abs(MurmurHash3.productHash(serverId, date, 1337))
     val utcDate = {
