@@ -17,7 +17,7 @@ object GameXmlToGraph {
     gameNode.setProperty("mode", (gameXml \ "@mode").text)
     gameNode.setProperty("state", (gameXml \ "@state").text)
     (gameXml \ "@winner").foreach(winner => gameNode.setProperty("winner", winner.text))
-    gameNode.setProperty("duration", (gameXml \ "@duration").text.toInt)
+    (gameXml \ "@duration").map(duration => gameNode.setProperty("duration", duration.text.toInt))
     gameNode.setProperty("datetime", (gameXml \ "@date").text)
     gameNode.setProperty("date", (gameXml \ "@date").text.substring(0, 10).replaceAllLiterally("-", ""))
     for {
@@ -33,11 +33,11 @@ object GameXmlToGraph {
       } {
         // todo make monadic - some fields might not be there.
         playerNode.setProperty("name", (player \ "@name").text)
-        playerNode.setProperty("score", (player \ "@score").text.toInt)
+        (player \ "@score").map(score => playerNode.setProperty("score", score.text.toInt))
         (player \ "@flags").map(flags => playerNode.setProperty("flags", flags.text.toInt))
         playerNode.setProperty("frags", (player \ "@frags").text.toInt)
         playerNode.setProperty("team", (team \ "@name").text)
-        playerNode.setProperty("deaths", (player \ "@deaths").text.toInt)
+        (player \ "@deaths").map(deaths => playerNode.setProperty("deaths", deaths.text.toInt))
         teamNode.createRelationshipTo(playerNode, DynamicRelationshipType.withName("has_player"))
         gameNode.createRelationshipTo(playerNode, DynamicRelationshipType.withName("has_player"))
       }

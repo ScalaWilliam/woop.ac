@@ -18,6 +18,10 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 )
 
+libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.3.6"
+
+libraryDependencies += "org.apache.httpcomponents" % "fluent-hc" % "4.3.6"
+
 libraryDependencies += "com.sun.jersey" % "jersey-core" % "1.18.3"
 
 libraryDependencies += "com.sun.jersey" % "jersey-client" % "1.18.3"
