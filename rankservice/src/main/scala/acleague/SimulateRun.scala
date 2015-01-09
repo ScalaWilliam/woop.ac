@@ -32,6 +32,7 @@ return $game, 1, 1000
   val result = Request.Post("http://odin.duel.gg:1238/rest/acleague")
     .bodyString(s"$inputQuery", ContentType.APPLICATION_XML)
     .execute().returnContent().asString()
+  val startTime = System.currentTimeMillis()
   val database = new TestGraphDatabaseFactory().newImpermanentDatabase()
   val ee = new ExecutionEngine(database)
   val txn = database.beginTx()
@@ -59,8 +60,87 @@ return $game, 1, 1000
     }
     iter.toList.toSet
   }
-  val topUsers = Set("|oNe|.eSt!gMaTa", "[PSY]quico", "w00p|Redbull", "queensKing", "~FEL~.RayDen", "DeathCrew.45", "w00p|Lucas", "|AoX|Subby", "|AoX|Grazy", "{BoB}Jonux", "w00p|Honorus", "w00p|Sanzo", "|AoX|madcatz^", "w00p|Drakas", "-xW-#$w@rM3D*", "-xW-#Hustlin")
-  topUsers foreach createUser
+  val cnts = <cn><cnt name="|oNe|.eSt!gMaTa">67</cnt>
+    <cnt name="[PSY]quico">60</cnt>
+    <cnt name="w00p|Redbull">60</cnt>
+    <cnt name="queensKing">57</cnt>
+    <cnt name="~FEL~.RayDen">54</cnt>
+    <cnt name="DeathCrew.45">52</cnt>
+    <cnt name="w00p|Lucas">51</cnt>
+    <cnt name="|AoX|Subby">50</cnt>
+    <cnt name="|AoX|Grazy">49</cnt>
+    <cnt name="{BoB}Jonux">47</cnt>
+    <cnt name="w00p|Honorus">42</cnt>
+    <cnt name="w00p|Sanzo">39</cnt>
+    <cnt name="|AoX|madcatz^">37</cnt>
+    <cnt name="w00p|Drakas">36</cnt>
+    <cnt name="-xW-#$w@rM3D*">34</cnt>
+    <cnt name="-xW-#Hustlin">34</cnt>
+    <cnt name="{BoB}Narco[T]iK">33</cnt>
+    <cnt name="w00p|Honor">30</cnt>
+    <cnt name="vanquish">30</cnt>
+    <cnt name="FD*EndGame">28</cnt>
+    <cnt name="w00p|Dam.">27</cnt>
+    <cnt name="w00p|Harrek">27</cnt>
+    <cnt name="Reus">25</cnt>
+    <cnt name="Rush=MyS=">24</cnt>
+    <cnt name="Furios=MyS=">23</cnt>
+    <cnt name="FD*Gazda">23</cnt>
+    <cnt name="FD*Federico.">21</cnt>
+    <cnt name="UlMinion(URU)">21</cnt>
+    <cnt name="~FEL~Bernatix">21</cnt>
+    <cnt name="-xW-#$tOuN3*">20</cnt>
+    <cnt name="~FEL~SEXOLOCO">20</cnt>
+    <cnt name="Frutis">20</cnt>
+    <cnt name="-RT-KGB">20</cnt>
+    <cnt name="-SoW-Geatzo">20</cnt>
+    <cnt name="-M|A-baRute">19</cnt>
+    <cnt name="~FEL~MR.JAM">19</cnt>
+    <cnt name="Lozi*">19</cnt>
+    <cnt name="w00p|Lipe">19</cnt>
+    <cnt name="w00p|.ech0">19</cnt>
+    <cnt name="FD*armagedon">18</cnt>
+    <cnt name="|#LC*|LuCk">18</cnt>
+    <cnt name="Omena">16</cnt>
+    <cnt name="Sveark=MyS=">16</cnt>
+    <cnt name="CR7">16</cnt>
+    <cnt name="|#LC*|m@C">16</cnt>
+    <cnt name="-Sofiane=MyS=">16</cnt>
+    <cnt name="-Sofiane.">15</cnt>
+    <cnt name="STK#">15</cnt>
+    <cnt name="unarmed">15</cnt>
+    <cnt name="w00p|">14</cnt>
+    <cnt name="|oNe|OpTic">14</cnt>
+    <cnt name="Hustlin">14</cnt>
+    <cnt name="GeoRGeteman!!">14</cnt>
+    <cnt name="|GoW|G1gantuan">14</cnt>
+    <cnt name="Dora">14</cnt>
+    <cnt name="tFEL~JavySoMPeR">14</cnt>
+    <cnt name="Cr!sis|Grazy">13</cnt>
+    <cnt name="Robtics">13</cnt>
+    <cnt name="USA|LuCk">13</cnt>
+    <cnt name="-SoW-GeatZo^">13</cnt>
+    <cnt name="~FEL~HGF-ARG">13</cnt>
+    <cnt name="DES|k4z">12</cnt>
+    <cnt name="oNe|ramb0">12</cnt>
+    <cnt name="Pi_1Cap">12</cnt>
+    <cnt name="lozi.ann">12</cnt>
+    <cnt name="Ketar*">11</cnt>
+    <cnt name="{BoB}Soviet">11</cnt>
+    <cnt name="Elite">11</cnt>
+    <cnt name="Razor">11</cnt>
+    <cnt name="LeaN~">11</cnt>
+    <cnt name="AC...">11</cnt>
+    <cnt name="-SoW-S.Ryan">11</cnt>
+    <cnt name="-xW-#Edward">11</cnt>
+    <cnt name="Friteq">11</cnt>
+    <cnt name="FURY">10</cnt>
+    <cnt name=".rC|x3mi">10</cnt>
+    <cnt name="Maikelele">10</cnt>
+    <cnt name="FrT|LuniK">10</cnt>
+    <cnt name="Million">10</cnt>
+  </cn>
+  (cnts \\"cnt").map(_\"@name").map(_.text).foreach(createUser)
   for { game <- scala.xml.XML.loadString(result) \\ "game" }
     yield {
     GameXmlToGraph.createGameFromXml(database)(game.asInstanceOf[Elem])
@@ -92,4 +172,8 @@ RETURN u.name as username, ach.remain as remain, ach.target as target, ach.games
   println(listFiftyGamesAchievements)
   println(listAchievements)
 
+  val endTime = System.currentTimeMillis()
+
+  import scala.concurrent.duration._
+  println(((endTime - startTime)/1000).seconds)
 }
