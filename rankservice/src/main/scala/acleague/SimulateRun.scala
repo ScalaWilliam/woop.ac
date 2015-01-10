@@ -1,5 +1,7 @@
 package acleague
 
+import acleague.achievements.MapsToComplete
+import acleague.achievements.MapsToComplete.AcMap
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 import org.neo4j.cypher.ExecutionEngine
@@ -15,7 +17,7 @@ object SimulateRun extends App {
 subsequence(
 for $game in /game
 let $date := xs:dateTime($game/@date) cast as xs:date
-order by $date descending
+order by $date ascending
 return $game, 1, 1000
 )}</games>
 ]]></rest:text>
@@ -36,14 +38,14 @@ return $game, 1, 1000
   val database = new TestGraphDatabaseFactory().newImpermanentDatabase()
   val ee = new ExecutionEngine(database)
   val txn = database.beginTx()
-
+  for { AcMap(mode, name) <- MapsToComplete.maps } { addMap(name, mode) }
   def executeResource(link: String)= {
     val query = scala.io.Source.fromInputStream(getClass.getResourceAsStream(link)).getLines().mkString("\n")
     val r = ee.execute(query)
     try r.toList finally r.close()
   }
 
-  def listAchievements = {
+  def listFiftyFlagsAchievements = {
     val eng = new ExecutionEngine(database)
     val result = eng.execute(
       """MATCH (u: user)-[link]->(achievement: fifty_flags_achievement)
@@ -67,6 +69,9 @@ return $game, 1, 1000
     <cnt name="~FEL~.RayDen">54</cnt>
     <cnt name="DeathCrew.45">52</cnt>
     <cnt name="w00p|Lucas">51</cnt>
+    <cnt name="w00p|Drakas">51</cnt>
+    <cnt name="w00p|Sanzo">39</cnt>
+    <cnt name="w00p|Honorus">42</cnt>
     <cnt name="|AoX|Subby">50</cnt>
     <cnt name="|AoX|Grazy">49</cnt>
     <cnt name="{BoB}Jonux">47</cnt>
@@ -141,15 +146,24 @@ return $game, 1, 1000
     <cnt name="Million">10</cnt>
   </cn>
   (cnts \\"cnt").map(_\"@name").map(_.text).foreach(createUser)
-  for { game <- scala.xml.XML.loadString(result) \\ "game" }
+  val games = scala.xml.XML.loadString(result) \\ "game"
+  for { game <- games }
     yield {
     GameXmlToGraph.createGameFromXml(database)(game.asInstanceOf[Elem])
     createUserPlayerLinks()
     updateMaps()
-    executeResource("/fifty_games/progress.cql")
-    executeResource("/fifty_games/achieved.cql")
-    executeResource("/fifty_flags/progress.cql")
-    executeResource("/fifty_flags/completions.cql")
+    createMapGameLinks()
+//    executeResource("/fifty_games/progress.cql")
+//    executeResource("/fifty_games/achieved.cql")
+//    executeResource("/fifty_flags/progress.cql")
+//    executeResource("/fifty_flags/completions.cql")
+    executeResource("/good_map/progress.cql")
+    executeResource("/good_map/achieved.cql")
+    executeResource("/good_maps/progress.cql")
+    executeResource("/good_maps/achieved.cql")
+  }
+  def addMap(name: String, mode: String) = {
+    ee.execute( """MERGE (good_map: good_map:map{ name: {name}, map: {name}, mode: {mode} }) RETURN good_map""", Map("mode" -> mode, "name" -> name)).close()
   }
   def listFiftyGamesAchievements: Set[(String, Int, Int, Int, Boolean)]  = {
     val r = ee.execute(
@@ -169,8 +183,60 @@ RETURN u.name as username, ach.remain as remain, ach.target as target, ach.games
     try ok.toSet finally r.close()
   }
 
-  println(listFiftyGamesAchievements)
-  println(listAchievements)
+  def listMapsAchievements: Set[(String, Int, Int, Int, Boolean)]  = {
+    val r = ee.execute(
+      """
+MATCH (u: user)-[link]->(ach: maps_completed_achievement)
+
+RETURN u.name as username, ach.remain as remain, ach.target as target, ach.progress as progress, type(link) = "completed" as isCompleted, ach.ongoing_maps as ongoing_maps, ach.completed_maps as completed_maps
+      """
+    )
+    val ok = for { i <- r
+    }
+    yield (
+        i("username").toString,
+        i("remain").toString.toInt,
+        i("target").toString.toInt,
+        i("progress").toString.toInt,
+        i("isCompleted").toString.toBoolean
+//        ,
+//        i("ongoing_maps").asInstanceOf[Array[Any]].map(_.toString).toList.toString,
+//        i("completed_maps").asInstanceOf[Array[Any]].map(_.toString).toList.toString
+      )
+    try ok.toSet finally r.close()
+  }
+  println(ee.execute(
+    """
+      |MATCH (m:map)<--(g:game)-->(t:team)-->(a)-[:is_user]->(b) RETURN g,t,a,b;
+    """.stripMargin).dumpToString())
+  println(ee.execute(
+    """
+      |MATCH (a:map_completed_achievement)-[:includes]->(b) RETURN a,b;
+    """.stripMargin).dumpToString())
+  def listMapAchievements: Set[(String, String, String, Boolean, Int, Int)]  = {
+    val r = ee.execute(
+      """
+MATCH (u: user)-[link]->(ach: map_completed_achievement)-[:of_map]->(m: good_map)
+RETURN u.name as username, m.map As mapname, m.mode as mapmode, type(link) = "completed" as isCompleted, ach.rvsfRemain as rvsfRemain, ach.claRemain as claRemain
+      """
+    )
+    val ok = for { i <- r
+    }
+    yield (
+        i("username").toString,
+        i("mapname").toString,
+        i("mapmode").toString,
+        i("isCompleted").toString.toBoolean,
+        i("rvsfRemain").toString.toInt,
+        i("claRemain").toString.toInt)
+    try ok.toSet finally r.close()
+  }
+
+  println(ee.execute("match (n) return n;").dumpToString())
+  println(listMapAchievements)
+  println(listMapsAchievements)
+//  println(listFiftyGamesAchievements)
+//  println(listFiftyFlagsAchievements)
 
   val endTime = System.currentTimeMillis()
 

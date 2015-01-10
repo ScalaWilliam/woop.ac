@@ -14,7 +14,7 @@ class GoodMapTest extends WordSpec with Matchers with Neo4jTester{
     val r = ee.execute(
       """
 MATCH (u: user)-[link]->(ach: map_completed_achievement)-[:of_map]->(m: good_map)
-RETURN u.name as username, m.map As mapname, m.mode as mapmode, type(link) = "completed" as isCompleted, ach.rvsfGamesLeft as rvsfGamesLeft, ach.claGamesLeft as claGamesLeft
+RETURN u.name as username, m.map As mapname, m.mode as mapmode, type(link) = "completed" as isCompleted, ach.rvsfRemain as rvsfGamesLeft, ach.claRemain as claGamesLeft
         """
     )
     val ok = for { i <- r
@@ -56,6 +56,35 @@ RETURN u.name as username, m.map As mapname, m.mode as mapmode, type(link) = "co
       listMapAchievements shouldBe Set(("Johnny", "ac_mines", "ctf", false, 2, 2))
     }
 
+    "Maps don't mix" in {
+      deleteEverything()
+      addMap("ac_mines", "ctf")
+      addMap("ac_elevation", "ctf")
+      createUser("Johnny")
+      GameXmlToGraph.createGameFromXml(database)(<game id="A" duration="15" date="2015-01-08T22:25:37Z" server="62-210-131-155.rev.poneytelecom.eu aura AssaultCube[local#2999]" map="ac_mines" mode="ctf" state="match" winner="RVSF">
+        <team name="RVSF" flags="7" frags="147">
+          <player name="Johnny" host="80.47.111.152" score="1029" flags="5" frags="58" deaths="33"/>
+        </team>
+      </game>)
+      createUserPlayerLinks()
+      createMapGameLinks()
+      executeProgress()
+      executeCompletion()
+      GameXmlToGraph.createGameFromXml(database)(<game id="B" duration="15" date="2015-01-08T22:25:37Z" server="62-210-131-155.rev.poneytelecom.eu aura AssaultCube[local#2999]" map="ac_elevation" mode="ctf" state="match" winner="RVSF">
+        <team name="CLA" flags="7" frags="147">
+          <player name="Johnny" host="80.47.111.152" score="1029" flags="5" frags="58" deaths="33"/>
+        </team>
+      </game>)
+      createUserPlayerLinks()
+      createMapGameLinks()
+      executeProgress()
+      executeCompletion()
+      listMapAchievements shouldBe Set(("Johnny","ac_mines","ctf",false,1,2), ("Johnny","ac_elevation","ctf",false,2,1))
+      deleteEverything()
+      addMap("ac_mines", "ctf")
+      createUser("Johnny")
+    }
+
     "Ignore an unknown map" in {
       GameXmlToGraph.createGameFromXml(database)(<game id="A" duration="15" date="2015-01-08T22:25:37Z" server="62-210-131-155.rev.poneytelecom.eu aura AssaultCube[local#2999]" map="ac_exy" mode="ctf" state="match" winner="RVSF">
         <team name="RVSF" flags="7" frags="147">
@@ -64,7 +93,6 @@ RETURN u.name as username, m.map As mapname, m.mode as mapmode, type(link) = "co
       </game>)
       createUserPlayerLinks()
       createMapGameLinks()
-
       executeProgress()
       executeCompletion()
       listMapAchievements shouldBe Set(("Johnny", "ac_mines", "ctf", false, 2, 2))

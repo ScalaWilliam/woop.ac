@@ -36,28 +36,47 @@ RETURN u.name as username, ach.remain as remain, ach.target as target, ach.progr
     "Create a blank achievement for a new person" in {
       createUser("Newbie")
       addMap("ac_mines", "ctf")
+      addMap("ac_elevation", "ctf")
       executeProgress()
       executeCompletion()
       listMapsAchievements shouldBe empty
       ee.execute(
-        """MATCH (u:user{name: "Newbie"}), (m:map{name:"ac_mines"})
-          |MERGE (u)-[:ongoing]->(ach:map_completed_achievement)-[:of_map]->(m)
+        """MATCH (u:user{name: "Newbie"}), (m:map{name:"ac_mines"}), (m2: map{name:"ac_elevation"})
+          |MERGE (u)-[:ongoing]->(:map_completed_achievement)-[:of_map]->(m)
+          |MERGE (u)-[:ongoing]->(:map_completed_achievement)-[:of_map]->(m2)
           |""".stripMargin
       )
       executeProgress()
       executeCompletion()
-      listMapsAchievements shouldBe Set(("Newbie", 1, 1, 0, false))
+
+      println(ee.execute(
+        """MATCH (a)-[:depends_on]->(b)-[:of_map]->(m)
+          |RETURN a,b,m;
+          |""".stripMargin
+      ).dumpToString())
+      listMapsAchievements shouldBe Set(("Newbie", 2, 2, 0, false))
 
       ee.execute(
-        """MATCH (u:user{name: "Newbie"}), (m:map{name:"ac_mines"})
-          |MATCH (u)-[link]->(ach:map_completed_achievement)
+        """MATCH (u:user{name: "Newbie"}), (m: map{name:"ac_mines"})
+          |MATCH (u)-[link]->(ach:map_completed_achievement)-[:of_map]->(m)
           |DELETE link
           |MERGE (u)-[:completed]->(ach)
           |""".stripMargin
       )
       executeProgress()
       executeCompletion()
-      listMapsAchievements shouldBe Set(("Newbie", 0, 1, 1, true))
+      listMapsAchievements shouldBe Set(("Newbie", 1, 2, 1, false))
+
+      ee.execute(
+        """MATCH (u:user{name: "Newbie"}), (m: map{name:"ac_elevation"})
+          |MATCH (u)-[link]->(ach:map_completed_achievement)-[:of_map]->(m)
+          |DELETE link
+          |MERGE (u)-[:completed]->(ach)
+          |""".stripMargin
+      )
+      executeProgress()
+      executeCompletion()
+      listMapsAchievements shouldBe Set(("Newbie", 0, 2, 2, true))
 
     }
   "Work properly" in {

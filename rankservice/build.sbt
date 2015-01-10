@@ -25,3 +25,9 @@ libraryDependencies += "org.apache.httpcomponents" % "fluent-hc" % "4.3.6"
 libraryDependencies += "com.sun.jersey" % "jersey-core" % "1.18.3"
 
 libraryDependencies += "com.sun.jersey" % "jersey-client" % "1.18.3"
+
+libraryDependencies += "commons-net" % "commons-net" % "3.3"
+
+libraryDependencies += "com.h2database" % "h2-mvstore" % "1.4.184"
+
+libraryDependencies += "com.maxmind.geoip2"%"geoip2"%"2.1.0"
