@@ -167,8 +167,6 @@ object Imperative {
     } yield (user.id, user, player)
   }
 
-
-
   def createGameFromXml(gameXml: Elem) = {
     Game(
       id = gameXml.attText("id"),
@@ -191,15 +189,33 @@ object Imperative {
     )
   }
 
-  trait UserEvent
-  case object ScoredFiftyFlags extends UserEvent
-  case object BecameMapMaster extends UserEvent
-  case object PlayedTwentyHours extends UserEvent
-  case object PlayedFiftyGames extends UserEvent
-  case object PlayedTenGamesInADay extends UserEvent
-  case object PlayedFiveDaysInARow extends UserEvent
-  case object EarnedThousandFrags extends UserEvent
-  case class CompletedMap(acMap: AcMap) extends UserEvent
+  trait UserEvent {
+    def asXml: Elem
+  }
+  case object ScoredFiftyFlags extends UserEvent {
+    override def asXml = <scored-fifty-flags-event/>
+  }
+  case object BecameMapMaster extends UserEvent {
+    override def asXml = <became-map-master-event/>
+  }
+  case object PlayedTwentyHours extends UserEvent {
+    override def asXml = <played-twenty-hours-event/>
+  }
+  case object PlayedFiftyGames extends UserEvent {
+    override def asXml = <played-fifty-games-event/>
+  }
+  case object PlayedTenGamesInADay extends UserEvent {
+    override def asXml = <played-ten-games-in-a-day-event/>
+  }
+  case object PlayedFiveDaysInARow extends UserEvent {
+    override def asXml = <played-five-days-in-a-row-event/>
+  }
+  case object EarnedThousandFrags extends UserEvent {
+    override def asXml = <earned-thousand-frags-event/>
+  }
+  case class CompletedMap(acMap: AcMap) extends UserEvent {
+    override def asXml = <completed-map-event mode={acMap.mode} map={acMap.name}/>
+  }
   type EmmittedEvents[UserId] = collection.immutable.Set[(UserId, UserEvent)]
   type UserRepository[UserId] = Player => Option[User[UserId]]
   def acceptGame[UserId](userRepository: UserRepository[UserId])(game: Game): EmmittedEvents[UserId] = {
