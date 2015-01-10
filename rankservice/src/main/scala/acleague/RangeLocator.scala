@@ -74,7 +74,6 @@ object RangeLocator extends App {
 }
 object RangeLocators extends App {
   val theIp = """213.186.33.6"""
-//  println(LookupRange(theIp))
 
   val inputQuery = <rest:query xmlns:rest="http://basex.org/rest">
     <rest:text><![CDATA[
