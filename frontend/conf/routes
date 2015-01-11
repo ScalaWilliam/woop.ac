@@ -1,5 +1,11 @@
-GET        /                    controllers.Main.read
-GET        /questions           controllers.Main.questions
-GET        /servers             controllers.Main.servers
-GET        /assets/*file        controllers.Assets.versioned(path="/public", file: Asset)
-GET        /game/:id            controllers.Main.readGame(id: Int)
+GET        /                     controllers.Main.read
+GET        /questions            controllers.Main.questions
+GET        /servers              controllers.Main.servers
+GET        /login                controllers.Main.login
+GET        /profile              controllers.Main.viewMe
+GET        /player/:id           controllers.Main.viewPlayer(id: String)
+GET        /createProfile        controllers.Main.createProfile
+POST       /createProfile        controllers.Main.createProfile
+GET        /googleoauth2callback controllers.Main.oauth2callback
+GET        /assets/*file         controllers.Assets.versioned(path="/public", file: Asset)
+GET        /game/:id             controllers.Main.readGame(id: Int)

@@ -1,4 +1,4 @@
-@(title: String)(top:Html)(data: Html)
+@(title: String)(top:Html)(data: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
 <!doctype html><html>
 <head>
     <meta charset="utf-8"/>
@@ -14,7 +14,13 @@
         <h2>by <a href="http://woop.us/" target="_blank">Woop clan</a></h2>
     </header>
     <div id="top">
-    <article><a href="questions">Questions</a> &bull; <a href="servers">Servers</a></article>
+    <article><a href="/questions">Questions</a> &bull; <a href="/servers">Servers</a>
+    @if(sessionState.profile.nonEmpty) {
+        &bull; <a href="/profile">View my profile</a>
+        } else {
+
+        }
+    </article>
     </div>
     <div id="content">
         @data
