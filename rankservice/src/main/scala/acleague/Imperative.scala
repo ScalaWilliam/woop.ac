@@ -106,6 +106,7 @@ object Imperative {
     var twentyHoursPlayedEarned: Int = 0,
     var fiftyFlagsEarned: Int = 0,
     var tenGamesInADayEarned: Int = 0,
+    val playedGames: collection.mutable.Set[String] = collection.mutable.Set.empty,
     var thousandFragsEarned: Int = 0,
     var isMapMaster: Boolean = false,
     var socialiteEarned: Int = 0,
@@ -118,12 +119,11 @@ object Imperative {
   ) {
     val socialite = new Socialite(id)
     override def toString =
-      s"""User(id = $id, twentyHoursPlayedEarned = $twentyHoursPlayedEarned, gamesPlayed = $gamesPlayed, flags = $flags, frags = $frags, timePlayed = $timePlayed, tenGamesInADayEarned = $tenGamesInADayEarned, thousandFragsEarned = $thousandFragsEarned, fiftyGamesEarned = $fiftyGamesEarned, fiftyFlagsEarned = $fiftyFlagsEarned, isMapMaster = $isMapMaster, thousandFrags = $thousandFrags, fiftyFlags = $fiftyFlags, fiftyGames = $fiftyGames, tenGames = $tenGames, twentyHours = $twentyHours, mapMaster = $mapMaster"""
+      s"""User(id = $id, twentyHoursPlayedEarned = $twentyHoursPlayedEarned, gamesPlayed = $gamesPlayed, flags = $flags, frags = $frags, timePlayed = $timePlayed, tenGamesInADayEarned = $tenGamesInADayEarned, thousandFragsEarned = $thousandFragsEarned, fiftyGamesEarned = $fiftyGamesEarned, fiftyFlagsEarned = $fiftyFlagsEarned, isMapMaster = $isMapMaster, thousandFrags = $thousandFrags, fiftyFlags = $fiftyFlags, fiftyGames = $fiftyGames, tenGames = $tenGames, twentyHours = $twentyHours, playedGames = $playedGames, mapMaster = $mapMaster"""
 
     def toXml =
       <user-record
         id={s"$id"}
-        flags={s"$flags"}
       >
         <counts flags={s"$flags"} frags={s"$frags"} games={s"$gamesPlayed"} time={s"PT${timePlayed}M"}/>
         <achievements>
@@ -132,6 +132,10 @@ object Imperative {
           <fifty-flags-earned times={fiftyFlagsEarned.toString} progress={fiftyFlags.progress.toString} target={fiftyFlags.target.toString} remaining-to-next={fiftyFlags.remaining.toString}/>
           <ten-games-in-a-day times={tenGamesInADayEarned.toString}/>
           <thousand-frags-earned times={thousandFragsEarned.toString}  progress={thousandFrags.progress.toString} target={thousandFrags.target.toString} remaining-to-next={thousandFrags.remaining.toString}/>
+          {
+          for {gameId <- playedGames.toList}
+          yield <played-in-game game-id={gameId}/>
+          }
           <map-master earned={if ( isMapMaster) "earned" else null }
                       progress={if(isMapMaster) null else {mapMaster.progress.toString}}
                       remaining={if(isMapMaster) null else {mapMaster.remaining.toString}}
@@ -218,13 +222,20 @@ object Imperative {
   }
   type EmmittedEvents[UserId] = collection.immutable.Set[(UserId, UserEvent)]
   type UserRepository[UserId] = Player => Option[User[UserId]]
-  def acceptGame[UserId](userRepository: UserRepository[UserId])(game: Game): EmmittedEvents[UserId] = {
+  type AffectedUsers[UserId] = Set[UserId]
+  case class AcceptanceResult[UserId](affectedUsers: Set[UserId], emmittedEvents: Set[(UserId, UserEvent)])
+  def acceptGame[UserId](userRepository: UserRepository[UserId])(game: Game): AcceptanceResult[UserId] = {
 
     val events = scala.collection.mutable.Buffer.empty[(UserId, UserEvent)]
-
+    val affectedUsers = (
+      for {
+        (userId, _, _) <- game.playersAsUsers(userRepository)
+      } yield userId
+      ).toSet
     for {
       (userId, user, player) <- game.playersAsUsers(userRepository)
     } {
+      user.playedGames += game.id
       for { addFlags <- player.flags }
       { user.flags = user.flags + addFlags }
       user.frags = user.frags + player.frags
@@ -321,9 +332,9 @@ object Imperative {
         // we can trigger side effects here, or at least return new achievements and stuff.
       }
     }
-    (for {
+    AcceptanceResult(affectedUsers, (for {
       (userId, event) <- events
-    } yield (userId, event)).toSet
+    } yield (userId, event)).toSet)
   }
 
 }
