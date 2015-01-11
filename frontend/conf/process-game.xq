@@ -1,4 +1,20 @@
-declare function local:display-game($game as node(), $has-demo as xs:boolean) as node() {
+declare function local:game-header($game as node(), $has-demo as xs:boolean) as node() {
+
+    let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
+    let $date := xs:date($dateTime cast as xs:date)
+    let $day-ago := adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P1D"), ()) cast as xs:date
+    let $date-text :=
+        if ( $date = xs:date(current-date()) ) then (" today")
+        else if ( $date = $day-ago ) then (" yesterday")
+        else (" on "|| $date)
+
+    return
+            <span><a href="{"/game/"||data($game/@id)}">{data($game/@mode)} @ {data($game/@map)} {$date-text}</a>
+                {
+                    if ( $has-demo ) then (<a class="demo-link" href="{"/demos/"||data($game/@id)||".dmo"}">demo</a>) else ()
+                }</span>
+};
+declare function local:display-game($regs as node()*, $game as node(), $has-demo as xs:boolean) as node() {
 
 let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
 let $date := xs:date($dateTime cast as xs:date)
@@ -35,7 +51,15 @@ return
                             return <tr>
                                 <th class="score">{if ( $has-flags ) then (data($player/@flags)) else (data($player/@frags))}</th>
                                 {if ( $has-flags ) then (<th class="subscore">{data($player/@frags)}</th>) else ()}
-                                <td class="name">{data($player/@name)}</td>
+                                <td class="name">{
+                                    let $name := data($player/@name)
+                                    return subsequence((
+                                    for $rp in $regs[@game-nickname = $name]
+                                    return <a href="{"/player/"||data($rp/@id)}">{$name}</a>,
+                                    <span>{$name}</span>),1,1
+                                    )
+
+                                }</td>
                             </tr>
                             }
                         </tbody>

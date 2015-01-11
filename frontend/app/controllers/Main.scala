@@ -7,15 +7,19 @@ import java.util.UUID
 import com.maxmind.geoip2.DatabaseReader
 import org.basex.server.ClientSession
 import org.scalactic._
+import play.api.libs.ws.WS
 import play.api.{Logger, Play}
 import play.api.mvc._
 import play.twirl.api.Html
 import plugins.{HazelcastPlugin, RegisteredUserManager}
 import plugins.RegisteredUserManager.{RegisteredSession, GoogleEmailAddress, RegistrationDetail, SessionState}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 import org.scalactic._
+
+import scala.xml.Text
+
 object Main extends Controller {
   def using[T <: { def close(): Unit }, V](a: => T)(f: T=> V):V  = {
     val i = a
@@ -54,6 +58,58 @@ object Main extends Controller {
       x(c)
     }
   }
+
+  def viewUser(userId: String)(implicit ec: ExecutionContext): Future[Option[scala.xml.Elem]] = {
+    implicit val app = Play.current
+    val theXml = <rest:query xmlns:rest="http://basex.org/rest">
+      <rest:text>{Text(processGameXQuery)}<![CDATA[
+
+declare variable $user-id as xs:string external;
+for $u in /registered-user[@id = $user-id]
+let $user-record := /user-record[@id= string($u/@id)]
+let $record := $user-record
+return <player>{$u}<profile><div class="profile">
+<h1>{data($u/@game-nickname)}</h1>
+{
+if ( empty($user-record) ) then (<p>No statistics generated yet...</p>)
+else ((
+<table class="basic-counts">
+<tr><th>Time played</th><td>{
+let $time := xs:duration(data($record/counts/@time))
+let $days := days-from-duration($time)
+let $hours := hours-from-duration($time)
+return if ( $days = 0 and $hours = 0 ) then ("Not enough") else
+(
+if($days gt 0) then ($days || " days") else (),
+$hours || " hours"
+)
+}</td></tr>
+<tr><th>Games played</th><td>{data($record/counts/@games)}</td></tr>
+<tr><th>Flags</th><td>{data($record/counts/@flags)}</td></tr>
+<tr><th>Frags</th><td>{data($record/counts/@frags)}</td></tr>
+
+</table>
+,
+<h2>Recent games</h2>,
+let $subs := subsequence(
+  for $pig in $record//played-in-game
+  for $game in /game[@id= data($pig/@game-id)]
+  order by $game/@date descending
+  let $has-demo :=exists(/local-demo[@game-id = data($game/@id)])
+  return <li>{local:game-header($game, $has-demo)}</li>
+,1,20)
+  return <ol class="recent-games">{$subs}</ol>
+))
+}
+
+</div></profile></player>]]>
+      </rest:text>
+      <rest:variable name="user-id" value={userId}/>
+    </rest:query>
+    WS.url("http://odin.duel.gg:1238/rest/acleague").post(theXml).map(x => Option(x).filter(_.body.nonEmpty).map(_.xml))
+
+  }
+
   lazy val processGameXQuery = {
     import play.api.Play.current
     scala.io.Source.fromInputStream(Play.resourceAsStream("/process-game.xq").get).mkString
@@ -61,17 +117,21 @@ object Main extends Controller {
   def getGameQueryText =
     processGameXQuery +
       """
+        |
         |declare variable $game-id as xs:integer external;
         |let $games := if ( $game-id = 0 ) then (/game) else (/game[@id=$game-id])
         |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P5D"), ())) cast as xs:date
+        |let $rus := /registered-user
         |for $game in $games
         |let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
         |let $date := xs:date($dateTime cast as xs:date)
-        |where $date ge $earliest
+        |where ($game-id != 0) or ($date ge $earliest)
         |where count($game//player) ge 4
         |order by data($game/@date) descending
         |let $has-demo := exists(/local-demo[@game-id = data($game/@id)])
-        |return local:display-game($game, $has-demo)
+        |return local:display-game($rus, $game, $has-demo)
+        |
+        |
         |
       """.stripMargin
 
@@ -207,7 +267,7 @@ object Main extends Controller {
     r => implicit s =>
 
       import play.api.libs.concurrent.Execution.Implicits.defaultContext
-      for { stuff <- RegisteredUserManager.userManagement.viewUser(id) }
+      for { stuff <- viewUser(id) }
       yield {
         stuff match {
           case None => NotFound

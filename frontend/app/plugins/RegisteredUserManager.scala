@@ -21,45 +21,6 @@ object RegisteredUserManager {
 }
 class RegisteredUserManager(implicit app: Application) extends Plugin {
 
-  def viewUser(userId: String)(implicit ec: ExecutionContext): Future[Option[scala.xml.Elem]] = {
-    val theXml = <rest:query xmlns:rest="http://basex.org/rest">
-      <rest:text><![CDATA[
-declare variable $user-id as xs:string external;
-for $u in /registered-user[@id = $user-id]
-let $user-record := /user-record[@id= string($u/@id)]
-let $record := $user-record
-return <player>{$u}<profile><div class="profile">
-<h1>{data($u/@game-nickname)}</h1>
-{
-if ( empty($user-record) ) then (<p>No statistics generated yet...</p>)
-else (
-<table class="basic-counts">
-<tr><th>Time played</th><td>{
-let $time := xs:duration(data($record/counts/@time))
-let $days := days-from-duration($time)
-let $hours := hours-from-duration($time)
-return if ( $days = 0 and $hours = 0 ) then ("Not enough") else
-(
-if($days gt 0) then ($days || " days") else (),
-$hours || " hours"
-)
-}</td></tr>
-<tr><th>Games played</th><td>{data($record/counts/@games)}</td></tr>
-<tr><th>Flags</th><td>{data($record/counts/@flags)}</td></tr>
-<tr><th>Frags</th><td>{data($record/counts/@frags)}</td></tr>
-
-</table>
-
-)
-}
-
-</div></profile></player>]]>
-      </rest:text>
-      <rest:variable name="user-id" value={userId}/>
-    </rest:query>
-    WS.url("http://odin.duel.gg:1238/rest/acleague").post(theXml).map(x => Option(x).filter(_.body.nonEmpty).map(_.xml))
-
-  }
 
   lazy val sessionEmails = HazelcastPlugin.hazelcastPlugin.hazelcast.getMap[String, String]("session-emails")
   lazy val sessionTokens = HazelcastPlugin.hazelcastPlugin.hazelcast.getMap[String, String]("session-tokens")
