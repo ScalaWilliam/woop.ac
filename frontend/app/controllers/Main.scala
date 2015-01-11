@@ -4,7 +4,6 @@ import java.io.File
 import java.net.InetAddress
 import java.util.UUID
 
-import com.hazelcast.core.Hazelcast
 import com.maxmind.geoip2.DatabaseReader
 import org.basex.server.ClientSession
 import org.scalactic._
@@ -134,7 +133,7 @@ object Main extends Controller {
       }
   }
 
-  lazy val topic = Hazelcast.newHazelcastInstance().getTopic[String]("new-users")
+  lazy val topic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("new-users")
 
   def statedSync[V](f: Request[AnyContent] => SessionState => Result): Action[AnyContent] =
     stated { a => b =>
