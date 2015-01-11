@@ -1,3 +1,5 @@
+enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
+
 name := "rankservice"
 
 organization := "acleague"
