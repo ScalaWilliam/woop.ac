@@ -4,6 +4,7 @@ import java.io.File
 import java.net.InetAddress
 import java.util.UUID
 
+import com.hazelcast.core.Hazelcast
 import com.maxmind.geoip2.DatabaseReader
 import org.basex.server.ClientSession
 import org.scalactic._
@@ -132,6 +133,8 @@ object Main extends Controller {
         f(request)(suzzy)
       }
   }
+
+  lazy val topic = Hazelcast.newHazelcastInstance().getTopic[String]("new-users")
 
   def statedSync[V](f: Request[AnyContent] => SessionState => Result): Action[AnyContent] =
     stated { a => b =>
@@ -301,7 +304,7 @@ object Main extends Controller {
           case InitialPage(countryCode)=>
             Ok(views.html.createProfile(countryCode))
           case UserRegistered(userId) =>
-            HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("new-users").publish(userId)
+            topic.publish(userId)
             SeeOther(controllers.routes.Main.viewPlayer(userId).url)
           case ContinueRegistering(countryCode) =>
             Ok(views.html.createProfile(countryCode))
