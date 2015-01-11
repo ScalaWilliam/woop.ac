@@ -54,6 +54,7 @@ object MasterRankerApp extends App with LazyLogging {
         become {
           case Terminated(subj) if masterRanker == subj =>
             masterRanker = context.actorOf(MasterRanker.props, name="master-ranker")
+            context.watch(masterRanker)
             unbecome()
             unstashAll()
           case other => stash()
