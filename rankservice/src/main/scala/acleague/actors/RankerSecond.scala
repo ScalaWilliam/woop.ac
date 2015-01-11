@@ -27,10 +27,10 @@ object MasterRankerApp extends App with LazyLogging {
   System.setProperty("hazelcast.logging.type", System.getProperty("hazelcast.logging.type", "slf4j"))
   logger.info(s"Application configuration: ${AppConfig.conf}")
   implicit val as = ActorSystem("MR")
-  val woot = actor(new Act with ActWithStash {
+  val woot = actor(new Act with ActWithStash with ActorLogging {
     import scala.concurrent.duration._
 
-    var masterRanker = context.actorOf(MasterRanker.props, name="master-ranker")
+    var masterRanker = context.actorOf(MasterRanker.props)
     case object ReloadMasterRanker
 
     val hazelcast = Hazelcast.newHazelcastInstance()
@@ -51,9 +51,11 @@ object MasterRankerApp extends App with LazyLogging {
 
     become {
       case ReloadMasterRanker =>
-        become {
+        import context.dispatcher
+        becomeStacked {
           case Terminated(subj) if masterRanker == subj =>
-            masterRanker = context.actorOf(MasterRanker.props, name="master-ranker")
+            masterRanker = context.actorOf(MasterRanker.props)
+            context.unwatch(subj)
             context.watch(masterRanker)
             unbecome()
             unstashAll()
@@ -81,12 +83,6 @@ object MasterRankerApp extends App with LazyLogging {
     whenStarting {
       context.watch(masterRanker)
       import context.dispatcher
-      for {
-        g <- RankerActor.getGame("672575197")
-      } {
-        context.system.scheduler.scheduleOnce(6.seconds, masterRanker, NewGameFound(g))
-      }
-//      context.system.scheduler.scheduleOnce(10.seconds, self, ReloadMasterRanker)
     }
   })
   as.awaitTermination()
@@ -145,7 +141,7 @@ class MasterRanker extends Act with ActWithStash with ActorLogging {
     case newGameFound @ NewGameFound(newGame) =>
       // Ensure that all ranges are clear for our purposes
       log.debug("Found new game ID {}", newGame.id)
-      become {
+      becomeStacked {
         case RangesCleared =>
           log.debug("Pushing new game ID {}", newGame.id)
           ranker ! newGameFound
