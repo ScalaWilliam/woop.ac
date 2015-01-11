@@ -257,7 +257,7 @@ object Main extends Controller {
           }
           countryCode = getCountryCode match {
             case Some(c) => c
-            case None => throw new PreventAccess("Could not find a country code for your IP address.")
+            case None => throw new PreventAccess(s"Could not find a country code for your IP address ${request.remoteAddress}.")
           }
           email = state.googleEmailAddress match {
             case Some(e) => e
