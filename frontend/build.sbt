@@ -5,7 +5,7 @@ organization := "acleague"
 
 name:="frontend"
 
-version := "2.02"
+version := "2.03"
 
 scalaVersion := "2.11.4"
 
@@ -21,6 +21,7 @@ libraryDependencies ++= Seq(
   "org.scalactic" %%"scalactic"%"2.2.1",
   "com.maxmind.geoip2"%"geoip2"%"2.1.0",
   "org.scala-lang.modules" %% "scala-async" % "0.9.2",
+  "commons-net" % "commons-net" % "3.3",
   ws
 )
 

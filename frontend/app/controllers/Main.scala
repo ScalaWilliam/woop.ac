@@ -12,7 +12,7 @@ import play.api.libs.ws.WS
 import play.api.{Logger, Play}
 import play.api.mvc._
 import play.twirl.api.Html
-import plugins.{AwaitUserUpdatePlugin, HazelcastPlugin, RegisteredUserManager}
+import plugins.{RangerPlugin, AwaitUserUpdatePlugin, HazelcastPlugin, RegisteredUserManager}
 import plugins.RegisteredUserManager.{RegisteredSession, GoogleEmailAddress, RegistrationDetail, SessionState}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -131,7 +131,7 @@ return
       {$basics-table}
     </div>
     <div class="master">
-      <p>Become the <strong>WCACML Map Master</strong> by playing these maps</p>
+      <p>Become the <strong>Map Master</strong> by playing these maps. More rewards coming.</p>
       {$master-table}
     </div>
   </div>
@@ -160,6 +160,7 @@ return <ol class="recent-games">{$subs}</ol>
     import play.api.Play.current
     scala.io.Source.fromInputStream(Play.resourceAsStream("/process-game.xq").get).mkString
   }
+
   def getGameQueryText =
     processGameXQuery +
       """
@@ -346,8 +347,8 @@ return <ol class="recent-games">{$subs}</ol>
           if ( state.profile.nonEmpty ) {
             SeeOther(controllers.routes.Main.viewPlayer(state.profile.get.userId).url)
           }
-          val ipAddress = "77.44.45.26" //request.remoteAddress
-//          val ipAddress = request.remoteAddress
+          val ipAddress = if ( scala.util.Properties.osName == "Windows 7" ) { "77.44.45.26" } else request.remoteAddress
+
           getCountryCode(ipAddress) match {
             case None =>
               Ok(views.html.createProfileNotAllowed(List(s"Could not find a country code for your IP address $ipAddress.")))
@@ -355,7 +356,7 @@ return <ol class="recent-games">{$subs}</ol>
               state.googleEmailAddress match {
                 case None => Ok(views.html.createProfileNotAllowed(List("You do not appear to have an e-mail address. Please sign in again.")))
                 case Some(GoogleEmailAddress(emailAddress)) =>
-                  val ipExists = await(RegisteredUserManager.userManagement.ipExists(ipAddress))
+                  val ipExists = await(RangerPlugin.awaitPlugin.rangeExists(ipAddress))
                   if ( !ipExists ) {
                     Ok(views.html.createProfileNotAllowed(List(s"You do not appear to have have played with your current IP $ipAddress.")))
                   } else {

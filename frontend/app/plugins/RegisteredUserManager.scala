@@ -37,7 +37,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
 
           if (
             exists(/game/team/player[@name = $game-nickname])
-            and exists(/game/team/player[@name = $game-nickname and @host = $ip])
+           (: and exists(/game/team/player[@name = $game-nickname and @host = $ip]) :)
             and not(exists(/registered-user[@game-nickname = $game-nickname]))
             and not(exists(/registered-user[@name = $short-name]))
             and not(exists(/registered-user[@id = $user-id]))
@@ -92,7 +92,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
             if ( exists(/registered-user[@id = $user-id]))
             then ("User ID "||$user-id||" already taken.") else ()
           return <result>
-          { for $failure in ($nickname-found-in-game, $nickname-ip-found-in-game, $nickname-available,$name-available,$user-id-available)
+          { for $failure in ($nickname-found-in-game, $nickname-available,$name-available,$user-id-available)
           return <failure>{$failure}</failure>}
           </result>
         ]]></rest:text>

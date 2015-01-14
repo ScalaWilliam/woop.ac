@@ -11,18 +11,18 @@ import play.api._
 import akka.actor.ActorDSL._
 
 class AwaitUserUpdatePlugin(implicit app: Application) extends Plugin {
+
   def awaitUser(userId: String): Future[Unit] = {
     import ExecutionContext.Implicits.global
     googer.ask(WaitForUser(userId))(10.seconds).map(x => ())
   }
-  implicit lazy val system = Akka.system
-  lazy val listener = new MessageListener[String] {
-    override def onMessage(message: Message[String]): Unit = {
-      googer ! UserUpdated(message.getMessageObject)
-    }
-  }
+
   lazy val topic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("user-updates")
-  lazy val listenerId = topic.addMessageListener(listener)
+
+  implicit lazy val system = Akka.system
+
+  var listenerId: String = _
+
   lazy val googer = actor(new Act {
     val waiters = scala.collection.mutable.Map.empty[ActorRef, String]
     become {
@@ -39,8 +39,18 @@ class AwaitUserUpdatePlugin(implicit app: Application) extends Plugin {
   })
 
   override def onStop(): Unit = {
-    topic.removeMessageListener(listenerId)
+    if ( listenerId != null ) { topic.removeMessageListener(listenerId) }
     googer ! Kill
+  }
+
+  override def onStart(): Unit = {
+    listenerId = topic.addMessageListener {
+      new MessageListener[String] {
+        override def onMessage(message: Message[String]): Unit = {
+          googer ! UserUpdated(message.getMessageObject)
+        }
+      }
+    }
   }
 
 }
