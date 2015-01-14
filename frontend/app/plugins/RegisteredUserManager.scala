@@ -113,14 +113,15 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
     }
   }
 
-  def registerGoogleUser(email: String)(implicit ec: ExecutionContext): Future[Unit] = {
+  def registerGoogleUser(email: String, data: String)(implicit ec: ExecutionContext): Future[Unit] = {
     WS.url("http://odin.duel.gg:1238/rest/acleague").post(<rest:query xmlns:rest='http://basex.org/rest'>
         <rest:text><![CDATA[
           declare variable $email as xs:string external;
+          declare variable $data as xs:string external;
           if ( empty(/google-user[@email = $email]) )
-          then (db:add("acleague", <google-user email="{$email}"/>, "online-registration"))
+          then (db:add("acleague", <google-user email="{$email}"><registration-data>{$data}</registration-data></google-user>, "online-registration"))
           else ()
-        ]]></rest:text><rest:variable name="email" value={email}/></rest:query>).map(x => ())
+        ]]></rest:text><rest:variable name="email" value={email}/><rest:variable name="data" value={data}/></rest:query>).map(x => ())
   }
 
   def ipExists(ip: String)(implicit ec: ExecutionContext): Future[Boolean] = {
@@ -206,7 +207,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
         } yield emailType -> emailValue
         emails.collectFirst { case ("account", email) if email.nonEmpty => email}
       }.getOrElse(throw new IllegalStateException("Expected an e-mail address in response, got none."))
-      _ <- registerGoogleUser(emailAddress)
+      _ <- registerGoogleUser(emailAddress, personProfileResponse.body)
     } yield GoogleEmailAddress(emailAddress)
   }
 
