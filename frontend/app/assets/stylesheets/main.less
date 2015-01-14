@@ -56,6 +56,9 @@ position:relative;
   text-align: center;
   margin-top:0em;
 }
+.game td a, .game th a {
+  text-decoration: none;
+}
 
 .team h3 {
   font-size:2.5em;
@@ -176,12 +179,39 @@ a.demo-link {
 #faults-list h3 {
   color:orangered;
 }
+
+.main-info {
+}
 .basic-counts {
-  width:15em;
+  width:13em;
 }
 .basic-counts th {
   text-align: left;
 }
 ol.recent-games {
   list-style-type: none;
+  & a {
+    text-decoration: none;
+  }
+}
+table.map-master {
+  th, td {
+  padding:0;
+    padding-right: 2em;
+  }
+  & th {
+    font-weight: normal;
+    text-align: right;
+  }
+  td {
+    color:lightgray;
+  }
+  & td.partial {
+    color:goldenrod;
+  }
+  & tr.complete th, td.complete {
+    color:wheat;
+  }
+
+
 }

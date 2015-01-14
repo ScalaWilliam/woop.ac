@@ -17,10 +17,11 @@ resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
 
 libraryDependencies ++= Seq(
   "org.basex" % "basex" % "7.9",
-"com.hazelcast"%"hazelcast"%"3.3.3",
-"org.scalactic" %%"scalactic"%"2.2.1",
+  "com.hazelcast"%"hazelcast"%"3.3.3",
+  "org.scalactic" %%"scalactic"%"2.2.1",
   "com.maxmind.geoip2"%"geoip2"%"2.1.0",
-ws
+  "org.scala-lang.modules" %% "scala-async" % "0.9.2",
+  ws
 )
 
 includeFilter in (Assets, LessKeys.less) := "*.less"

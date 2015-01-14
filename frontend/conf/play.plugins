@@ -1,2 +1,3 @@
 701:plugins.HazelcastPlugin
 703:plugins.RegisteredUserManager
+703:plugins.AwaitUserUpdatePlugin

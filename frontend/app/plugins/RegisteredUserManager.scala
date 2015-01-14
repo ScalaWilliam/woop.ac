@@ -122,6 +122,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
           else ()
         ]]></rest:text><rest:variable name="email" value={email}/></rest:query>).map(x => ())
   }
+
   def ipExists(ip: String)(implicit ec: ExecutionContext): Future[Boolean] = {
     WS.url("http://odin.duel.gg:1238/rest/acleague").post(<rest:query xmlns:rest='http://basex.org/rest'>
         <rest:text><![CDATA[

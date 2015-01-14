@@ -4,6 +4,7 @@ import java.io.File
 import java.net.InetAddress
 import java.util.UUID
 
+import akka.pattern.AskTimeoutException
 import com.maxmind.geoip2.DatabaseReader
 import org.basex.server.ClientSession
 import org.scalactic._
@@ -11,7 +12,7 @@ import play.api.libs.ws.WS
 import play.api.{Logger, Play}
 import play.api.mvc._
 import play.twirl.api.Html
-import plugins.{HazelcastPlugin, RegisteredUserManager}
+import plugins.{AwaitUserUpdatePlugin, HazelcastPlugin, RegisteredUserManager}
 import plugins.RegisteredUserManager.{RegisteredSession, GoogleEmailAddress, RegistrationDetail, SessionState}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -70,36 +71,81 @@ let $user-record := /user-record[@id= string($u/@id)]
 let $record := $user-record
 return <player>{$u}<profile><div class="profile">
 <h1>{data($u/@game-nickname)}</h1>
-{
-if ( empty($user-record) ) then (<p>No statistics generated yet...</p>)
-else ((
-<table class="basic-counts">
-<tr><th>Time played</th><td>{
-let $time := xs:duration(data($record/counts/@time))
-let $days := days-from-duration($time)
-let $hours := hours-from-duration($time)
-return if ( $days = 0 and $hours = 0 ) then ("Not enough") else
-(
-if($days gt 0) then ($days || " days") else (),
-$hours || " hours"
-)
-}</td></tr>
-<tr><th>Games played</th><td>{data($record/counts/@games)}</td></tr>
-<tr><th>Flags</th><td>{data($record/counts/@flags)}</td></tr>
-<tr><th>Frags</th><td>{data($record/counts/@frags)}</td></tr>
 
-</table>
-,
-<h2>Recent games</h2>,
+{
+let $basics-table :=
+  if ( empty($user-record) )
+  then (<p>No statistics generated yet...</p>)
+  else
+  <table class="basic-counts">
+    <tr>
+      <th>Time played</th>
+      <td>{
+      let $time := xs:duration(data($record/counts/@time))
+      let $days := days-from-duration($time)
+      let $hours := hours-from-duration($time)
+      return
+        if ( $days = 0 and $hours = 0 )
+        then ("Not enough")
+        else (
+          if ( $days eq 1 ) then ("1 day")
+          else if ( $days gt 1 ) then ($days || " days")
+          else ()," ",
+          if ( $hours eq 1 ) then ("1 hour")
+          else if ( $hours gt 1 ) then ($hours|| " hours")
+          else ()
+        )
+      }</td>
+    </tr>
+  <tr><th>Games played</th><td>{data($record/counts/@games)}</td></tr>
+  <tr><th>Flags</th><td>{data($record/counts/@flags)}</td></tr>
+  <tr><th>Frags</th><td>{data($record/counts/@frags)}</td></tr>
+  </table>
+let $master-table :=
+  <table class="map-master"><thead><tr><th>Map</th><th>RVSF</th><th>CLA</th></tr></thead>
+  <tbody>{
+    let $map-master := $user-record/achievements/map-master
+    for $completion in $map-master/map-completion
+    let $is-completed := $completion/@is-completed = "true"
+    return
+      <tr class="{if ( $is-completed ) then ("complete") else ("incomplete")}">
+        <th>{data($completion/@mode)} @ {data($completion/@map)}</th>
+        {
+          if ( $completion/@progress-rvsf = 0 ) then (<td class="rvsf incomplete">0/{data($completion/@target-rvsf)}</td>)
+          else if ( $is-completed ) then (<td class="rvsf complete">2/2</td>)
+          else if ( $completion/@progress-rvsf = $completion/@target-rvsf ) then (<td class="rvsf complete">2/2</td>)
+          else (<td class="rvsf partial">{data($completion/@progress-rvsf)}/{data($completion/@target-rvsf)}</td>)
+        }
+        {if ( $completion/@progress-cla = 0 ) then (<td class="cla incomplete">0/{data($completion/@target-cla)}</td>)
+          else if ( $is-completed ) then (<td class="cla complete">2/2</td>)
+          else if ( $completion/@progress-cla = $completion/@target-cla ) then (<td class="cla complete">2/2</td>)
+          else (<td class="cla partial">{data($completion/@progress-cla)}/{data($completion/@target-cla)}</td>)
+        }
+      </tr>
+  }
+  </tbody></table>
+
+return
+  <div class="main-info">
+    <div class="basics">
+      {$basics-table}
+    </div>
+    <div class="master">
+      <p>Become the <strong>WCACML Map Master</strong> by playing these maps</p>
+      {$master-table}
+    </div>
+  </div>
+}
+
+<h2>Recent games</h2>
+{
 let $subs := subsequence(
   for $pig in $record//played-in-game
   for $game in /game[@id= data($pig/@game-id)]
   order by $game/@date descending
-  let $has-demo :=exists(/local-demo[@game-id = data($game/@id)])
-  return <li>{local:game-header($game, $has-demo)}</li>
-,1,20)
-  return <ol class="recent-games">{$subs}</ol>
-))
+  let $has-demo := exists(/local-demo[@game-id = data($game/@id)])
+  return <li>{local:game-header($game, $has-demo)}</li>,1,7)
+return <ol class="recent-games">{$subs}</ol>
 }
 
 </div></profile></player>]]>
@@ -207,32 +253,16 @@ let $subs := subsequence(
     }
 
   def registered[V](f: Request[AnyContent] => RegisteredSession => Future[Result]): Action[AnyContent] =
-    stated { implicit request => sessionState =>
-      sessionState match {
-        case SessionState(Some(sessionId), Some(GoogleEmailAddress(email)), Some(profile)) =>
-          f(request)(RegisteredSession(sessionId, profile))
-        case other =>
-          import scala.concurrent.ExecutionContext.Implicits.global
-          Future{SeeOther(controllers.routes.Main.createProfile().url)}
-      }
+    stated { implicit request => {
+      case SessionState(Some(sessionId), Some(GoogleEmailAddress(email)), Some(profile)) =>
+        f(request)(RegisteredSession(sessionId, profile))
+      case other =>
+        import scala.concurrent.ExecutionContext.Implicits.global
+        Future {
+          SeeOther(controllers.routes.Main.createProfile().url)
+        }
     }
-//
-//  def createProfile = stated { implicit request => implicit suzzy =>
-//    suzzy.profile match {
-//      case Some(_) => Future {
-//        Ok("You already have a profile, naughty!")
-//      }
-//      case _ => Future {
-//        Ok(views.html.second.createProfile(profileForm))
-//      }
-//    }
-//  }
-//
-//  def logout = Action {
-//    implicit request =>
-//      request.cookies.get(RegisteredUserManager.SESSION_ID).map(_.value).foreach(RegisteredUserManager.userManagement.sessionEmails.remove)
-//      TemporaryRedirect(controllers.routes.Main.index().absoluteURL())
-//  }
+    }
 
   def mainUrl(implicit request : play.api.mvc.RequestHeader) =
     controllers.routes.Main.oauth2callback().absoluteURL()
@@ -279,14 +309,14 @@ let $subs := subsequence(
       }
   }
 
-  def getCountryCode(implicit request: Request[_]): Option[String] =
+  def getCountryCode(ip:String): Option[String] =
     for {
-      countryResponse <- Try(reader.country(InetAddress.getByName(request.remoteAddress))).toOption
+      countryResponse <- Try(reader.country(InetAddress.getByName(ip))).toOption
       country <- Option(countryResponse.getCountry)
       isoCode <- Option(country.getIsoCode)
     } yield isoCode
 
-  def getRegistrationDetail(country: String, email: String)(implicit request: Request[AnyContent]): Option[RegistrationDetail] =
+  def getRegistrationDetail(country: String, email: String, ip:String)(implicit request: Request[AnyContent]): Option[RegistrationDetail] =
     for {
       form <- request.body.asMultipartFormData.map(_.dataParts)
       gameNickname <- form.get("game-nickname").map(_.headOption).flatten
@@ -297,7 +327,7 @@ let $subs := subsequence(
         countryCode = country,
         userId = userId,
         shortName = shortName,
-        gameNickname = gameNickname, ip = request.remoteAddress
+        gameNickname = gameNickname, ip = ip
       )
   case class PreventAccess(reason: String) extends Exception
   case class FailRegistration(countryCode: String, reasons: List[String]) extends Exception
@@ -306,69 +336,55 @@ let $subs := subsequence(
   case class ContinueRegistering(countryCode: String) extends Exception
   case class YouAlreadyHaveAProfile() extends Exception
   def createProfile = stated{implicit request => implicit state =>
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
+    import ExecutionContext.Implicits.global
+    import scala.async.Async.{async, await}
     state match {
       case SessionState(_, None, _) =>
         Future{SeeOther(controllers.routes.Main.login().url)}
       case _ =>
-        val registerMe = for {
-          _ <- Future {
-            if (state.profile.nonEmpty) {
-              throw new YouAlreadyHaveAProfile()
-            }
-          }
-          countryCode = getCountryCode match {
-            case Some(c) => c
-            case None => throw new PreventAccess(s"Could not find a country code for your IP address ${request.remoteAddress}.")
-          }
-          email = state.googleEmailAddress match {
-            case Some(e) => e
-            case _ => throw new PreventAccess("You do not appear to have an e-mail address. Please sign in.")
-          }
-          ipExists <- RegisteredUserManager.userManagement.ipExists(request.remoteAddress)
-          _ = if (!ipExists) { throw new PreventAccess("You do not appear to have have played with your current IP.") } else Unit
-        regDetail = getRegistrationDetail(countryCode, email.email)
-          validated <- regDetail match {
-            case Some(reg) =>
-              if ( """.{3,15}""".r.unapplySeq(reg.gameNickname).isEmpty ) {
-                throw new FailRegistration(countryCode,List("Invalid game nickname specified"))
-              }
-              if ("""[A-Za-z0-9]{3,12}""".r.unapplySeq(reg.shortName).isEmpty) {
-                throw new FailRegistration(countryCode,List("Invalid short name specified"))
-              }
-              if ( """[a-z0-9]{3,10}""".r.unapplySeq(reg.userId).isEmpty) {
-                throw new FailRegistration(countryCode,List("Invalid username specified"))
-              }
-              RegisteredUserManager.userManagement.registerValidation(reg)
-            case None => throw new InitialPage(countryCode)
-          }
-          _ = validated match {
-            case org.scalactic.Bad(stuff) =>
-              throw new FailRegistration(countryCode,stuff.toList)
-            case _ => Unit
-          }
-          reg <- RegisteredUserManager.userManagement.registerUser(regDetail.get)
-        } yield {
-          throw new UserRegistered(regDetail.get.userId)
-        }
-        for {
-          ex <- registerMe.recover{case t => t }
-        } yield ex match {
-          case YouAlreadyHaveAProfile() =>
+        async {
+          if ( state.profile.nonEmpty ) {
             SeeOther(controllers.routes.Main.viewPlayer(state.profile.get.userId).url)
-          case PreventAccess(reason) =>
-            Ok(views.html.createProfileNotAllowed(List(reason)))
-          case FailRegistration(countryCode, reasons) =>
-            Ok(views.html.createProfile(countryCode, reasons))
-          case InitialPage(countryCode)=>
-            Ok(views.html.createProfile(countryCode))
-          case UserRegistered(userId) =>
-            topic.publish(userId)
-            SeeOther(controllers.routes.Main.viewPlayer(userId).url)
-          case ContinueRegistering(countryCode) =>
-            Ok(views.html.createProfile(countryCode))
-          case other =>
-            throw other
+          }
+          val ipAddress = "77.44.45.26" //request.remoteAddress
+//          val ipAddress = request.remoteAddress
+          getCountryCode(ipAddress) match {
+            case None =>
+              Ok(views.html.createProfileNotAllowed(List(s"Could not find a country code for your IP address $ipAddress.")))
+            case Some(countryCode) =>
+              state.googleEmailAddress match {
+                case None => Ok(views.html.createProfileNotAllowed(List("You do not appear to have an e-mail address. Please sign in again.")))
+                case Some(GoogleEmailAddress(emailAddress)) =>
+                  val ipExists = await(RegisteredUserManager.userManagement.ipExists(ipAddress))
+                  if ( !ipExists ) {
+                    Ok(views.html.createProfileNotAllowed(List(s"You do not appear to have have played with your current IP $ipAddress.")))
+                  } else {
+                    getRegistrationDetail(countryCode, emailAddress, ipAddress) match {
+                      case None =>
+                        Ok(views.html.createProfile(countryCode))
+                      case Some(reg) =>
+                        if ( """.{3,15}""".r.unapplySeq(reg.gameNickname).isEmpty) {
+                          Ok(views.html.createProfile(countryCode, List("Invalid game nickname specified")))
+                        } else if ( """[A-Za-z0-9]{3,12}""".r.unapplySeq(reg.shortName).isEmpty) {
+                          Ok(views.html.createProfile(countryCode, List("Invalid short name specified")))
+                        } else if ( """[a-z0-9]{3,10}""".r.unapplySeq(reg.userId).isEmpty) {
+                          Ok(views.html.createProfile(countryCode, List("Invalid username specified")))
+                        } else {
+                          val regDetail = await(RegisteredUserManager.userManagement.registerValidation(reg))
+                          regDetail match {
+                            case org.scalactic.Bad(stuff) =>
+                              Ok(views.html.createProfile(countryCode, stuff.toList))
+                            case _ =>
+                              await(RegisteredUserManager.userManagement.registerUser(reg))
+                              topic.publish(reg.userId)
+                              await(AwaitUserUpdatePlugin.awaitPlugin.awaitUser(reg.userId).recover{case _: AskTimeoutException => "whatever"})
+                              SeeOther(controllers.routes.Main.viewPlayer(reg.userId).url)
+                          }
+                        }
+                    }
+                  }
+              }
+          }
         }
       case _ => Future { Forbidden }
     }
