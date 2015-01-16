@@ -10,7 +10,6 @@
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger - %msg%n</pattern>
         </encoder>
     </appender>
-    <appender name="systemd" class="org.gnieh.logback.SystemdJournalAppender"/>
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger - %msg%n</pattern>
@@ -18,11 +17,9 @@
     </appender>
     <logger name="acleague.actors" level="DEBUG">
         <appender-ref ref="file"/>
-        <appender-ref ref="systemd"/>
     </logger>
     <root level="INFO">
         <appender-ref ref="stdout"/>
-        <appender-ref ref="systemd"/>
         <appender-ref ref="file"/>
     </root>
 </configuration>

@@ -48,7 +48,7 @@ object LookupRange {
     val (rangeO, countryCodeO) = parseXmlToRange(queryXmlForIp(ip))
     for {
       range <- rangeO
-    } yield IpRangeOptionalCountry(IpRange(range), countryCodeO)
+    } yield IpRangeOptionalCountry(IpRange(range), lookupCountryByIp(ip) orElse countryCodeO)
   }
 //  def apply(ip: String): Option[IpRangeCountryCode] = {
 //    val (rangeO, countryCodeO) = parseXmlToRange(queryXmlForIp(ip))
