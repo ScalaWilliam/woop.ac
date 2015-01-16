@@ -225,7 +225,6 @@ object Imperative {
   type AffectedUsers[UserId] = Set[UserId]
   case class AcceptanceResult[UserId](affectedUsers: Set[UserId], emmittedEvents: Set[(UserId, UserEvent)])
   def acceptGame[UserId](userRepository: UserRepository[UserId])(game: Game): AcceptanceResult[UserId] = {
-  if ( game.id != "751658116" ) {AcceptanceResult(Set.empty, Set.empty) } else {
     val events = scala.collection.mutable.Buffer.empty[(UserId, UserEvent)]
     val affectedUsers = (
       for {
@@ -336,7 +335,6 @@ object Imperative {
     AcceptanceResult(affectedUsers, (for {
       (userId, event) <- events
     } yield (userId, event)).toSet)
-  }
   }
 
 }
