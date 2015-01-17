@@ -40,7 +40,7 @@ class RangerPlugin(implicit app: Application) extends Plugin {
   })
 
   def getRanges = for {
-    xmlContent <- WS.url("http://odin.duel.gg:1238/rest/acleague").post(<rest:query xmlns:rest="http://basex.org/rest">
+    xmlContent <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
       <rest:text><![CDATA[<ranges>{/range}</ranges> ]]></rest:text>
     </rest:query>)
   } yield {

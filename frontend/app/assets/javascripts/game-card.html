@@ -1,0 +1,195 @@
+<polymer-element name="game-card" attributes="gameJson">
+
+    <template>
+        <style scoped>
+            .game {
+                position:relative;
+                width:38em;
+                margin-left:auto;
+                margin-right: auto;
+                margin-bottom:2em;
+                background: beige;
+                border-radius: 1.2em;
+
+                box-shadow: black 3px 3px 2px, black -3px -3px 2px, black 3px -3px 2px, black -3px 3px 2px;
+                color:white;
+                text-shadow: #333 1px 1px 1px, #333 -1px 1px 1px, #333 1px -1px 1px, #333 -1px -1px 1px;
+                background-position: top center;
+            }
+            .game header h2 {
+                vertical-align: baseline;
+                text-align: center;
+                margin-top:0em;
+            }
+            .w {
+                background:rgba(20,20,20,0.14);
+                border-radius:1.2em;
+                padding:1.6em;
+            }
+            a {
+                color:wheat;
+                transition:0.3s color;
+            }
+
+            .teams {
+                display:flex;
+            }
+            .team {
+                flex:1;
+            }
+            .team h3 {
+                font-size:2.5em;
+                text-align: center;
+                margin:0.2em;
+                margin-top:0.4em;
+            }
+            .result {
+                padding-left:2em;
+                vertical-align: baseline;
+            }
+            .result .score {
+                font-size:4em;
+                display: inline-block;
+                text-align: center;
+            }
+            .result .subscore:before {
+                content:"(";
+            }
+            .result .subscore:after {
+                content:")";
+            }
+            .result .subscore {
+                display:inline-block;
+                font-size:2em;
+            }
+            .team-header {
+                display:flex;
+            }
+            .players {
+                margin-left:auto;
+                margin-right:auto;
+                font-size:1.6em;
+                margin-top:0em;
+            }
+            .players ol {
+                list-style-type: none;
+                margin:0;
+                padding:0;
+            }
+            .players ol li {
+                display:flex;
+                padding:0.2em;
+                padding-left:0.5em;
+            }
+            .players ol li > * {
+                display:inline-block;
+            }
+            .players ol li .flags, .players ol li .frags {
+                font-weight: bold;
+                text-align: right;
+                padding-right:0.2em;
+            }
+            .players ol li .flags {
+                width:1.4em;
+            }
+            .players ol li .frags {
+                width:1.4em;
+            }
+            .players ol li .name {
+                margin-left:0.3em;
+                width:6em;
+            }
+            .players ol li .name > * {
+                white-space: nowrap;
+            }
+            .players ol li .name a {
+                text-decoration: none;
+            }
+            a.demo-link, a.server-link {
+                font-size:0.6em;
+                margin-left:0.6em;
+                vertical-align: baseline;
+                text-decoration: none;
+            }
+        </style>
+        <article class="game" style="background-image:url('/assets/maps/{{game.map}}.jpg')">
+            <div class="w">
+                <header>
+                    <h2>
+                        <template if="{{game.id}}">
+                            <a href="/game/{{game.id}}">{{game.mode}} @ {{game.map}} {{game.when}}</a>
+                        </template>
+                        <template if="!{{game.id}}">
+                            <a>{{game.mode}} @ {{game.map}} {{game.when}}</a>
+                        </template>
+                        <template if="{{game.demo}}">
+                            <a class="demo-link" href="/demos/{{demo}}.dmo">demo</a>
+                        </template>
+                        <template if="{{game.now}}">
+                            <a class="server-link" href="assaultcube://{{game.now.server.server}}">on {{game.now.server.shortName}}</a>
+                        </template>
+                    </h2>
+                </header>
+                <div class="teams">
+                    <template repeat="{{team in game.teams}}">
+                    <div class="{{team.name}} team">
+                        <div class="team-header">
+                            <h3>
+                                <img src="/assets/{{team.name}}.png"/>
+                            </h3>
+                            <div class="result">
+                                <template if="{{game.hasFlags}}">
+                                    <span class="score">{{team.flags}}</span>
+                                    <span class="subscore">{{team.frags}}</span>
+                                </template>
+                                <template if="{{!game.hasFlags}}">
+                                    <span class="score">{{team.frags}}</span>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="players">
+                            <ol>
+                            <template repeat="{{player in team.players}}">
+                                <li>
+                                <template if="{{game.hasFlags}}">
+                                <span class="score flags">{{player.flags}}</span>
+                                <span class="subscore frags">{{player.frags}}</span>
+                                </template>
+                                <template if="{{!game.hasFlags}}">
+                                <span class="score frags">{{player.frags}</span>
+                                </template>
+                                <span class="name">
+                                    <template if="{{player.user}}">
+                                        <a href="/player/{{player.user}}">{{player.name}}</a>
+                                    </template>
+                                    <template if="{{!player.user}}">
+                                        <span>{{player.name}}</span>
+                                    </template>
+                                </span>
+                                    </li>
+                                </template>
+                                </ol>
+                          </div>
+                        </div>
+                        </template>
+
+                    </div>
+            </div>
+        </article>
+    </template>
+
+    <script>
+        Polymer("game-card", {
+            gameJsonChanged: function(_, newValue) {
+                var game = JSON.parse(newValue);
+                if ( "teams" in game ) {
+                    game.teams = game.teams.filter(function(x) {
+                        return x.name == "RVSF" || x.name == "CLA";
+                    })
+                }
+                this.game = game;
+            }
+        });
+    </script>
+
+</polymer-element>

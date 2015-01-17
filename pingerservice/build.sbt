@@ -4,7 +4,7 @@ name := "pingerservice"
 
 organization := "acleague"
 
-version := "1.00"
+version := "1.01"
 
 scalaVersion := "2.11.4"
 

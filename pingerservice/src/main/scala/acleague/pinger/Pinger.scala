@@ -80,14 +80,59 @@ object Pinger {
 
   case class ServerPlayer(name: String, ping: Int, frags: Int, flags: Option[Int], isAdmin: Boolean, state: String, ip: String)
 
+  case class CurrentGameStatus(when: String = "right now", reasonablyActive: Boolean, now: CurrentGameNow, hasFlags: Boolean, map: Option[String], mode: Option[String], minRemain: Int, teams: List[CurrentGameTeam], updatedTime: String, players: Option[List[String]]) {
+    def toJson = {
+      import org.json4s._
+      import org.json4s.JsonDSL._
+      import org.json4s.jackson.Serialization
+      import org.json4s.jackson.Serialization.{read, write}
+      implicit val formats = Serialization.formats(NoTypeHints)
+      write(this)
+    }
+  }
+  case class CurrentGameTeam(name: String, flags: Option[Int], frags: Int, players: List[CurrentGamePlayer])
+  case class CurrentGamePlayer(name: String, flags: Option[Int], frags: Int)
+  case class CurrentGameNow(server: CurrentGameNowServer)
+  case class CurrentGameNowServer(server: String, connectName: String, shortName: String, description: String)
+
   val playerStates = List("alive", "dead", "spawning", "lagged", "editing", "spectate").zipWithIndex.map(_.swap).toMap
   val guns = List("knife", "pistol", "carbine", "shotgun", "subgun", "sniper", "assault", "cpistol", "grenade", "pistol").zipWithIndex.map(_.swap).toMap
 
   val connects = Map("62.210.131.155" -> "aura.woop.ac", "104.219.54.14" -> "tyr.woop.ac")
-  val shortName = Map("62.210.131.155" -> "aura", "104.219.54.14" -> "tyr")
+  val shortName = Map("62.210.131.155" -> "Aura", "104.219.54.14" -> "Tyr")
 
   case class CompletedServerStateMachine(serverInfoReply: ServerInfoReply, playerInfoReplies: List[PlayerInfoReply], teamInfos: Option[TeamInfos]) extends ServerStateMachine {
     override def next(input: ParsedResponse) = NothingServerStateMachine.next(input)
+
+    def toGameNow(ip: String, port: Int) =
+      CurrentGameStatus(
+        updatedTime = ISODateTimeFormat.dateTimeNoMillis().withZone(DateTimeZone.forID("UTC")).print(System.currentTimeMillis()),
+        now = CurrentGameNow(
+          server = CurrentGameNowServer(
+            server = s"$ip:$port",
+            connectName = connects.getOrElse(ip, ip) + s" $port",
+            shortName = shortName.getOrElse(ip, ip) + s" $port",
+            description = serverInfoReply.desc.replaceAll( """\f\d""", "")
+          )
+        ),
+        reasonablyActive = serverInfoReply.mapName.nonEmpty && teamInfos.nonEmpty && playerInfoReplies.size >= 2,
+        hasFlags = playerInfoReplies.exists(_.flagScore >= 0),
+        map = Option(serverInfoReply.mapName).filter(_.nonEmpty),
+        mode = modes.get(serverInfoReply.mode),
+        minRemain = serverInfoReply.minRemain,
+        players = if ( teamInfos.nonEmpty ) None else Option(playerInfoReplies.map(_.name)),
+        teams = (for {
+          TeamScore(name, frags, flags) <- teamInfos.toSeq.flatMap(_.teams)
+        } yield CurrentGameTeam(
+            name = name,
+            flags = Option(flags).filter(_ >= 0),
+            frags = frags,
+          players = for {
+            p <- playerInfoReplies.sortBy(x => (x.flagScore, x.frags)).reverse
+            if p.team == name
+          } yield CurrentGamePlayer(name = p.name, flags = Option(p.flagScore).filter(_>=0), frags = p.frags)
+          )).toList
+      )
 
     def toStatus(ip: String, port: Int): ServerStatus = {
       ServerStatus(
@@ -151,6 +196,8 @@ class Pinger extends Act {
             case r: CompletedServerStateMachine =>
               val newStatus = r.toStatus(from._1, from._2)
               context.system.eventStream.publish(newStatus)
+              val newStatus2 = r.toGameNow(from._1, from._2)
+              context.system.eventStream.publish(newStatus2)
             case o =>
             //                println("Not collected", from, o, stuff)
           }

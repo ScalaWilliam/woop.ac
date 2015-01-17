@@ -1,3 +1,4 @@
+1601:plugins.BasexProviderPlugin
 1701:plugins.HazelcastPlugin
 1703:plugins.RegisteredUserManager
 1704:plugins.AwaitUserUpdatePlugin

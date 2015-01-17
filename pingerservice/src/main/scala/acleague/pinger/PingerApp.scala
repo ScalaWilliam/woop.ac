@@ -1,7 +1,7 @@
 package acleague.pinger
 
 import java.util.concurrent.TimeUnit
-import acleague.pinger.Pinger.{ServerStatus, SendPings}
+import acleague.pinger.Pinger.{CurrentGameStatus, ServerStatus, SendPings}
 import akka.actor.ActorSystem
 import com.hazelcast.core.Hazelcast
 import com.typesafe.config.ConfigFactory
@@ -39,12 +39,13 @@ object PingerApp extends App with LazyLogging {
     val hazelcastTopic = hazelcast.getTopic[String](AppConfig.hazelcastUpdatesTopicName)
     val hazelcastMap = hazelcast.getMap[String, String](AppConfig.hazelcastUpdatesMapName)
     become {
-      case ss: ServerStatus =>
-        hazelcastMap.put(ss.server, ss.toJson)
+      case ss: CurrentGameStatus =>
+        hazelcastMap.put(ss.now.server.server, ss.toJson)
         hazelcastTopic.publish(ss.toJson)
     }
   })
   system.eventStream.subscribe(publisherActor, classOf[ServerStatus])
+  system.eventStream.subscribe(publisherActor, classOf[CurrentGameStatus])
   system.awaitTermination()
   system.shutdown()
 

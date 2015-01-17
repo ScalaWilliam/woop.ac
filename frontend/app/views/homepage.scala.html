@@ -1,10 +1,12 @@
 @(states: plugins.ServerUpdatesPlugin.CurrentStates, result: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
 @main("Woop AssaultCube Match league")(Html("")) {
-
-    <article id="servers">
-    <server-view servers="@states.toJson" socketUrl="ws://woop.ac/server-updates">
-    </server-view>
-    </article>
+    @defining({
+        import play.api.libs.json.{JsNull,Json,JsString,JsValue}
+        val json = Json.toJson(states.servers.valuesIterator.toList)
+        json.toString()
+    }) { jsonString =>
+        <live-games liveUrl="ws://127.0.0.1:9000/server-updates" initialJson="@jsonString">&nbsp;</live-games>
+    }
 
     @result
 

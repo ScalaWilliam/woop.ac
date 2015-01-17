@@ -63,7 +63,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
       <rest:variable name="country-code" value={registrationDetail.countryCode}/>
       <rest:variable name="ip" value={registrationDetail.ip}/>
     </rest:query>
-    WS.url("http://odin.duel.gg:1238/rest/acleague").post(registerXml).map(x => if ( x.body.nonEmpty) throw new Exception("Expected empty response") else Unit)
+    BasexProviderPlugin.awaitPlugin.query(registerXml).map(x => if ( x.body.nonEmpty) throw new Exception("Expected empty response") else Unit)
   }
   def registerValidation(registrationDetail: RegistrationDetail)(implicit ec: ExecutionContext): Future[Unit Or Every[ErrorMessage]] = {
     val xmlData = <rest:query xmlns:rest='http://basex.org/rest'>
@@ -103,7 +103,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
       <rest:variable name="country-code" value={registrationDetail.countryCode}/>
       <rest:variable name="ip" value={registrationDetail.ip}/>
     </rest:query>
-    WS.url("http://odin.duel.gg:1238/rest/acleague").post(xmlData).map { x =>
+    BasexProviderPlugin.awaitPlugin.query(xmlData).map { x =>
 
       (x.xml \\ "failure").map(_.text).toList match {
         case first :: Nil => Bad(One(first))
@@ -114,7 +114,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
   }
 
   def registerGoogleUser(email: String, data: String)(implicit ec: ExecutionContext): Future[Unit] = {
-    WS.url("http://odin.duel.gg:1238/rest/acleague").post(<rest:query xmlns:rest='http://basex.org/rest'>
+    BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest='http://basex.org/rest'>
         <rest:text><![CDATA[
           declare variable $email as xs:string external;
           declare variable $data as xs:string external;
@@ -125,7 +125,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
   }
 
   def ipExists(ip: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    WS.url("http://odin.duel.gg:1238/rest/acleague").post(<rest:query xmlns:rest='http://basex.org/rest'>
+    BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest='http://basex.org/rest'>
         <rest:text><![CDATA[
           declare variable $host as xs:string external;
         not(empty(/game/team/player[@host = $host]))
@@ -134,7 +134,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
 
   def getRegisteredUser(email: String)(implicit ec: ExecutionContext): Future[Option[RegisteredUser]] = {
     for {
-      profileXml <- WS.url("http://odin.duel.gg:1238/rest/acleague").post(
+      profileXml <- BasexProviderPlugin.awaitPlugin.query(
         <rest:query xmlns:rest='http://basex.org/rest'>
           <rest:text>
             <![CDATA[

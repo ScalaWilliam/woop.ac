@@ -25,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 import org.scalactic._
 
-import scala.xml.Text
+import scala.xml.{PCData, Text}
 
 object Main extends Controller {
   import ExecutionContext.Implicits.global
@@ -33,24 +33,6 @@ object Main extends Controller {
     val i = a
     try f(i)
     finally i.close()
-  }
-  def readx = Action{
-    request =>
-      val conn = new ClientSession("odin.duel.gg", 1236, "admin", "admin")
-      conn.execute("open acleague")
-      val result = using(conn.query(
-        """
-          |let $earliest := string(current-dateTime() - xs:dayTimeDuration("P7D"))
-          |for $game in /game
-          |let $date := data($game/@date)
-          |where $date ge $earliest
-          |order by $date descending
-          |return $game
-        """.stripMargin)) {
-        _.execute()
-      }
-
-      Ok(result)
   }
   def questions = statedSync{
     request => implicit s =>
@@ -155,9 +137,10 @@ return <ol class="recent-games">{$subs}</ol>
       </rest:text>
       <rest:variable name="user-id" value={userId}/>
     </rest:query>
-    WS.url("http://odin.duel.gg:1238/rest/acleague").post(theXml).map(x => Option(x).filter(_.body.nonEmpty).map(_.xml))
+    BasexProviderPlugin.awaitPlugin.query(theXml).map(x => Option(x).filter(_.body.nonEmpty).map(_.xml))
 
   }
+
 
   lazy val processGameXQuery = {
     import play.api.Play.current
@@ -167,7 +150,6 @@ return <ol class="recent-games">{$subs}</ol>
   def getGameQueryText =
     processGameXQuery +
       """
-        |
         |declare variable $game-id as xs:integer external;
         |let $games := if ( $game-id = 0 ) then (/game) else (/game[@id=$game-id])
         |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P5D"), ())) cast as xs:date
@@ -179,24 +161,31 @@ return <ol class="recent-games">{$subs}</ol>
         |where count($game//player) ge 4
         |order by data($game/@date) descending
         |let $has-demo := exists(/local-demo[@game-id = data($game/@id)])
-        |return local:display-game($rus, $game, $has-demo)
-        |
+        |let $game-item := local:display-game($rus, $game, $has-demo)
+        |return <game-card gameJson="{json:serialize($game-item)}">game</game-card>
         |
         |
       """.stripMargin
+//  """
+//    |
+//    |map { "ok": 1 }
+//  """.stripMargin
 
   def read = stated { _ => implicit s =>
+    import Play.current
       withSession { conn =>
 //        val header = using(conn.query("/article[@id='top']"))(_.execute())
-        val result = using(conn.query(getGameQueryText)) {
-        x =>
-          x.bind("game-id", 0, "xs:integer")
-          x.execute()
-      }
-        for { st <-
-        getCurrentStates }
+        for {
+          xmlContent <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+            <rest:text>{PCData(getGameQueryText)}</rest:text>
+            <rest:variable name="game-id" value="0"/>
+          </rest:query>)
+ st <-
+        getCurrentStates
+        }
           yield
-      Ok(views.html.homepage(st, Html(result)))
+
+      Ok(views.html.homepage(st, Html(xmlContent.body)))
         }
   }
   lazy val directory = {
