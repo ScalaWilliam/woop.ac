@@ -11,7 +11,8 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.2",
-    "polymer-elements": "Polymer/polymer-elements#~0.3.0"
+    "polymer-elements": "Polymer/polymer-elements#~0.3.0",
+    "webcomponentsjs": "~0.5.2"
   },
   "resolutions": {
     "core-component-page": "^0.5.0",

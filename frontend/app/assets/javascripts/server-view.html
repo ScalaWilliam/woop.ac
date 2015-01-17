@@ -112,14 +112,17 @@
                 this.websocket.onmessage = function(msg) {
                     var newServer = JSON.parse(msg.data);
                     ctx.serversMap[newServer.server] = newServer;
-                    ctx.serversMapChanged();
+//                    ctx.serversMapChanged();
                 };
                 this.websocket.onerror = function() {
-                    var onm = this.websocket.onmessage;
-                    var one = this.websocket.onerror;
-                    this.websocket = new WebSocket(this.socketUrl);
-                    this.websocket.onmessage = onm;
-                    this.websocket.onerror = one;
+                    var meh = this;
+                    setTimeout(function() {
+                        var onm = meh.websocket.onmessage;
+                        var one = meh.websocket.onerror;
+                        meh.websocket = new WebSocket(meh.socketUrl);
+                        meh.websocket.onmessage = onm;
+                        meh.websocket.onerror = one;
+                    }, 2000);
                 }
             }
         });
