@@ -7,7 +7,7 @@
                 margin:0;
                 padding:0;
             }
-            a.server-server {
+            a {
                 color:wheat;
                 text-decoration: none;
             }
@@ -42,10 +42,10 @@
             <template if="{{server.game}}">
             <li class="server-item">
                 <div class="left">
-                    <a class="server-server" href="assaultcube://{{server.server}}">{{server.connectName}}</a> &bull;
-                    <span class="clients">{{server.game.numClients}} clients</span> &bull;
-                    <span class="remain">{{server.game.minRemain}} minutes left</span><br/>
-                    <span class="modemap">Map: {{server.game.mode}} @ {{server.game.map}}</span>
+                    <a class="server-server" href="assaultcube://{{server.server}}">{{server.connectName}}</a> (<a href="/servers">view players</a>) &bull;
+                    <span class="clients">{{server.game.numClients}} clients</span> <br/>
+                    <span class="modemap">{{server.game.mode}} @ {{server.game.map}} </span> &bull;
+                    <span class="remain">{{server.game.minRemain}} minutes left</span>
                 </div>
                 <div class="right">
                 <ul class="team-scores">

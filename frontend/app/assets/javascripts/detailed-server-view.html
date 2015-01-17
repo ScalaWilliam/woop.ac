@@ -1,42 +1,38 @@
 <link rel="import" href="/assets/javascripts/bower_components/polymer/polymer.html">
-<polymer-element name="server-view" attributes="socketUrl servers">
+<polymer-element name="detailed-server-view" attributes="socketUrl servers">
     <template>
         <style scoped>
-            .server-items, .teams-items, .players-items, .team-players, .empty-servers {
+            .server-items, .teams-items, .players-items, .team-players, .empty-servers, .team-scores {
                 list-style-type: none;
                 margin:0;
                 padding:0;
-            }
-            header {
-                display:flex;
             }
             a.server-server {
                 color:wheat;
                 text-decoration: none;
             }
-            .server-server, .modemap, .remain {
-                flex:1;
-            }
-            .team-item {
-                display:flex;
-
-            }
-            .team-item > * {
-                flex:1;
-            }
-            .team-name {
-                max-width:3em;
-            }
-            .team-score {
-                max-width:4em;
-            }
-            .team-players li {
-                display:inline-block;
-                width:12em;
-            }
             .empty-servers li {
                 display:inline-block;
                 margin-right:0.4em;
+            }
+            .team-name {
+                display:inline-block;
+                width:3em;
+            }
+            .server-item + .server-item {
+                margin-top:1em;
+            }
+            .teams-items {
+                display:flex;
+            }
+            .teams-items > * {
+                flex:1;
+            }
+            .team-players li {
+                display:flex;
+            }
+            .team-players li > * {
+                flex:1
             }
         </style>
         <h3>Active servers</h3>
@@ -44,30 +40,33 @@
             <template repeat="{{ server in serversData }}">
                 <template if="{{server.game}}">
                     <li class="server-item">
-                        <header>
-                            <a class="server-server" href="assaultcube://{{server.server}}">{{server.connectName}}</a>
-                            <span class="modemap">{{server.game.mode}} @ {{server.game.map}}</span>
-                            <span class="remain">{{server.game.minRemain}} minutes remain</span>
+                        <header><a class="server-server" href="assaultcube://{{server.server}}">{{server.connectName}}</a> &bull;
+                            <span class="modemap">{{server.game.mode}} @ {{server.game.map}}</span> &bull;
+                        <span class="clients">{{server.game.numClients}} clients</span> &bull;
+                        <span class="remain">{{server.game.minRemain}} minutes left</span>
+
                         </header>
                         <template if="{{server.game.teams}}">
                             <ol class="teams-items">
                                 <template repeat="{{ team in teams(server.game.teams) }}">
                                     <li class="team-item">
-                                        <span class="team-name">{{team}}:</span>
+                                        <header>
+                                            {{team}}:
                                         <template if="{{server.game.teams[team].flags>=0}}">
                                             <span class="team-score">{{server.game.teams[team].flags}} ({{server.game.teams[team].frags}})</span>
                                         </template>
                                         <template if="{{!(server.game.teams[team].flags>=0)}}">
                                             <span class="team-score">{{server.game.teams[team].frags}}</span>
                                         </template>
+                                        </header>
                                         <ul class="team-players">
                                             <template repeat="{{ player in server.game.teams[team].players }}">
                                                 <li>
                                                     <template if="{{server.game.teams[team].flags}}">
-                                                        {{player.name}}: {{player.flags}} ({{player.frags}})
+                                                        <span class="player-name">{{player.name}}</span> <span class="player-score">{{player.flags}} ({{player.frags}})</span>
                                                     </template>
                                                     <template if="{{!server.game.teams[team].flags}}">
-                                                        {{player.name}}: {{player.frags}}
+                                                        <span class="player-name">{{player.name}}</span> <span class="player-score">{{player.frags}}</span>
                                                     </template>
                                                 </li>
                                             </template>
@@ -81,10 +80,10 @@
                                 <template repeat="{{ player in server.game.players }}">
                                     <li class="player-item">
                                         <template if="{{player.flags >= 0}}">
-                                            {{name}} ({{player.flags}}, {{player.frags}})
+                                            {{player.name}} ({{player.flags}}, {{player.frags}})
                                         </template>
                                         <template if="{{!(player.flags >= 0)}}">
-                                            {{name}} ({{player.frags}})
+                                            {{player.name}} ({{player.frags}})
                                         </template>
                                     </li>
                                 </template>
@@ -106,7 +105,7 @@
         </ol>
     </template>
     <script>
-        Polymer("server-view", {
+        Polymer("detailed-server-view", {
             serversMap: {},
             serversMapChanged: function() {
                 this.serversData = [];
