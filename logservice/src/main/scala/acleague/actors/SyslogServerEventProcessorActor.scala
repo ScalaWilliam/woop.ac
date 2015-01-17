@@ -23,16 +23,19 @@ class SyslogServerEventProcessorActor extends Act with ActorLogging {
       val fullMessage = host.map(h => s"$h ").getOrElse("") + message
       registeredServers.find(s => fullMessage.startsWith(s._1)) match {
         case Some((foundServer, actor)) =>
-          val newDate = {
-            (date, foundServer) match {
-              case (Some(sourceDate), serverString) if serverString contains " aura " =>
-                new LocalDateTime(sourceDate).toDateTime(DateTimeZone.forID("CET"))
-              case (Some(sourceDate), _) =>
-                new DateTime(sourceDate, DateTimeZone.forID("UTC"))
-              case _ =>
-                new DateTime(DateTimeZone.forID("UTC"))
-            }
-          }
+          val newDate = new DateTime(DateTimeZone.forID("UTC"))
+//          val newDate = {
+//            (date, foundServer) match {
+//              case (Some(sourceDate), serverString) if serverString contains " aura " =>
+//                new LocalDateTime(sourceDate).toDateTime(DateTimeZone.forID("CET"))
+//              case (Some(sourceDate), serverString) if serverString contains " tyr " =>
+//                new LocalDateTime(sourceDate).toDateTime(DateTimeZone.forID("CET"))
+//              case (Some(sourceDate), _) =>
+//                new DateTime(sourceDate, DateTimeZone.forID("UTC"))
+//              case _ =>
+//                new DateTime(DateTimeZone.forID("UTC"))
+//            }
+//          }
           val minN = foundServer.length + 2
           val contained = if ( fullMessage.length >= minN ) {
             val actualMessage = fullMessage.substring(minN)
