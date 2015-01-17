@@ -4,15 +4,21 @@ import java.io.File
 import java.net.InetAddress
 import java.util.UUID
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import akka.pattern.AskTimeoutException
+import akka.util.Timeout
 import com.maxmind.geoip2.DatabaseReader
 import org.basex.server.ClientSession
 import org.scalactic._
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.ws.WS
 import play.api.{Logger, Play}
 import play.api.mvc._
+import play.libs.Akka
 import play.twirl.api.Html
-import plugins.{RangerPlugin, AwaitUserUpdatePlugin, HazelcastPlugin, RegisteredUserManager}
+import plugins.ServerUpdatesPlugin.{GiveStates, CurrentStates, ServerState}
+import plugins._
 import plugins.RegisteredUserManager.{RegisteredSession, GoogleEmailAddress, RegistrationDetail, SessionState}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,6 +28,7 @@ import org.scalactic._
 import scala.xml.Text
 
 object Main extends Controller {
+  import ExecutionContext.Implicits.global
   def using[T <: { def close(): Unit }, V](a: => T)(f: T=> V):V  = {
     val i = a
     try f(i)
@@ -44,10 +51,6 @@ object Main extends Controller {
       }
 
       Ok(result)
-  }
-  def servers = statedSync{
-    request => implicit s =>
-              Ok(views.html.servers(s))
   }
   def questions = statedSync{
     request => implicit s =>
@@ -182,7 +185,7 @@ return <ol class="recent-games">{$subs}</ol>
         |
       """.stripMargin
 
-  def read = statedSync { _ => implicit s =>
+  def read = stated { _ => implicit s =>
       withSession { conn =>
 //        val header = using(conn.query("/article[@id='top']"))(_.execute())
         val result = using(conn.query(getGameQueryText)) {
@@ -190,9 +193,10 @@ return <ol class="recent-games">{$subs}</ol>
           x.bind("game-id", 0, "xs:integer")
           x.execute()
       }
-      Ok(views.
-        html.main("Woop AssaultCube Match league")(Html(""))(Html(
-        result)))
+        for { st <-
+        getCurrentStates }
+          yield
+      Ok(views.html.homepage(st, Html(result)))
         }
   }
   lazy val directory = {
@@ -258,7 +262,6 @@ return <ol class="recent-games">{$subs}</ol>
       case SessionState(Some(sessionId), Some(GoogleEmailAddress(email)), Some(profile)) =>
         f(request)(RegisteredSession(sessionId, profile))
       case other =>
-        import scala.concurrent.ExecutionContext.Implicits.global
         Future {
           SeeOther(controllers.routes.Main.createProfile().url)
         }
@@ -337,7 +340,6 @@ return <ol class="recent-games">{$subs}</ol>
   case class ContinueRegistering(countryCode: String) extends Exception
   case class YouAlreadyHaveAProfile() extends Exception
   def createProfile = stated{implicit request => implicit state =>
-    import ExecutionContext.Implicits.global
     import scala.async.Async.{async, await}
     state match {
       case SessionState(_, None, _) =>
@@ -390,5 +392,41 @@ return <ol class="recent-games">{$subs}</ol>
       case _ => Future { Forbidden }
     }
   }
+  import play.api.mvc._
+  import play.api.Play.current
 
+  def serversUpdates = WebSocket.acceptWithActor[String, String] { request => out =>
+    MyWebSocketActor.props(out)
+  }
+  import akka.actor._
+
+  object MyWebSocketActor {
+    def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+  }
+import akka.actor.ActorDSL._
+  class MyWebSocketActor(out: ActorRef) extends Act {
+    whenStarting {
+      context.system.eventStream.subscribe(self, classOf[ServerState])
+      context.actorSelection("/user/server-updates") ! GiveStates
+    }
+    become {
+      case ServerState(server, json) => out ! json
+      case CurrentStates(map) =>
+        map.valuesIterator.foreach(str => out ! str)
+    }
+  }
+
+  def getCurrentStates: Future[CurrentStates] = {
+
+    import akka.pattern.ask
+    implicit val sys = play.api.libs.concurrent.Akka.system
+    import concurrent.duration._
+    implicit val to = Timeout(5.seconds)
+    ask(ServerUpdatesPlugin.serverUpdatesPlugin.act, GiveStates).mapTo[CurrentStates]
+  }
+  def servers = stated{
+    request => implicit s =>
+      for { cs <- getCurrentStates }
+        yield Ok(views.html.servers(cs))
+  }
 }

@@ -1,0 +1,21 @@
+{
+  "name": "javascripts",
+  "version": "0.0.0",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.2",
+    "polymer-elements": "Polymer/polymer-elements#~0.3.0"
+  },
+  "resolutions": {
+    "core-component-page": "^0.5.0",
+    "polymer": "~0.5.2",
+    "platform": "^0.4.0"
+  }
+}

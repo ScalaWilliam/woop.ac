@@ -1,4 +1,5 @@
-701:plugins.HazelcastPlugin
-703:plugins.RegisteredUserManager
-704:plugins.AwaitUserUpdatePlugin
-705:plugins.RangerPlugin
+1701:plugins.HazelcastPlugin
+1703:plugins.RegisteredUserManager
+1704:plugins.AwaitUserUpdatePlugin
+1705:plugins.RangerPlugin
+1707:plugins.ServerUpdatesPlugin

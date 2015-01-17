@@ -1,0 +1,127 @@
+<link rel="import" href="/assets/javascripts/bower_components/polymer/polymer.html">
+<polymer-element name="server-view" attributes="socketUrl servers">
+    <template>
+        <style scoped>
+            .server-items, .teams-items, .players-items, .team-players, .empty-servers, .team-scores {
+                list-style-type: none;
+                margin:0;
+                padding:0;
+            }
+            a.server-server {
+                color:wheat;
+                text-decoration: none;
+            }
+            h3 {
+                margin-bottom:0.2em;
+                margin-top:0.2em;
+            }
+            .empty-servers li {
+                display:inline-block;
+                margin-right:0.4em;
+            }
+            .server-item {
+                display: flex;
+            }
+            .server-item > * {
+                flex:1;
+            }
+            .server-item > .right {
+                max-width:8em;
+            }
+            .team-name {
+                display:inline-block;
+                width:3em;
+            }
+            .server-item + .server-item {
+                margin-top:0.2em;
+            }
+        </style>
+        <h3>Active servers</h3>
+        <ol class="server-items">
+        <template repeat="{{ server in serversData }}">
+            <template if="{{server.game}}">
+            <li class="server-item">
+                <div class="left">
+                    <a class="server-server" href="assaultcube://{{server.server}}">{{server.connectName}}</a> &bull;
+                    <span class="clients">{{server.game.numClients}} clients</span> &bull;
+                    <span class="remain">{{server.game.minRemain}} minutes left</span><br/>
+                    <span class="modemap">Map: {{server.game.mode}} @ {{server.game.map}}</span>
+                </div>
+                <div class="right">
+                <ul class="team-scores">
+                    <template repeat="{{ team in teams(server.game.teams) }}">
+                        <li>
+                        <span class="team-name">{{team}}:</span>
+                        <template if="{{server.game.teams[team].flags>=0}}">
+                            <span class="team-score">{{server.game.teams[team].flags}} ({{server.game.teams[team].frags}})</span>
+                        </template>
+                        <template if="{{!(server.game.teams[team].flags>=0)}}">
+                            <span class="team-score">{{server.game.teams[team].frags}}</span>
+                        </template>
+                        </li>
+                    </template>
+                </ul>
+                </div>
+                </template>
+            </li>
+            </template>
+        </ol>
+        <h3>Available servers</h3>
+        <ol class="empty-servers">
+            <template repeat="{{ server in serversData }}">
+                <template if="{{!server.game}}">
+                    <li class="server-item">
+                            <a class="server-server" href="assaultcube://{{server.server}}">{{server.connectName}}</a>
+                    </li>
+                    </template>
+                </template>
+        </ol>
+    </template>
+    <script>
+        Polymer("server-view", {
+            serversMap: {},
+            serversMapChanged: function() {
+                this.serversData = [];
+                for ( var sn in this.serversMap ) {
+                    this.serversData.push(this.serversMap[sn]);
+                }
+                this.serversData.sort(function(a, b) {
+                    if ( a.game && b.game ) {
+                        return a.game.numClients < b.game.numClients ? 1 : -1;
+                    } else if (a.game ) {
+                        return -1;
+                    } else if (b.game) { return 1;}
+                    else { return 0;}
+                })
+            },
+            serversChanged: function() {
+                this.serversMap = JSON.parse(this.servers);
+            },
+            keys: function(o) {
+                return Object.keys(o);
+            },
+            teams: function(o) {
+                if ( "RVSF" in o && "CLA" in o ) {
+                    return ['CLA', 'RVSF'];
+                };
+                return [];
+            },
+            socketUrlChanged: function() {
+                this.websocket = new WebSocket(this.socketUrl);
+                var ctx = this;
+                this.websocket.onmessage = function(msg) {
+                    var newServer = JSON.parse(msg.data);
+                    ctx.serversMap[newServer.server] = newServer;
+                    ctx.serversMapChanged();
+                };
+                this.websocket.onerror = function() {
+                    var onm = this.websocket.onmessage;
+                    var one = this.websocket.onerror;
+                    this.websocket = new WebSocket(this.socketUrl);
+                    this.websocket.onmessage = onm;
+                    this.websocket.onerror = one;
+                }
+            }
+        });
+    </script>
+</polymer-element>

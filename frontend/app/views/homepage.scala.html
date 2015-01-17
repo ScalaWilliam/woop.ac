@@ -1,0 +1,11 @@
+@(states: plugins.ServerUpdatesPlugin.CurrentStates, result: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
+@main("Woop AssaultCube Match league")(Html("")) {
+
+    <article id="servers">
+    <server-view servers="@states.toJson" socketUrl="ws://127.0.0.1:9000/server-updates">
+    </server-view>
+    </article>
+
+    @result
+
+}
