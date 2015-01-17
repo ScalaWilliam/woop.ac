@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
   "joda-time" % "joda-time" % "2.4"
 )
 
-mainClass in Compile := Option("acleague.actors.MasterRankerApp")
+mainClass in Compile := Option("acleague.pinger.PingerApp")
 
 publishArtifact in (Compile, packageBin) := false
 
