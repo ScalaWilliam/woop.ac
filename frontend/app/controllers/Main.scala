@@ -3,30 +3,18 @@ package controllers
 import java.io.File
 import java.net.InetAddress
 import java.util.UUID
-
 import plugins.NewGamesPlugin.GotNewGame
-
-import scala.concurrent.{ExecutionContext, Future}
-
 import akka.pattern.AskTimeoutException
 import akka.util.Timeout
 import com.maxmind.geoip2.DatabaseReader
-import org.basex.server.ClientSession
-import org.scalactic._
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.ws.WS
 import play.api.{Logger, Play}
 import play.api.mvc._
-import play.libs.Akka
 import play.twirl.api.Html
 import plugins.ServerUpdatesPlugin.{GiveStates, CurrentStates, ServerState}
 import plugins._
 import plugins.RegisteredUserManager.{RegisteredSession, GoogleEmailAddress, RegistrationDetail, SessionState}
-
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
-import org.scalactic._
-
 import scala.xml.{PCData, Text}
 
 object Main extends Controller {
@@ -39,12 +27,6 @@ object Main extends Controller {
   def questions = statedSync{
     request => implicit s =>
     Ok(views.html.questions(s))
-  }
-  def withSession[T](x: ClientSession => T): T = {
-    using(new ClientSession("odin.duel.gg", 1236, "admin", "admin")) { c =>
-      c.execute("open acleague")
-      x(c)
-    }
   }
 
   def viewUser(userId: String)(implicit ec: ExecutionContext): Future[Option[scala.xml.Elem]] = {
@@ -175,7 +157,6 @@ return <ol class="recent-games">{$subs}</ol>
 
   def read = stated { _ => implicit s =>
     import Play.current
-      withSession { conn =>
 //        val header = using(conn.query("/article[@id='top']"))(_.execute())
         for {
           xmlContent <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
@@ -188,7 +169,6 @@ return <ol class="recent-games">{$subs}</ol>
           yield
 
       Ok(views.html.homepage(st, Html(xmlContent.body)))
-        }
   }
   lazy val directory = {
     val f= new File(Play.current.configuration.getString("demos.directory").getOrElse(s"${scala.util.Properties.userHome}/demos")).getCanonicalFile
