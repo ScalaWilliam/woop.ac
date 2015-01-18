@@ -4,6 +4,8 @@ import java.io.File
 import java.net.InetAddress
 import java.util.UUID
 
+import plugins.NewGamesPlugin.GotNewGame
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.pattern.AskTimeoutException
@@ -152,7 +154,7 @@ return <ol class="recent-games">{$subs}</ol>
       """
         |declare variable $game-id as xs:integer external;
         |let $games := if ( $game-id = 0 ) then (/game) else (/game[@id=$game-id])
-        |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P3D"), ())) cast as xs:date
+        |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P2D"), ())) cast as xs:date
         |let $rus := /registered-user
         |for $game in $games
         |let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
@@ -162,7 +164,7 @@ return <ol class="recent-games">{$subs}</ol>
         |order by data($game/@date) descending
         |let $has-demo := exists(/local-demo[@game-id = data($game/@id)])
         |let $game-item := local:display-game($rus, $game, $has-demo)
-        |return <game-card gameJson="{json:serialize($game-item)}">game</game-card>
+        |return <game-card gameJson="{json:serialize($game-item)}">loading... </game-card>
         |
         |
       """.stripMargin
@@ -196,18 +198,16 @@ return <ol class="recent-games">{$subs}</ol>
   def readDemo(id: Int) = {
     controllers.ExternalAssets.at(directory.getAbsolutePath, s"$id.dmo")
   }
-  def readGame(id: Int) = statedSync { _ => implicit s =>
-      withSession { conn =>
-        //        val header = using(conn.query("/article[@id='top']"))(_.execute())
-        val result = using(conn.query(getGameQueryText)) {
-          x =>
-            x.bind("game-id", id, "xs:integer")
-            x.execute()
-        }
+  def readGame(id: Int) = stated { _ => implicit s =>
+    for {
+      xmlContent <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+        <rest:text>{PCData(getGameQueryText)}</rest:text>
+        <rest:variable name="game-id" value={id.toString}/>
+      </rest:query>)
+    }
+    yield
         Ok(views.
-          html.main("Woop AssaultCube Match league")(Html(""))(Html(
-          result)))
-      }
+          html.main("Woop AssaultCube Match league")(Html(""))(Html(xmlContent.xml.toString)))
   }
 
   def viewMe = registeredSync { _ => state =>
@@ -385,15 +385,18 @@ return <ol class="recent-games">{$subs}</ol>
   import play.api.Play.current
 
   def serversUpdates = WebSocket.acceptWithActor[String, String] { request => out =>
-    MyWebSocketActor.props(out)
+    ServerUpdatesActor.props(out)
+  }
+  def newGames = WebSocket.acceptWithActor[String, String] { request => out =>
+    NewGamesActor.props(out)
   }
   import akka.actor._
 
-  object MyWebSocketActor {
-    def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+  object ServerUpdatesActor {
+    def props(out: ActorRef) = Props(new ServerUpdatesActor(out))
   }
-import akka.actor.ActorDSL._
-  class MyWebSocketActor(out: ActorRef) extends Act {
+  import akka.actor.ActorDSL._
+  class ServerUpdatesActor(out: ActorRef) extends Act {
     whenStarting {
       context.system.eventStream.subscribe(self, classOf[ServerState])
       context.actorSelection("/user/server-updates") ! GiveStates
@@ -404,9 +407,29 @@ import akka.actor.ActorDSL._
         map.valuesIterator.foreach(str => out ! str)
     }
   }
+  object NewGamesActor {
+    def props(out: ActorRef) = Props(new NewGamesActor(out))
+  }
+  import akka.actor.ActorDSL._
+  class NewGamesActor(out: ActorRef) extends Act {
+    whenStarting {
+      context.system.eventStream.subscribe(self, classOf[GotNewGame])
+    }
+    become {
+      case GotNewGame(gameId) =>
+        val gameDataF = for {r <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+          <rest:text>
+            {PCData(getGameQueryText)}
+          </rest:text>
+          <rest:variable name="game-id" value={gameId}/>
+        </rest:query>)
+        } yield (r.xml \@ "gameJson")
+        import akka.pattern.pipe
+        gameDataF pipeTo out
+    }
+  }
 
   def getCurrentStates: Future[CurrentStates] = {
-
     import akka.pattern.ask
     implicit val sys = play.api.libs.concurrent.Akka.system
     import concurrent.duration._

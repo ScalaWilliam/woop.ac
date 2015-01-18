@@ -3,6 +3,7 @@ GET        /questions            controllers.Main.questions
 GET        /servers              controllers.Main.servers
 GET        /login                controllers.Main.login
 GET        /server-updates       controllers.Main.serversUpdates
+GET        /new-games            controllers.Main.newGames
 GET        /profile              controllers.Main.viewMe
 GET        /player/:id           controllers.Main.viewPlayer(id: String)
 GET        /createProfile        controllers.Main.createProfile

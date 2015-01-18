@@ -1,0 +1,35 @@
+<polymer-element name="new-games" attributes="liveUrl">
+
+    <template>
+        <template repeat="{{game in games}}">
+            <game-card gameJson="{{game}}" isNew="true"></game-card>
+        </template>
+    </template>
+
+    <script>
+        Polymer("new-games", {
+            liveUrlChanged: function() {
+                this.games = [];
+                this.websocket = new WebSocket(this.liveUrl);
+                var ctx = this;
+                this.websocket.onmessage = function(msg) {
+                    var newGamesList = ctx.games.slice()
+                    newGamesList.unshift(msg.data);
+                    ctx.games = newGamesList;
+                    console.log(ctx.games);
+                };
+                this.websocket.onerror = function() {
+                    var meh = this;
+                    setTimeout(function() {
+                        var onm = meh.websocket.onmessage;
+                        var one = meh.websocket.onerror;
+                        meh.websocket = new WebSocket(meh.liveUrl);
+                        meh.websocket.onmessage = onm;
+                        meh.websocket.onerror = one;
+                    }, 2000);
+                }
+            }
+        });
+    </script>
+
+</polymer-element>

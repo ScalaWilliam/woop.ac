@@ -1,4 +1,4 @@
-<polymer-element name="game-card" attributes="gameJson">
+<polymer-element name="game-card" attributes="gameJson isNew">
 
     <template>
         <style scoped>
@@ -29,6 +29,7 @@
             a {
                 color:wheat;
                 transition:0.3s color;
+                text-decoration: none;;
             }
 
             .teams {
@@ -111,15 +112,19 @@
                 vertical-align: baseline;
                 text-decoration: none;
             }
+            .game.isNew {
+                box-shadow: darkred 3px 3px 2px, darkred -3px -3px 2px, darkred 3px -3px 2px, darkred -3px 3px 2px;
+
+            }
         </style>
-        <article class="game" style="background-image:url('/assets/maps/{{game.map}}.jpg')">
+        <article class="game {{ {isNew: isNew =='true'} | tokenList}}" style="background-image:url('/assets/maps/{{game.map}}.jpg')">
             <div class="w">
                 <header>
                     <h2>
                         <template if="{{game.id}}">
                             <a href="/game/{{game.id}}">{{game.mode}} @ {{game.map}} {{game.when}}</a>
                         </template>
-                        <template if="!{{game.id}}">
+                        <template if="{{!game.id}}">
                             <a>{{game.mode}} @ {{game.map}} {{game.when}}</a>
                         </template>
                         <template if="{{game.demo}}">

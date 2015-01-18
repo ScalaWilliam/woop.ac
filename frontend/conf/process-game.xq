@@ -29,6 +29,7 @@ return
     map:merge((
         if ( $has-demo ) then (map { "demo": data($game/@id)}) else (),
         map {
+            "id": data($game/@id),
             "mode": data($game/@mode),
             "map": data($game/@map),
             "when": $date-text,
@@ -51,7 +52,7 @@ return
                                             "name": data($player/@name),
                                             "frags": data($player/@frags)
                                         },
-                                        if ( $has-flags) then (map { "flags": data($team/@flags)}) else (),
+                                        if ( $has-flags) then (map { "flags": data($player/@flags)}) else (),
                                         let $ru := $regs[@game-nickname = data($player/@name)]
                                         return if ( $ru) then (map{"user":data($ru/@id)}) else ()
                                     ))

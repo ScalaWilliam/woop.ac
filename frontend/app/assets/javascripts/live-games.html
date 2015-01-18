@@ -2,7 +2,7 @@
 
     <template>
         <template repeat="{{game in games}}">
-            <game-card gameJson="{{game}}"></game-card>
+            <game-card gameJson="{{game}}">&nbsp;</game-card>
         </template>
     </template>
 
@@ -36,7 +36,7 @@
                     setTimeout(function() {
                         var onm = meh.websocket.onmessage;
                         var one = meh.websocket.onerror;
-                        meh.websocket = new WebSocket(meh.socketUrl);
+                        meh.websocket = new WebSocket(meh.liveUrl);
                         meh.websocket.onmessage = onm;
                         meh.websocket.onerror = one;
                     }, 2000);
