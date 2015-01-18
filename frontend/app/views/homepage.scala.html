@@ -5,7 +5,7 @@
         val json = Json.toJson(states.servers.valuesIterator.toList)
         json.toString()
     }) { jsonString =>
-        <live-games liveUrl="ws://127.0.0.1:9000/server-updates" initialJson="@jsonString">&nbsp;</live-games>
+        <live-games liveUrl="ws://woop.ac/server-updates" initialJson="@jsonString">&nbsp;</live-games>
     }
 
     @result
