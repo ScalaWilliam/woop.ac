@@ -2,15 +2,17 @@
 
     <template>
         <template repeat="{{game in games}}">
-            <game-card gameJson="{{game}}">&nbsp;</game-card>
+            <template if="{{game.object.reasonablyActive}}">
+                <game-card gameJson="{{game.json}}" isLive="true">&nbsp;</game-card>
+            </template>
         </template>
     </template>
 
     <script>
         Polymer("live-games", {
             initialJsonChanged: function(_, newValue) {
-                this.games = JSON.parse(newValue).filter(function(x){
-                    return JSON.parse(x).reasonablyActive;
+                this.games = JSON.parse(newValue).map(function(str) {
+                    return {json: str, object: JSON.parse(str)};
                 });
             },
 
@@ -18,17 +20,14 @@
                 this.websocket = new WebSocket(this.liveUrl);
                 var ctx = this;
                 this.websocket.onmessage = function(msg) {
-                    var newServer = JSON.parse(msg.data);
-                    var serverId = newServer.now.server.server;
+                    var newJson = msg.data;
+                    var newObject = JSON.parse(newJson);
                     ctx.games = ctx.games.slice().map(function(current) {
-                        var currentObj = JSON.parse(current);
-                        if ( currentObj.now.server.server == serverId ) {
-                            return msg.data;
+                        if ( current.object.now.server.server == newObject.now.server.server ) {
+                            return { json: newJson, object: newObject };;
                         } else {
                             return current;
                         }
-                    }).filter(function(x){
-                        return JSON.parse(x).reasonablyActive;
                     });
                 };
                 this.websocket.onerror = function() {

@@ -1,4 +1,4 @@
-<polymer-element name="game-card" attributes="gameJson isNew">
+<polymer-element name="game-card" attributes="gameJson isNew isLive">
 
     <template>
         <style scoped>
@@ -114,10 +114,12 @@
             }
             .game.isNew {
                 box-shadow: darkred 3px 3px 2px, darkred -3px -3px 2px, darkred 3px -3px 2px, darkred -3px 3px 2px;
-
+            }
+            .game.isLive {
+                box-shadow: midnightblue 3px 3px 2px, midnightblue -3px -3px 2px, midnightblue 3px -3px 2px, midnightblue -3px 3px 2px;
             }
         </style>
-        <article class="game {{ {isNew: isNew =='true'} | tokenList}}" style="background-image:url('/assets/maps/{{game.map}}.jpg')">
+        <article class="game {{ {isNew: isNew =='true', isLive: isLive == 'true'} | tokenList}}" style="background-image:url('/assets/maps/{{game.map}}.jpg')">
             <div class="w">
                 <header>
                     <h2>
