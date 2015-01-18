@@ -24,6 +24,10 @@ libraryDependencies ++= Seq(
   ws
 )
 
+sources in (Compile,doc) := Seq.empty
+
+publishArtifact in (Compile, packageDoc) := false
+
 includeFilter in (Assets, LessKeys.less) := "*.less"
 
 excludeFilter in (Assets, LessKeys.less) := "_*.less"
