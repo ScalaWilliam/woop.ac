@@ -26,14 +26,13 @@
                     }
                 });
             },
-            onError: function() {
-                setTimeout(this.liveUrlChanged.bind(this), 1000);
+            onClose: function() {
+                setTimeout(this.liveUrlChanged.bind(this), 5000);
             },
             liveUrlChanged: function() {
                 this.websocket = new WebSocket(this.liveUrl);
                 this.websocket.onmessage = this.onMessage.bind(this);
-                this.websocket.onerror = this.onError.bind(this);
-                this.websocket.onclose = this.onError.bind(this);
+                this.websocket.onclose = this.onClose.bind(this);
             }
         });
     </script>
