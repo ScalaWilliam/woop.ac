@@ -18,6 +18,11 @@ object Pinger {
     "keep the flag", "team pistol frenzy", "team last swiss standing", "bot pistol frenzy", "bot last swiss standing", "bot team survivor", "bot team one shot, one kill"
   ).zipWithIndex.map(_.swap).toMap
 
+
+  val flagModes = List(
+    "ctf", "hunt the flag", "team keep the flag", "keep the flag"
+  )
+
   case class SendPings(ip: String, port: Int)
 
   trait ServerStateMachine {
@@ -116,7 +121,7 @@ object Pinger {
           )
         ),
         reasonablyActive = serverInfoReply.mapName.nonEmpty && teamInfos.nonEmpty && playerInfoReplies.size >= 2,
-        hasFlags = playerInfoReplies.exists(_.flagScore >= 0),
+        hasFlags = modes.get(serverInfoReply.mode).exists(name => flagModes.contains(name)),
         map = Option(serverInfoReply.mapName).filter(_.nonEmpty),
         mode = modes.get(serverInfoReply.mode),
         minRemain = serverInfoReply.minRemain,
