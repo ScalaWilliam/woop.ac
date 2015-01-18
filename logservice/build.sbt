@@ -1,7 +1,7 @@
 enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
 organization := "acleague"
 name := "logservice"
-version := "1.0.22"
+version := "1.0.23"
 scalaVersion := "2.11.4"
 resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
 libraryDependencies ++= Seq(
@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % "2.3.6",
   "com.typesafe.akka" %% "akka-testkit" % "2.3.6" % "test",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
-  "com.hazelcast" % "hazelcast" % "3.3.3",
+  "com.hazelcast" % "hazelcast" % "3.4",
   "com.typesafe" % "config" % "1.2.1",
   "joda-time" % "joda-time" % "2.6",
   "org.joda" % "joda-convert" % "1.7",

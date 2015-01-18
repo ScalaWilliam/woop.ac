@@ -4,7 +4,7 @@ name := "rankservice"
 
 organization := "acleague"
 
-version := "1.03"
+version := "1.04"
 
 scalaVersion := "2.11.4"
 
@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(
   "commons-net" % "commons-net" % "3.3",
   "org.scala-lang.modules" %% "scala-xml" % "1.0.2",
   "com.maxmind.geoip2"%"geoip2"%"2.1.0",
-  "com.hazelcast" % "hazelcast" % "3.3.3",
+  "com.hazelcast" % "hazelcast" % "3.4",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "com.typesafe.akka" %% "akka-testkit"  % "2.3.8" % "test",
   "ch.qos.logback" % "logback-classic" % "1.1.2",

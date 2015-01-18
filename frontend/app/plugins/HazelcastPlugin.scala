@@ -5,8 +5,14 @@ import com.hazelcast.core.Hazelcast
 import play.api._
 class HazelcastPlugin(implicit app: Application) extends Plugin {
 
-  val hazelcast = {
-    Hazelcast.newHazelcastInstance()
+  lazy val hazelcast = {
+    val instance = Hazelcast.newHazelcastInstance()
+    instance.
+    instance
+  }
+
+  override def onStart(): Unit = {
+    hazelcast
   }
 
   override def onStop(): Unit = {

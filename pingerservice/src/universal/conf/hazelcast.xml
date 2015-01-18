@@ -7,7 +7,7 @@
         <name>acleague</name>
         <password>dev-pass</password>
     </group>
-    <management-center enabled="true">http://localhost:8091/mancenter-3.3.3</management-center>
+    <management-center enabled="true">http://localhost:8091/mancenter-3.4</management-center>
     <network>
         <port auto-increment="true" port-count="100">9701</port>
         <outbound-ports>
