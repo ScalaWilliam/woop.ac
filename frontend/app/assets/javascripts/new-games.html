@@ -8,28 +8,20 @@
 
     <script>
         Polymer("new-games", {
+            onMessage: function (msg) {
+                var newGamesList = (this.games || []).slice();
+                newGamesList.unshift(msg.data);
+                this.games = newGamesList;
+            },
+            onError: function () {
+                setTimeout(this.liveUrlChanged, 1000);
+            },
             liveUrlChanged: function() {
                 this.games = [];
                 this.websocket = new WebSocket(this.liveUrl);
-                var ctx = this;
-                this.websocket.onmessage = function(msg) {
-                    var newGamesList = ctx.games.slice()
-                    newGamesList.unshift(msg.data);
-                    ctx.games = newGamesList;
-                    console.log(ctx.games);
-                };
-                this.websocket.onerror = function() {
-                    var meh = this;
-                    setTimeout(function() {
-                        var onm = meh.websocket.onmessage;
-                        var one = meh.websocket.onerror;
-                        meh.websocket = new WebSocket(meh.liveUrl);
-                        meh.websocket.onmessage = onm;
-                        meh.websocket.onerror = one;
-                        meh.websocket.onclose = one;
-                    }, 2000);
-                }
-                this.websocket.onclose = this.websocket.onerror;
+                this.websocket.onmessage = this.onMessage.bind(this);
+                this.websocket.onerror = this.onError.bind(this);
+                this.websocket.onclose = this.onError.bind(this);
             }
         });
     </script>
