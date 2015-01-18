@@ -7,7 +7,6 @@ class HazelcastPlugin(implicit app: Application) extends Plugin {
 
   lazy val hazelcast = {
     val instance = Hazelcast.newHazelcastInstance()
-    instance.
     instance
   }
 
