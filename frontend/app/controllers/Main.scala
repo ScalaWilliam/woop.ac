@@ -146,7 +146,7 @@ return <ol class="recent-games">{$subs}</ol>
         |order by data($game/@date) descending
         |let $has-demo := exists(/local-demo[@game-id = data($game/@id)])
         |let $game-item := local:display-game($rus, $game, $has-demo)
-        |return <game-card gameJson="{json:serialize($game-item)}">loading... </game-card>
+        |return <game-card gameJson="{json:serialize($game-item)}">{comment { "loading..." }}</game-card>
         |
         |
       """.stripMargin
