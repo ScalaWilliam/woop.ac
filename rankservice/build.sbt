@@ -4,7 +4,7 @@ name := "rankservice"
 
 organization := "acleague"
 
-version := "1.04"
+version := "2.00"
 
 scalaVersion := "2.11.4"
 
@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % "2.3.8"
 )
 
-mainClass in Compile := Option("acleague.actors.MasterRankerApp")
+mainClass in Compile := Option("acleague.ranker.app.MasterRankerApp")
 
 publishArtifact in (Compile, packageBin) := false
 

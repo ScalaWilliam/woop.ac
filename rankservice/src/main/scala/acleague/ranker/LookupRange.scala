@@ -1,14 +1,12 @@
-package acleague
+package acleague.ranker
 
 import java.io.File
 import java.net.InetAddress
 
-import acleague.LookupRange.IpRangeCountryCode
 import com.maxmind.geoip2.DatabaseReader
 import org.apache.commons.net.util.SubnetUtils
 import org.apache.http.client.fluent.Request
 import org.apache.http.client.utils.URIBuilder
-import org.apache.http.entity.ContentType
 
 import scala.xml.Elem
 
@@ -87,71 +85,3 @@ object LookupRange {
     (calculatedRange, calculatedCountryCode)
   }
 }
-//object RangeLocator extends App {
-////  println(LookupRange("216.195.187.92"))
-//  println(new SubnetUtils("83.220.238.0/23").getInfo.getAddress == "83.220.238.0")
-//}
-//object RangeLocators extends App {
-//  val theIp = """213.186.33.6"""
-//
-//  val inputQuery = <rest:query xmlns:rest="http://basex.org/rest">
-//    <rest:text><![CDATA[
-//distinct-values(//player[@host != '']/@host)
-//]]></rest:text>
-//  </rest:query>
-//  val result = Request.Post("http://odin.duel.gg:1238/rest/acleague")
-//    .bodyString(s"$inputQuery", ContentType.APPLICATION_XML)
-//    .execute().returnContent().asString()
-//  val ranges = {
-//    val ranges = collection.mutable.Set.empty[IpRangeCountryCode]
-//    val fetchRangesQuery = <rest:query xmlns:rest="http://basex.org/rest">
-//      <rest:text><![CDATA[<ranges>{/range}</ranges> ]]></rest:text>
-//    </rest:query>
-//    val getResult = Request.Post("http://odin.duel.gg:1238/rest/acleague")
-//      .bodyString(s"$fetchRangesQuery", ContentType.APPLICATION_XML)
-//      .execute().returnContent().asString()
-//    val xmlData = scala.xml.XML.loadString(getResult)
-//    val stuffs = for {
-//      rangeDef <- xmlData \\ "range"
-//      cidr = (rangeDef \ "@cidr").text
-//      countryCode = (rangeDef \ "@country-code").text
-//    } yield IpRangeCountryCode(cidr, countryCode)
-//    ranges ++= stuffs
-//    ranges
-//  }
-//  println(ranges)
-////  val ranges = scala.collection.mutable.Set.empty[IpRangeCountryCode]
-////  val ips = result.split(" ").toSet.take(3)
-//  val ips = result.split(" ").toSet
-////  val ips = Set("88.130.0.1", "88.130.0.2", "88.130.0.55")
-//  for {
-//    ip <- ips
-//    if !ranges.exists(_.ipIsInRange(ip))
-//    rng <- LookupRange(ip)
-//  } { ranges += rng }
-//
-//  val pushBackQuery = <rest:query xmlns:rest="http://basex.org/rest">
-//    <rest:text><![CDATA[
-//    for $range in //range
-//    let $cidr := $range/@cidr
-//    let $existing-node := db:open("acleague")/range[@cidr = $range/@cidr]
-//    return if ( not(exists($existing-node)) ) then (db:add("acleague", $range, "ranges"))
-//    else (replace node $existing-node with $range)
-//]]></rest:text>
-//    <rest:context>
-//      <ranges>{for {IpRangeCountryCode(cidr, countryCode) <- ranges} yield <range cidr={cidr} country-code={countryCode}/>}</ranges>
-//    </rest:context>
-//  </rest:query>
-//
-//  val pushResult = Request.Post("http://odin.duel.gg:1238/rest/acleague")
-//    .bodyString(s"$pushBackQuery", ContentType.APPLICATION_XML)
-//    .execute().returnContent().asString()
-//
-//  println(pushResult)
-//
-//  /*
-//  <attribute value="GB" name="country"/>
-//  <attribute value="77.44.45.0/24" name="route"/>
-//  */
-//
-//}

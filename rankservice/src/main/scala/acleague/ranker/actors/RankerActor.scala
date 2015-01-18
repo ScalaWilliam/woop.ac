@@ -1,14 +1,15 @@
-package acleague.actors
+package acleague.ranker.actors
 
-import acleague.Imperative
-import acleague.LookupRange.{IpRange, IpRangeOptionalCountry}
-import acleague.actors.RankerSecond.{FoundEvent, UpdatedUser}
+import acleague.ranker.LookupRange
+import LookupRange.{IpRange, IpRangeOptionalCountry}
+import RankerSecond.{FoundEvent, UpdatedUser}
+import acleague.ranker.achievements.Imperative
+import acleague.ranker.app.AppConfig
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.http.HttpHost
-import org.apache.http.client.fluent.{Executor, Request}
+import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 
-import scala.xml.{PCData, Elem}
+import scala.xml.{Elem, PCData}
 
 object RankerActor extends LazyLogging {
   case class NewUser(user: RegisteredUser)
@@ -18,7 +19,7 @@ object RankerActor extends LazyLogging {
   def postDatabaseRequest(input: Elem): String = {
     val inputString = input.toString()
     val startTime = System.currentTimeMillis()
-    import concurrent.duration._
+    import scala.concurrent.duration._
     try {
       val output =
         Request.Post(AppConfig.basexDatabaseUrl)
@@ -38,7 +39,7 @@ object RankerActor extends LazyLogging {
     }
   }
 
-  def getGames = {
+  def getGames(limit: Int = 50000) = {
     val xmlData = scala.xml.XML.loadString(postDatabaseRequest(<rest:query xmlns:rest="http://basex.org/rest">
       <rest:text><![CDATA[
 let $all-games :=
@@ -46,7 +47,7 @@ let $all-games :=
   let $date := xs:dateTime($game/@date) cast as xs:date
   order by $date ascending
   return $game
-let $context-games := subsequence($all-games, 1, 5000)
+let $context-games := subsequence($all-games, 1, ]]>{limit.toString}<![CDATA[)
 let $first-game := data(subsequence($context-games, 1, 1)/@id)
 let $last-game := data(subsequence($context-games, count($context-games), 1)/@id)
 return <games first-game="{$first-game}" last-game="{$last-game}">{$context-games}</games>
