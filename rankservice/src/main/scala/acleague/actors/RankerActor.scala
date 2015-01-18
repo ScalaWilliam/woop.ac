@@ -4,25 +4,26 @@ import acleague.Imperative
 import acleague.LookupRange.{IpRange, IpRangeOptionalCountry}
 import acleague.actors.RankerSecond.{FoundEvent, UpdatedUser}
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.http.HttpHost
 import org.apache.http.client.fluent.{Executor, Request}
 import org.apache.http.entity.ContentType
 
-import scala.xml.Elem
+import scala.xml.{PCData, Elem}
 
 object RankerActor extends LazyLogging {
   case class NewUser(user: RegisteredUser)
   case class NewGame(gameId: String)
   case class GameEvents(gameId: String, events: Imperative.EmmittedEvents[RegisteredUser])
   val dbName = AppConfig.basexDatabaseName
-  lazy val executor = Executor.newInstance()
-    .auth("admin", "admin")
   def postDatabaseRequest(input: Elem): String = {
     val inputString = input.toString()
     val startTime = System.currentTimeMillis()
     import concurrent.duration._
     try {
-      val output = executor.execute(Request.Post(AppConfig.basexDatabaseUrl)
-        .bodyString(inputString, ContentType.APPLICATION_XML)).returnContent().asString()
+      val output =
+        Request.Post(AppConfig.basexDatabaseUrl)
+          .bodyString(inputString, ContentType.APPLICATION_XML)
+        .addHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().returnContent().asString()
       val endTime = System.currentTimeMillis()
       val took = (endTime - startTime).millis
       logger.debug(s"Sending query to ${AppConfig.basexDatabaseUrl} took $took: $inputString")
@@ -98,18 +99,17 @@ return <games first-game="{$first-game}" last-game="{$last-game}">{$context-game
   }
   def saveUserRecordXml(xmlDoc: scala.xml.Elem) = {
     postDatabaseRequest(<rest:query xmlns:rest="http://basex.org/rest">
-      <rest:text><![CDATA[
-      for $user-record in //user-record
-      let $id := data($user-record/@id)
-      let $existing-record := db:open("]]>{dbName}<![CDATA[")/user-record[@id=$id]
-      let $new-user-record :=
-        copy $c := $user-record
-        modify insert node (attribute {'updated-date'} {current-dateTime()}) into $c
-        return $c
-      return if ( empty($existing-record) ) then (db:add("]]>{dbName}<![CDATA[", $new-user-record, "manual-user-record"))
-      else (replace node $existing-record with $new-user-record)
-]]></rest:text>
-      <rest:context>{xmlDoc}</rest:context>
+      <rest:text>{PCData(s"""
+      let $$user-records := $xmlDoc
+      for $$user-record in $$user-records//user-record
+      let $$id := data($$user-record/@id)
+      let $$existing-record := db:open("$dbName")/user-record[@id=$$id]
+      let $$new-user-record :=
+        copy $$c := $$user-record
+        modify insert node (attribute {'updated-date'} {current-dateTime()}) into $$c
+        return $$c
+      return if ( empty($$existing-record) ) then (db:add("$dbName", $$new-user-record, "manual-user-record"))
+      else (replace node $$existing-record with $$new-user-record)""")}</rest:text>
     </rest:query>)
   }
   def saveUserEvent(foundEvent: FoundEvent) = {
@@ -120,45 +120,43 @@ return <games first-game="{$first-game}" last-game="{$last-game}">{$context-game
   }
   def saveUserEventXml(foundEventXml: scala.xml.Elem) = {
     postDatabaseRequest(<rest:query xmlns:rest="http://basex.org/rest">
-      <rest:text><![CDATA[
-      for $new-event in //user-event
-      let $game-id := data($new-event/@game-id)
-      let $user-id := data($new-event/@user-id)
-      let $existing-event :=
-        for $event in db:open("]]>{dbName}<![CDATA[")/user-event
-        where $event/@game-id = $game-id and $event/@user-id = $user-id
-        for $item in $event/*
-        for $new-item in $new-event/*
-        where deep-equal($item, $new-item)
-        return $event
-      return if ( not(empty($existing-event)) ) then ()
+      <rest:text>{PCData(s"""
+      let $$fex := $foundEventXml
+      for $$new-event in $$fex//user-event
+      let $$game-id := data($$new-event/@game-id)
+      let $$user-id := data($$new-event/@user-id)
+      let $$existing-event :=
+        for $$event in db:open("$dbName")/user-event
+        where $$event/@game-id = $$game-id and $$event/@user-id = $$user-id
+        for $$item in $$event/*
+        for $$new-item in $$new-event/*
+        where deep-equal($$item, $$new-item)
+        return $$event
+      return if ( not(empty($$existing-event)) ) then ()
       else (
-        let $new-event-with-tag :=
-          copy $c := $new-event
-          modify insert node (attribute { 'added-date' } { current-dateTime() }) into $c
-          return $c
-        return db:add("]]>{dbName}<![CDATA[", $new-event-with-tag, "auto-events")
+        let $$new-event-with-tag :=
+          copy $$c := $$new-event
+          modify insert node (attribute { 'added-date' } { current-dateTime() }) into $$c
+          return $$c
+        return db:add("$dbName", $$new-event-with-tag, "auto-events")
       )
-]]></rest:text>
-      <rest:context>{foundEventXml}</rest:context>
+""")}</rest:text>
     </rest:query>)
   }
   def saveRanges(ranges: Set[IpRangeOptionalCountry]) = {
+    val rangesXml = <ranges>
+      {for {IpRangeOptionalCountry(IpRange(cidr), countryCodeO) <- ranges} yield <range cidr={cidr} country-code={countryCodeO.orNull}/>}
+    </ranges>
     postDatabaseRequest(<rest:query xmlns:rest="http://basex.org/rest">
-      <rest:text>
-        <![CDATA[
-    for $range in //range
-    let $cidr := $range/@cidr
-    let $existing-node := db:open("]]>{dbName}<![CDATA[")/range[@cidr = $range/@cidr]
-    return if ( not(exists($existing-node)) ) then (db:add("]]>{dbName}<![CDATA[", $range, "ranges"))
-    else (replace node $existing-node with $range)
-]]>
+      <rest:text>{PCData(s"""
+        let $$ranges := $rangesXml
+    for $$range in $$ranges//range
+    let $$cidr := $$range/@cidr
+    let $$existing-node := db:open("$dbName")/range[@cidr = $$range/@cidr]
+    return if ( not(exists($$existing-node)) ) then (db:add("$dbName", $$range, "ranges"))
+    else (replace node $$existing-node with $$range)
+""")}
       </rest:text>
-      <rest:context>
-        <ranges>
-          {for {IpRangeOptionalCountry(IpRange(cidr), countryCodeO) <- ranges} yield <range cidr={cidr} country-code={countryCodeO.orNull}/>}
-        </ranges>
-      </rest:context>
     </rest:query>)
   }
 }
