@@ -135,7 +135,7 @@
                     <div class="{{team.name}} team">
                         <div class="team-header">
                             <h3>
-                                <img src="/assets/{{team.name || toLowerCase}}.png"/>
+                                <img src="/assets/{{team.name | toLowerCase}}.png"/>
                             </h3>
                             <div class="result">
                                 <template if="{{game.hasFlags}}">
