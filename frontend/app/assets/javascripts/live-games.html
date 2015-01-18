@@ -15,33 +15,25 @@
                     return {json: str, object: JSON.parse(str)};
                 });
             },
-
+            onMessage: function(msg) {
+                var newJson = msg.data;
+                var newObject = JSON.parse(newJson);
+                this.games = this.games.slice().map(function(current) {
+                    if ( current.object.now.server.server == newObject.now.server.server ) {
+                        return { json: newJson, object: newObject };;
+                    } else {
+                        return current;
+                    }
+                });
+            },
+            onError: function() {
+                setTimeout(this.liveUrlChanged.bind(this), 1000);
+            },
             liveUrlChanged: function() {
                 this.websocket = new WebSocket(this.liveUrl);
-                var ctx = this;
-                this.websocket.onmessage = function(msg) {
-                    var newJson = msg.data;
-                    var newObject = JSON.parse(newJson);
-                    ctx.games = ctx.games.slice().map(function(current) {
-                        if ( current.object.now.server.server == newObject.now.server.server ) {
-                            return { json: newJson, object: newObject };;
-                        } else {
-                            return current;
-                        }
-                    });
-                };
-                this.websocket.onerror = function() {
-                    var meh = this;
-                    setTimeout(function() {
-                        var onm = meh.websocket.onmessage;
-                        var one = meh.websocket.onerror;
-                        meh.websocket = new WebSocket(meh.liveUrl);
-                        meh.websocket.onmessage = onm;
-                        meh.websocket.onerror = one;
-                        meh.websocket.onclose = one;
-                    }, 2000);
-                }
-                this.websocket.onclose = this.websocket.onerror;
+                this.websocket.onmessage = this.onMessage.bind(this);
+                this.websocket.onerror = this.onError.bind(this);
+                this.websocket.onclose = this.onError.bind(this);
             }
         });
     </script>

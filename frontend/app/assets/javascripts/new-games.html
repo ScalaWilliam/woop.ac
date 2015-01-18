@@ -14,7 +14,7 @@
                 this.games = newGamesList;
             },
             onError: function () {
-                setTimeout(this.liveUrlChanged, 1000);
+                setTimeout(this.liveUrlChanged.bind(this), 1000);
             },
             liveUrlChanged: function() {
                 this.games = [];
