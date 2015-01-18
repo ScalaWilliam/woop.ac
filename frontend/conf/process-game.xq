@@ -41,7 +41,7 @@ return
                     map:merge((
                         if ( $has-flags ) then (map { "flags": data($team/@flags) }) else (),
                         map {
-                            "name":  "RVSF",
+                            "name":  data($team/@name),
                             "frags": data($team/@frags),
                             "players":
                                 array {
