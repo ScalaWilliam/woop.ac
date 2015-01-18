@@ -25,8 +25,6 @@ class ServerUpdatesPlugin(implicit app: Application) extends Plugin {
         import org.json4s.JsonDSL._
         implicit val formats = Serialization.formats(NoTypeHints)
         val serverName: String = (cleanerJson \ "now" \ "server" \ "server").extract[String]
-        println(serverName)
-        println(j)
         val newJsonS = write(cleanerJson)
         currentState += serverName -> newJsonS
         context.system.eventStream.publish(ServerState(serverName, newJsonS))

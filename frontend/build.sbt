@@ -20,6 +20,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-async" % "0.9.2",
   "org.json4s" %% "json4s-jackson" % "3.2.11",
   "org.joda" % "joda-convert" % "1.7",
+  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "commons-net" % "commons-net" % "3.3",
   ws
 )

@@ -68,7 +68,7 @@ object Pinger {
     }
   }
 
-  case class ServerStatus(server: String, connectName: String, shortName: String, description: String, maxClients: Int, updatedTime: String, game: Option[CurrentGame]) {
+  case class ServerStatus(server: String, connectName: String, canonicalName: String, shortName: String, description: String, maxClients: Int, updatedTime: String, game: Option[CurrentGame]) {
     def toJson = {
       import org.json4s._
       import org.json4s.JsonDSL._
@@ -144,6 +144,7 @@ object Pinger {
         server = s"$ip:$port",
       connectName = connects.getOrElse(ip, ip) + s" $port",
       shortName = shortName.getOrElse(ip, ip) + s" $port",
+      canonicalName = connects.getOrElse(ip, ip) + s":$port",
         description = serverInfoReply.desc.replaceAll( """\f\d""", ""),
         updatedTime = ISODateTimeFormat.dateTimeNoMillis().withZone(DateTimeZone.forID("UTC")).print(System.currentTimeMillis()),
         maxClients = serverInfoReply.maxClients,
