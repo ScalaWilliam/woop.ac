@@ -1,11 +1,9 @@
 package acleague.publishers
 
-import java.util.Date
 import acleague.actors.DemoDownloaderActor.DemoDownloaded
 import acleague.actors.GameDemoFound
 import acleague.publishers.GamePublisher.ConnectionOptions
-import org.basex.server.ClientSession
-
+import org.basex.api.client.ClientSession
 
 object DemoPublisher {
   def apply(options: ConnectionOptions)(demo: GameDemoFound) = {

@@ -1,14 +1,13 @@
 enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
 organization := "acleague"
 name := "logservice"
-version := "1.0.21"
+version := "1.0.22"
 scalaVersion := "2.11.4"
 resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
 libraryDependencies ++= Seq(
   "org.syslog4j" % "syslog4j" % "0.9.30",
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "org.scala-lang.modules" %% "scala-xml" % "1.0.2",
-  "org.basex" % "basex" % "7.9",
   "ch.qos.logback" % "logback-classic" % "1.1.2",
   "com.typesafe.akka" %% "akka-actor" % "2.3.6",
   "com.typesafe.akka" %% "akka-slf4j" % "2.3.6",
@@ -17,8 +16,10 @@ libraryDependencies ++= Seq(
   "com.hazelcast" % "hazelcast" % "3.3.3",
   "com.typesafe" % "config" % "1.2.1",
   "joda-time" % "joda-time" % "2.6",
-  "org.joda" % "joda-convert" % "1.7"
+  "org.joda" % "joda-convert" % "1.7",
+  "org.basex" % "basex" % "8.0-20150113.211941-219" from "http://files.basex.org/maven/org/basex/basex/8.0-SNAPSHOT/basex-8.0-20150113.211941-219.jar"
 )
+
 mainClass in Compile := Option("acleague.app.LeagueApp")
 publishArtifact in (Compile, packageBin) := false
 publishArtifact in (Universal, packageZipTarball) := true

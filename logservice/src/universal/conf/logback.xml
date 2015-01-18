@@ -10,7 +10,6 @@
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger - %msg%n</pattern>
         </encoder>
     </appender>
-    <appender name="systemd" class="org.gnieh.logback.SystemdJournalAppender"/>
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger - %msg%n</pattern>

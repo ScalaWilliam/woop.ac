@@ -1,11 +1,9 @@
 package acleague.publishers
 
-import java.util.Date
-
 import acleague.enrichers.EnrichFoundGame
 import acleague.enrichers.EnrichFoundGame.GameXmlReady
 import acleague.ingesters.FoundGame
-import org.basex.server.ClientSession
+import org.basex.api.client.ClientSession
 import org.joda.time.DateTime
 
 

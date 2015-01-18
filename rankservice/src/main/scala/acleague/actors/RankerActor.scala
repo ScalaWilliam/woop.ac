@@ -4,7 +4,7 @@ import acleague.Imperative
 import acleague.LookupRange.{IpRange, IpRangeOptionalCountry}
 import acleague.actors.RankerSecond.{FoundEvent, UpdatedUser}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.http.client.fluent.Request
+import org.apache.http.client.fluent.{Executor, Request}
 import org.apache.http.entity.ContentType
 
 import scala.xml.Elem
@@ -14,13 +14,15 @@ object RankerActor extends LazyLogging {
   case class NewGame(gameId: String)
   case class GameEvents(gameId: String, events: Imperative.EmmittedEvents[RegisteredUser])
   val dbName = AppConfig.basexDatabaseName
+  lazy val executor = Executor.newInstance()
+    .auth("admin", "admin")
   def postDatabaseRequest(input: Elem): String = {
     val inputString = input.toString()
     val startTime = System.currentTimeMillis()
     import concurrent.duration._
     try {
-      val output = Request.Post(AppConfig.basexDatabaseUrl)
-        .bodyString(inputString, ContentType.APPLICATION_XML).execute().returnContent().asString()
+      val output = executor.execute(Request.Post(AppConfig.basexDatabaseUrl)
+        .bodyString(inputString, ContentType.APPLICATION_XML)).returnContent().asString()
       val endTime = System.currentTimeMillis()
       val took = (endTime - startTime).millis
       logger.debug(s"Sending query to ${AppConfig.basexDatabaseUrl} took $took: $inputString")
