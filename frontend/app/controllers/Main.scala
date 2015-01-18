@@ -394,7 +394,12 @@ return <ol class="recent-games">{$subs}</ol>
   class NewGamesActor(out: ActorRef) extends Act {
     whenStarting {
       context.system.eventStream.subscribe(self, classOf[GotNewGame])
+      import scala.concurrent.duration._
+//      context.system.scheduler.scheduleOnce(2.seconds, self, GotNewGame("1773084399"))
+//      context.system.scheduler.scheduleOnce(5.seconds, self, GotNewGame("1017769444"))
+//      context.system.scheduler.scheduleOnce(10.seconds, self, GotNewGame("1976486539"))
     }
+
     become {
       case GotNewGame(gameId) =>
         val gameDataF = for {r <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">

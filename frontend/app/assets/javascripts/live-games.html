@@ -3,7 +3,7 @@
     <template>
         <template repeat="{{game in games}}">
             <template if="{{game.object.reasonablyActive}}">
-                <game-card gameJson="{{game.json}}" isLive="true">&nbsp;</game-card>
+                <game-card gameJson="{{game.json}}" isLive="true"></game-card>
             </template>
         </template>
     </template>
@@ -11,20 +11,23 @@
     <script>
         Polymer("live-games", {
             initialJsonChanged: function(_, newValue) {
-                this.games = JSON.parse(newValue).map(function(str) {
+                var newGames = JSON.parse(newValue).map(function(str) {
                     return {json: str, object: JSON.parse(str)};
                 });
+                this.games = newGames;
             },
             onMessage: function(msg) {
                 var newJson = msg.data;
                 var newObject = JSON.parse(newJson);
-                this.games = this.games.slice().map(function(current) {
-                    if ( current.object.now.server.server == newObject.now.server.server ) {
-                        return { json: newJson, object: newObject };;
-                    } else {
-                        return current;
-                    }
+                var gamesMap = {};
+                this.games.forEach(function(game) {
+                    gamesMap[game.object.now.server.server] = game;
                 });
+                gamesMap[newObject.now.server.server] = { json: newJson, object: newObject };
+                var newGames = Object.keys(gamesMap).map(function(k) {
+                    return gamesMap[k];
+                });
+                this.games = newGames;
             },
             onClose: function() {
                 setTimeout(this.liveUrlChanged.bind(this), 5000);
