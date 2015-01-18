@@ -131,7 +131,7 @@
                             <a>{{game.mode}} @ {{game.map}} {{game.when}}</a>
                         </template>
                         <template if="{{game.demo}}">
-                            <a class="demo-link" href="/demos/{{demo}}.dmo">demo</a>
+                            <a class="demo-link" href="/demos/{{game.demo}}.dmo">demo</a>
                         </template>
                         <template if="{{game.now}}">
                             <a class="server-link" href="assaultcube://{{game.now.server.canonicalName || game.now.server.server}}">on {{game.now.server.shortName}}</a>
