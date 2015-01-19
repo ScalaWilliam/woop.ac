@@ -91,7 +91,7 @@ let $capture-achievement-bar :=
 
 let $progress-achievements :=
 for $achievement in ($record/achievements/flag-master, $record/achievements/frag-master, $record/achievements/cube-addict)
-let $level := data($achievement/@level)
+let $level := (data($achievement/@next-level), data($achievement/@level))[1]
 return <achievement-card
   achieved="{data($achievement/@achieved)}"
   title="{
