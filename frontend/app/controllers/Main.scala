@@ -382,6 +382,17 @@ return <ol class="recent-games">{$subs}</ol>
     new DatabaseReader.Builder(database).build()
   }
 
+  def viewPlayers = stated { r => implicit s =>
+    for { r <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest='http://basex.org/rest'>
+      <rest:text><![CDATA[<ol>{
+        for $ru in /registered-user
+        order by $ru/@id ascending
+        return <li><a href="{"/player/"||data($ru/@id)}">{data($ru/@game-nickname)}</a></li>
+        }</ol>
+        ]]></rest:text></rest:query>)
+    } yield Ok(views.html.viewPlayers(Html(r.body)))
+  }
+
   def viewPlayer(id: String) = stated {
     r => implicit s =>
 

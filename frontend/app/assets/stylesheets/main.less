@@ -130,7 +130,7 @@ a:hover {
   margin-bottom:1em;
 }
 
-#questions, #servers, #create-profile, #profile {
+#questions, #servers, #create-profile, #profile, #players {
   margin:2em;
   margin-left:4em;
   margin-right:4em;
@@ -222,4 +222,37 @@ code {
 .achievements  .achievements {
   margin-left:-1em;
   margin-right:-1em;
+}
+
+#players ol {
+  list-style-type: none;
+  margin:0;
+  padding:0;
+  font-size:1.3em;
+  display:flex;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  /* You can set flex-wrap and flex-direction individually */
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  /* Or do it all in one line with flex flow */
+  -webkit-flex-flow: row wrap;
+  flex-flow: row wrap;
+  /* tweak the where items line up on the row */
+  /* valid values are: flex-start, flex-end, space-between, space-around, stretch */
+  -webkit-align-content: flex-end;
+  align-content: flex-end;
+  & li {
+    display:inline-block;
+    padding:0.4em 1em;
+    & a {
+      text-decoration: none;
+    }
+  }
 }
