@@ -114,7 +114,7 @@ return <games first-game="{$first-game}" last-game="{$last-game}">{$context-game
     </rest:query>)
   }
   def saveUserEvent(foundEvent: FoundEvent) = {
-    saveUserEventXml(foundEvent.toXml)
+    saveUserEventXml(<events>{foundEvent.toXml}</events>)
   }
   def saveUserEvents(foundEvents: List[FoundEvent]) = {
     saveUserEventXml(<events>{foundEvents.map(_.toXml)}</events>)
