@@ -1,0 +1,117 @@
+<link rel="import" href="/assets/javascripts/bower_components/polymer/polymer.html">
+<polymer-element name="achievement-card" attributes="type achieved title remainingInLevel progressInLevel totalInLevel level">
+    <template>
+<style scoped>
+
+    .progress-radial {
+        float: left;
+        margin-right: 35px;
+        position: relative;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 2px solid #2f3439;
+        background-color: tomato;
+    }
+
+    /* -------------------------------------
+     * Optional centered circle w/text
+     * ------------------------------------- */
+    .progress-radial .overlay {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        background-color: #fffde8;
+        border-radius: 50%;
+        margin-left: 20px;
+        margin-top: 20px;
+        text-align: center;
+        line-height: 60px;
+        font-size: 16px;
+    }
+    /* http://codepen.io/geedmo/pen/InFfd */
+    .progress-100 {
+        background-image: linear-gradient(90deg, #ff6347 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), linear-gradient(270deg, #ff6347 50%, #2f3439 50%, #2f3439);
+    }
+    .progress-0 {
+        background-image: linear-gradient(90deg, #2f3439 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), linear-gradient(90deg, #ff6347 50%, #2f3439 50%, #2f3439);
+    }
+    .achievement {
+        margin:0.2em;
+        height:137px;
+        width:150px;
+        padding:1em;
+        display:inline-block;
+        border-radius:1em;
+        background:rgba(20,20,30,0.4);
+    }
+    .progress-radial {
+        margin-left:20px;
+        margin-bottom:0.6em;
+    }
+    .notAchieved {
+        opacity:0.6;
+        transition: all 0.4s;
+    }
+    .notAchieved:hover {
+        opacity:0.8;
+    }
+header h3 {
+    text-align: center;
+    font-size:1.1em;
+}
+
+</style>
+        <div class="achievement-{{type}} achievement {{ {achieved: achieved == 'true', notAchieved: achieved == 'false'} | tokenList}}">
+            <div class="ach-left">
+            <template if="{{progressInLevel}}">
+
+
+                <div class="progress-radial" style="{{progStyle}}">
+                    <div class="overlay">{{progress}}%</div>
+                </div>
+
+
+            </template>
+            <template if="{{!progressInLevel}}">
+                <template if="{{achieved == 'true'}}">
+                <div class="progress-radial progress-100">
+                        <div class="overlay">&#10004;</div>
+
+                </div>
+                </template>
+                <template if="{{achieved == 'false'}}">
+
+                    <div class="progress-radial progress-0">
+                        <div class="overlay"></div>
+
+                    </div>
+                    </template>
+            </template>
+            </div>
+                <header>
+                    <h3>{{title}}</h3>
+                </header>
+
+        </div>
+
+    </template>
+
+    <script>
+        Polymer("achievement-card", {
+            totalInLevelChanged: function() {
+                this.progress = Math.round(100 * this.progressInLevel / this.totalInLevel);
+                this.progStyle = (function(progress) {
+                    if ( progress <= 50 ) {
+                        var rightDeg = Math.round(90 + 3.6 * progress);
+                        return "background-image: linear-gradient(90deg, #2f3439 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), linear-gradient("+rightDeg+"deg, #ff6347 50%, #2f3439 50%, #2f3439);";
+                    } else {
+                        var leftDeg = Math.round(3.6 * progress - 270);
+                        return "background-image: linear-gradient("+leftDeg+"deg, #ff6347 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), linear-gradient(270deg, #ff6347 50%, #2f3439 50%, #2f3439);"
+                    }
+                })(this.progress);
+            }
+        });
+    </script>
+
+</polymer-element>

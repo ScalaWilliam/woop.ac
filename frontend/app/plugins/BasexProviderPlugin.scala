@@ -20,7 +20,11 @@ class BasexProviderPlugin(implicit app: Application) extends Plugin {
   def password = Play.current.configuration.getString("basex.password").getOrElse{throw new RuntimeException("No basex password!")}
 
   def query(xml: Elem) = {
-    WS.url(url).withAuth(username, password, WSAuthScheme.BASIC).post(xml)
+    import ExecutionContext.Implicits.global
+    for {
+      r <- WS.url(url).withAuth(username, password, WSAuthScheme.BASIC).post(xml)
+      _ = if ( r.status != 200 ) { throw new RuntimeException(s"Expected status 200, got ${r.status}. Content: ${r.body}, query: $xml")}
+    } yield r
   }
 
   // todo onstart - check that it connects

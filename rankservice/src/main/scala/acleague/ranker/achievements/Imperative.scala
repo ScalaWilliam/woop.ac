@@ -89,15 +89,15 @@ object Imperative {
     def hoursRemainingToNext: Option[Int] = nextLevel.map(_ - hours)
     override def toString = s"""CubeAddict(minutes = $minutes, hours = $hours, isCompleted = $isCompleted, currentLevel = $currentLevel, nextLevel = $nextLevel, remainingToNext = $hoursRemainingToNext)"""
   }
-  class MapCompletionAchievement(map: AcMap, var rvsfRemain: Int = 2, var claRemain: Int = 2) extends Achievement {
+  class MapCompletionAchievement(map: AcMap, var rvsfRemain: Int = 3, var claRemain: Int = 3) extends Achievement {
     def rvsfProgress = rvsfTarget - rvsfRemain
     def claProgress = claTarget - claRemain
     def isCompleted = rvsfRemain == 0 && claRemain == 0
     def remaining = rvsfRemain + claRemain
     def completed = target - remaining
     def target = claTarget + rvsfTarget
-    def rvsfTarget = 2
-    def claTarget = 2
+    def rvsfTarget = 3
+    def claTarget = 3
     override def toString = s"MapCompletionAchievement(map = $map, rvsfRemain = $rvsfRemain, claRemain = $claRemain)"
   }
   class TdmLover(var count: Int = 0 ) extends Achievement {
@@ -153,6 +153,9 @@ object Imperative {
     var isCubeAddict: Option[String] = None,
     var isTosokLover: Option[String] = None,
     var isFlagMaster: Option[String] = None,
+    var hasCubeAddicts: collection.mutable.Buffer[(Int, String)] = collection.mutable.Buffer.empty,
+    var hasFragMasters: collection.mutable.Buffer[(Int, String)] = collection.mutable.Buffer.empty,
+    var hasFlagMasters: collection.mutable.Buffer[(Int, String)] = collection.mutable.Buffer.empty,
     var isFragMaster: Option[String] = None,
     var hasDDay: Option[String] = None,
     val playedGames: collection.mutable.Set[String] = collection.mutable.Set.empty,
@@ -168,7 +171,7 @@ object Imperative {
   ) {
     val socialite = new Socialite(id)
     override def toString =
-      s"""User(id = $id, soloFlagger = $soloFlagger, isTosokLover = $isTosokLover, isFlagMaster = $isFlagMaster, isFragMaster = $isFragMaster, isCubeAddict = $isCubeAddict, isTdmLover = $isTdmLover, slaughterer = $slaughterer, terribleGames = $hasTerribleGame, gamesPlayed = $gamesPlayed, flags = $flags, frags = $frags, timePlayed = $timePlayed, isCaptureMaster = $isCaptureMaster, cubeAddict = $cubeAddict, dDayAchievement = $dDayAchievement, playedGames = $playedGames, tosokLover = $tosokLover, tdmLover = $tdmLover, flagMaster = $flagMaster, fragMaster = $fragMaster, captureMaster = $captureMaster"""
+      s"""User(id = $id, soloFlagger = $soloFlagger, hasCubeAddicts = $hasCubeAddicts, hasFragMasters = $hasFragMasters, hasFlagMasters = $hasFlagMasters, isTosokLover = $isTosokLover, isFlagMaster = $isFlagMaster, isFragMaster = $isFragMaster, isCubeAddict = $isCubeAddict, isTdmLover = $isTdmLover, slaughterer = $slaughterer, terribleGames = $hasTerribleGame, gamesPlayed = $gamesPlayed, flags = $flags, frags = $frags, timePlayed = $timePlayed, isCaptureMaster = $isCaptureMaster, cubeAddict = $cubeAddict, dDayAchievement = $dDayAchievement, playedGames = $playedGames, tosokLover = $tosokLover, tdmLover = $tdmLover, flagMaster = $flagMaster, fragMaster = $fragMaster, captureMaster = $captureMaster"""
 
     def toXml =
       <user-record
@@ -185,17 +188,34 @@ object Imperative {
           <dday achieved={hasDDay.isDefined.toString} at-game={hasDDay.orNull}/>
           <tdm-lover achieved={isTdmLover.isDefined.toString} achieved-at-game={isTdmLover.orNull} progress={tdmLover.progress.toString} target={tdmLover.target.toString} remain={tdmLover.remaining.toString}/>
           <tosok-lover achieved={isTosokLover.isDefined.toString} achieved-at-game={isTosokLover.orNull} progress={tosokLover.progress.toString} target={tosokLover.target.toString} remain={tosokLover.remaining.toString}/>
-          <flag-master achieved={flagMaster.isCompleted.toString} achieved-at-game={isFlagMaster.orNull} current-level={flagMaster.currentLevel.map(_.toString).orNull} progress={flagMaster.flags.toString}
-            target={flagMaster.flagMaster.toString} next-level={flagMaster.nextLevel.map(_.toString).orNull} remain-to-next-level={flagMaster.remainingToNext.map(_.toString).orNull}/>
-          <frag-master achieved={fragMaster.isCompleted.toString} achieved-at-game={isFragMaster.orNull} current-level={fragMaster.currentLevel.map(_.toString).orNull} progress={fragMaster.frags.toString}
-            target={fragMaster.flagMaster.toString} next-level={fragMaster.nextLevel.map(_.toString).orNull} remain-to-next-level={fragMaster.remainingToNext.map(_.toString).orNull}/>
-          <cube-addict achieved={isCubeAddict.isDefined.toString} achieved-at-game={isCubeAddict.orNull} current-level={cubeAddict.currentLevel.map(_.toString).orNull} progress={cubeAddict.hours.toString}
-            target={cubeAddict.cubeAddict.toString} next-level={cubeAddict.nextLevel.map(_.toString).orNull} remain-to-next-level={cubeAddict.hoursRemainingToNext.map(_.toString).orNull}
-          />
-          <capture-master achieved={isCaptureMaster.toString}
+          {for { (level, atGame) <- hasFlagMasters } yield <flag-master achieved="true" at-game={atGame} level={level.toString}/>}
+          { if ( !flagMaster.isCompleted ) {
+            <flag-master achieved="false" level={flagMaster.currentLevel.map(_.toString).orNull} next-level={flagMaster.nextLevel.map(_.toString).orNull}
+            total-in-level={flagMaster.nextLevel.flatMap(x => flagMaster.currentLevel.map(l => x - l)).map(_.toString).orNull}
+            progress-in-level={flagMaster.currentLevel.map(n => flagMaster.flags -n).map(_.toString).orNull}
+            remaining-in-level={flagMaster.remainingToNext.map(_.toString).orNull}/>
+          }}
+          { for { (level, atGame) <- hasFragMasters } yield <frag-master achieved="true" at-game={atGame} level={level.toString}/> }
+          { if ( !fragMaster.isCompleted ) {
+            <frag-master achieved="false" level={fragMaster.currentLevel.map(_.toString).orNull} next-level={fragMaster.nextLevel.map(_.toString).orNull}
+            total-in-level={fragMaster.nextLevel.flatMap(x => fragMaster.currentLevel.map(l => x - l)).map(_.toString).orNull}
+            progress-in-level={fragMaster.currentLevel.map(n => fragMaster.frags -n).map(_.toString).orNull}
+            remaining-in-level={fragMaster.remainingToNext.map(_.toString).orNull}/>
+          }
+          }
+          { for { (level, atGame) <- hasCubeAddicts } yield <cube-addict achieved="true" at-game={atGame} level={level.toString}/> }
+          { if ( !cubeAddict.isCompleted ) {
+            <cube-addict achieved="false" level={cubeAddict.currentLevel.map(_.toString).orNull} next-level={cubeAddict.nextLevel.map(_.toString).orNull}
+            total-in-level={cubeAddict.nextLevel.flatMap(x => cubeAddict.currentLevel.map(l => x - l)).map(_.toString).orNull}
+            progress-in-level={cubeAddict.currentLevel.map(n => cubeAddict.hours -n).map(_.toString).orNull}
+            remaining-in-level={cubeAddict.hoursRemainingToNext.map(_.toString).orNull}/>
+          }
+          }
+          <capture-master achieved={isCaptureMaster.isDefined.toString}
                       progress={captureMaster.progress.toString}
                       remaining={captureMaster.remaining.toString}
                       target={captureMaster.target.toString}
+          at-game={isCaptureMaster.orNull}
           >
             {
             for { (map, mapCompletion) <- captureMaster.maps.toList }
@@ -404,6 +424,7 @@ object Imperative {
         if ( newLevelO != initialLevelO ) {
           for { newLevel <- newLevelO } {
             events += userId -> AchievedNewFlagMasterLevel(newLevel)
+            user.hasFlagMasters += newLevel -> game.id
             if (!initiallyCompleted && flagMaster.isCompleted) {
               user.isFlagMaster = Option(game.id)
               events += userId -> BecameFlagMaster
@@ -426,6 +447,7 @@ object Imperative {
       if ( newLevelO != initialLevelO ) {
         for { newLevel <- newLevelO } {
           events += userId -> AchievedNewFragMasterLevel(newLevel)
+          user.hasFragMasters += newLevel -> game.id
           if (!initiallyCompleted && fragMaster.isCompleted) {
             user.isFragMaster = Option(game.id)
             events += userId -> BecameFragMaster
@@ -446,6 +468,7 @@ object Imperative {
       val newLevelO = cubeAddict.currentLevel
       if ( newLevelO != initialLevelO ) {
         for { newLevel <- newLevelO } {
+          user.hasCubeAddicts += newLevel -> game.id
           events += userId -> AchievedNewCubeAddictLevel(newLevel)
           if (!initiallyCompleted && cubeAddict.isCompleted) {
             user.isCubeAddict = Option(game.id)

@@ -1,0 +1,135 @@
+<user-record id="lucas">
+    <counts flags="209" frags="4075" games="89" time="PT1335M"/>
+    <played-in-game game-id="817854023"/>
+    <played-in-game game-id="238483887"/>
+    <played-in-game game-id="2028565501"/>
+    <played-in-game game-id="333143752"/>
+    <played-in-game game-id="1781060858"/>
+    <played-in-game game-id="603908871"/>
+    <played-in-game game-id="1174411574"/>
+    <played-in-game game-id="2005356128"/>
+    <played-in-game game-id="1835683901"/>
+    <played-in-game game-id="214028786"/>
+    <played-in-game game-id="584095546"/>
+    <played-in-game game-id="243881335"/>
+    <played-in-game game-id="126431470"/>
+    <played-in-game game-id="1098275759"/>
+    <played-in-game game-id="1887993524"/>
+    <played-in-game game-id="618203719"/>
+    <played-in-game game-id="1128911214"/>
+    <played-in-game game-id="1438241903"/>
+    <played-in-game game-id="445221507"/>
+    <played-in-game game-id="398162455"/>
+    <played-in-game game-id="286389373"/>
+    <played-in-game game-id="488243138"/>
+    <played-in-game game-id="960748608"/>
+    <played-in-game game-id="1205125608"/>
+    <played-in-game game-id="120750594"/>
+    <played-in-game game-id="924014312"/>
+    <played-in-game game-id="660183546"/>
+    <played-in-game game-id="1961018776"/>
+    <played-in-game game-id="1395102588"/>
+    <played-in-game game-id="1965856908"/>
+    <played-in-game game-id="833160717"/>
+    <played-in-game game-id="1989493153"/>
+    <played-in-game game-id="403715991"/>
+    <played-in-game game-id="825631470"/>
+    <played-in-game game-id="1929932033"/>
+    <played-in-game game-id="957820669"/>
+    <played-in-game game-id="201039237"/>
+    <played-in-game game-id="172343244"/>
+    <played-in-game game-id="1744169659"/>
+    <played-in-game game-id="720877657"/>
+    <played-in-game game-id="1546509020"/>
+    <played-in-game game-id="272514717"/>
+    <played-in-game game-id="895084529"/>
+    <played-in-game game-id="1798624341"/>
+    <played-in-game game-id="67126925"/>
+    <played-in-game game-id="593587410"/>
+    <played-in-game game-id="294918947"/>
+    <played-in-game game-id="533557547"/>
+    <played-in-game game-id="1332723034"/>
+    <played-in-game game-id="455749284"/>
+    <played-in-game game-id="1920564903"/>
+    <played-in-game game-id="1892040716"/>
+    <played-in-game game-id="1464228717"/>
+    <played-in-game game-id="353035403"/>
+    <played-in-game game-id="165314392"/>
+    <played-in-game game-id="1410656929"/>
+    <played-in-game game-id="1513408840"/>
+    <played-in-game game-id="2066960023"/>
+    <played-in-game game-id="744232950"/>
+    <played-in-game game-id="1723983681"/>
+    <played-in-game game-id="203942017"/>
+    <played-in-game game-id="302515871"/>
+    <played-in-game game-id="120606956"/>
+    <played-in-game game-id="919877629"/>
+    <played-in-game game-id="571902141"/>
+    <played-in-game game-id="244690415"/>
+    <played-in-game game-id="1660709802"/>
+    <played-in-game game-id="259749948"/>
+    <played-in-game game-id="1659386204"/>
+    <played-in-game game-id="672575197"/>
+    <played-in-game game-id="1786611093"/>
+    <played-in-game game-id="579397870"/>
+    <played-in-game game-id="1119322634"/>
+    <played-in-game game-id="648718991"/>
+    <played-in-game game-id="765909713"/>
+    <played-in-game game-id="981466943"/>
+    <played-in-game game-id="225248145"/>
+    <played-in-game game-id="331295414"/>
+    <played-in-game game-id="1049957219"/>
+    <played-in-game game-id="847556247"/>
+    <played-in-game game-id="1694283528"/>
+    <played-in-game game-id="1534393410"/>
+    <played-in-game game-id="1018930962"/>
+    <played-in-game game-id="462593884"/>
+    <played-in-game game-id="35953933"/>
+    <played-in-game game-id="1217281810"/>
+    <played-in-game game-id="1373459756"/>
+    <played-in-game game-id="123779620"/>
+    <played-in-game game-id="1194669317"/>
+    <achievements>
+        <solo-flagger achieved="false"/>
+        <slaughterer achieved="false"/>
+        <terrible-game achieved="true" at-game="398162455"/>
+        <dday achieved="false"/>
+        <tdm-lover achieved="false" progress="1" target="25" remain="24"/>
+        <tosok-lover achieved="false" progress="1" target="25" remain="24"/>
+        <flag-master achieved="true" at-game="720877657" level="50"/>
+        <flag-master achieved="true" at-game="1694283528" level="100"/>
+        <flag-master achieved="true" at-game="225248145" level="200"/>
+        <flag-master achieved="false" level="200" next-level="500" total-in-level="300" progress-in-level="-1"
+                     remaining-in-level="299"/>
+        <frag-master achieved="true" at-game="286389373" level="500"/>
+        <frag-master achieved="true" at-game="1373459756" level="1000"/>
+        <frag-master achieved="true" at-game="825631470" level="2000"/>
+        <frag-master achieved="false" level="2000" next-level="5000" total-in-level="3000" progress-in-level="-2075"
+                     remaining-in-level="925"/>
+        <cube-addict achieved="true" at-game="165314392" level="5"/>
+        <cube-addict achieved="true" at-game="660183546" level="10"/>
+        <cube-addict achieved="true" at-game="1464228717" level="20"/>
+        <cube-addict achieved="false" level="20" next-level="50" total-in-level="30" progress-in-level="-2"
+                     remaining-in-level="28"/>
+        <capture-master achieved="false" progress="5" remaining="4" target="9">
+            <map-completion mode="ctf" map="ac_elevation" is-completed="false" progress-cla="1" progress-rvsf="1"
+                            target-cla="2" target-rvsf="2" remaining-cla="1" remaining-rvsf="1"/>
+            <map-completion mode="ctf" map="ac_depot" is-completed="false" progress-cla="2" progress-rvsf="1"
+                            target-cla="2" target-rvsf="2" remaining-cla="0" remaining-rvsf="1"/>
+            <map-completion mode="ctf" map="ac_mines" is-completed="true" progress-cla="2" progress-rvsf="2"
+                            target-cla="2" target-rvsf="2" remaining-cla="0" remaining-rvsf="0"/>
+            <map-completion mode="ctf" map="ac_sunset" is-completed="false" progress-cla="0" progress-rvsf="2"
+                            target-cla="2" target-rvsf="2" remaining-cla="2" remaining-rvsf="0"/>
+            <map-completion mode="ctf" map="ac_ingress" is-completed="true" progress-cla="2" progress-rvsf="2"
+                            target-cla="2" target-rvsf="2" remaining-cla="0" remaining-rvsf="0"/>
+            <map-completion mode="ctf" map="ac_gothic" is-completed="true" progress-cla="2" progress-rvsf="2"
+                            target-cla="2" target-rvsf="2" remaining-cla="0" remaining-rvsf="0"/>
+            <map-completion mode="ctf" map="ac_power" is-completed="false" progress-cla="2" progress-rvsf="1"
+                            target-cla="2" target-rvsf="2" remaining-cla="0" remaining-rvsf="1"/>
+            <map-completion mode="ctf" map="ac_shine" is-completed="true" progress-cla="2" progress-rvsf="2"
+                            target-cla="2" target-rvsf="2" remaining-cla="0" remaining-rvsf="0"/>
+            <map-completion mode="ctf" map="ac_desert3" is-completed="true" progress-cla="2" progress-rvsf="2"
+                            target-cla="2" target-rvsf="2" remaining-cla="0" remaining-rvsf="0"/>
+        </capture-master>
+    </achievements>
+</user-record>

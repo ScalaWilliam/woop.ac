@@ -40,7 +40,6 @@ let $user-record := /user-record[@id= string($u/@id)]
 let $record := $user-record
 return <player>{$u}<profile><div class="profile">
 <h1>{data($u/@game-nickname)}</h1>
-
 {
 let $basics-table :=
   if ( empty($user-record) )
@@ -65,15 +64,129 @@ let $basics-table :=
           else ()
         )
       }</td>
+      <th>Flags</th><td>{data($record/counts/@flags)}</td>
     </tr>
-  <tr><th>Games played</th><td>{data($record/counts/@games)}</td></tr>
-  <tr><th>Flags</th><td>{data($record/counts/@flags)}</td></tr>
-  <tr><th>Frags</th><td>{data($record/counts/@frags)}</td></tr>
+  <tr><th>Games played</th><td>{data($record/counts/@games)}</td><th>Frags</th><td>{data($record/counts/@frags)}</td></tr>
   </table>
+
+let $capture-achievement-bar :=
+  let $achievement := $record/achievements/capture-master
+  return
+<achievement-card
+  achieved="{data($achievement/@achieved)}"
+  title="Capture Master"
+  type="capture-master"
+  >
+  {
+  if ( $achievement/@achieved = "true" ) then (
+  (
+  attribute atGame { data(/game[@id = data($achievement/@at-game)]/@date) }
+  )
+  ) else ((
+  attribute totalInLevel { data($achievement/@target) },
+  attribute progressInLevel { data($achievement/@progress) },
+  attribute remainingInLevel { data($achievement/@remaining) }
+  ))
+  }<!----></achievement-card>
+
+let $progress-achievements :=
+for $achievement in ($record/achievements/flag-master, $record/achievements/frag-master, $record/achievements/cube-addict)
+let $level := data($achievement/@level)
+return <achievement-card
+  achieved="{data($achievement/@achieved)}"
+  title="{
+      if ( $achievement/self::flag-master ) then ("Flag Master: "||$level)
+      else if ( $achievement/self::frag-master ) then ("Frag Master: "||$level)
+      else if ($achievement/self::cube-addict) then ("Cube Addict: "||$level||"h")
+      else (node-name($achievement))
+   }"
+  type="{node-name($achievement)}"
+  achievement-id="{node-name($achievement) ||"-"||data($achievement/@level)}"
+  >
+  {
+  if ( $achievement/@achieved = "true" ) then (attribute when { data(/game[@id = data($achievement/@at-game)]/@date) }) else ((
+  attribute totalInLevel { data($achievement/@total-in-level) },
+  attribute progressInLevel { data($achievement/@progress-in-level) },
+  attribute remainingInLevel { data($achievement/@remaining-in-level) },
+  attribute level { data($achievement/@level) }
+
+  ))
+  }<!----></achievement-card>
+
+  let $simple-achievements := (
+    let $solo-flagger := $record/achievements/solo-flagger
+    return <achievement-card
+      type="solo-flagger"
+      title="Solo Flagger"
+      description="Achieve all winning team's flags, 5 minimum"
+      achieved="{data($solo-flagger/@achieved)}">{
+      if ( $solo-flagger/@achieved = "true" ) then (attribute when { /game[@id = data($solo-flagger/@at-game)]/@date }) else (
+
+      )
+      }<!----></achievement-card>
+    ,
+    let $slaughterer := $record/achievements/slaughterer
+    return <achievement-card
+      type="slaughterer"
+      title="Slaughterer"
+      description="Make at least 80 frags in a game."
+      achieved="{data($slaughterer/@achieved)}">{
+      if ( $slaughterer/@achieved = "true" ) then (attribute when { /game[@id = data($slaughterer/@at-game)]/@date }) else (
+
+      )
+      }<!----></achievement-card>
+    ,
+    let $dday := $record/achievements/slaughterer
+    return <achievement-card
+      type="dday"
+      title="D-Day"
+      description="Play at least 12 games in one day."
+      achieved="{data($dday/@achieved)}">{
+      if ( $dday/@achieved = "true" ) then (attribute when { /game[@id = data($dday/@at-game)]/@date }) else (
+
+      )
+      }<!----></achievement-card>
+      ,
+    let $tdm-lover := $record/achievements/tdm-lover
+    return <achievement-card
+    type="tdm-lover"
+    achieved="{data($tdm-lover/@achieved)}"
+    title="TDM Lover"
+    description="{"Play at least " ||data($tdm-lover/@target)||" TDM games."}">{
+      if ( $tdm-lover/@achieved = "true" ) then (attribute when { /game[@id = data($tdm-lover/@at-game)]/@date }) else (
+
+      )
+      }<!----></achievement-card>
+      ,
+    let $tosok-lover := $record/achievements/tosok-lover
+    return <achievement-card
+    type="tosok-lover"
+    achieved="{data($tosok-lover/@achieved)}"
+    title="TOSOK Lover"
+    description="{"Play at least " ||data($tosok-lover/@target)||" TOSOK games."}">{
+      if ( $tosok-lover/@achieved = "true" ) then (attribute when { /game[@id = data($tosok-lover/@at-game)]/@date }) else (
+
+      )
+      }<!----></achievement-card>
+
+  )
+
+  let $achievements :=
+  <div class="achievements">
+  {$capture-achievement-bar}
+  {
+  for $a in ($simple-achievements, $progress-achievements)
+  order by not(empty($a/@progressInLevel)) descending, $a/@when descending
+  return $a
+
+  }
+
+   </div>
+
 let $master-table :=
   <table class="map-master"><thead><tr><th>Map</th><th>RVSF</th><th>CLA</th></tr></thead>
   <tbody>{
-    let $map-master := $user-record/achievements/map-master
+    let $map-master := $user-record/achievements/capture-master
     for $completion in $map-master/map-completion
     let $is-completed := $completion/@is-completed = "true"
     return
@@ -99,8 +212,11 @@ return
     <div class="basics">
       {$basics-table}
     </div>
+    <div class="achievements">
+    {$achievements}
+    </div>
     <div class="master">
-      <p>Become the <strong>Map Master</strong> by playing these maps. More rewards coming.</p>
+      <p>Become the <strong>Capture Master</strong> by playing these maps.</p>
       {$master-table}
     </div>
   </div>
