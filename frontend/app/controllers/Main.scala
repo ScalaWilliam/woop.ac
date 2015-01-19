@@ -117,8 +117,8 @@ return <achievement-card
   let $simple-achievements := (
     let $solo-flagger := $record/achievements/solo-flagger
     return <achievement-card
-      type="solo-flagger"
-      achievementTitle="Solo Flagger"
+      type="maverick"
+      achievementTitle="Maverick"
       description="Achieve all winning team's flags, 5 minimum"
       achieved="{data($solo-flagger/@achieved)}">{
       if ( $solo-flagger/@achieved = "true" ) then (attribute when { /game[@id = data($solo-flagger/@at-game)]/@date }) else (
@@ -128,9 +128,9 @@ return <achievement-card
     ,
     let $slaughterer := $record/achievements/slaughterer
     return <achievement-card
-      type="slaughterer"
-      achievementTitle="Slaughterer"
-      description="Make at least 80 frags in a game."
+      type="butcher"
+      achievementTitle="Butcher"
+      description="Make over 80 kills in a game."
       achieved="{data($slaughterer/@achieved)}">{
       if ( $slaughterer/@achieved = "true" ) then (attribute when { /game[@id = data($slaughterer/@at-game)]/@date }) else (
 
@@ -165,9 +165,9 @@ return <achievement-card
       ,
     let $tosok-lover := $record/achievements/tosok-lover
     return <achievement-card
-    type="tosok-lover"
+    type="lucky-luke"
     achieved="{data($tosok-lover/@achieved)}"
-    achievementTitle="TOSOK Lover"
+    achievementTitle="Lucky Luke"
     description="{"Play at least " ||data($tosok-lover/@target)||" TOSOK games."}">{
       if ( $tosok-lover/@achieved = "true" ) then (attribute when { /game[@id = data($tosok-lover/@at-game)]/@date }) else (
 (
@@ -222,6 +222,7 @@ return
       {$basics-table}
     </div>
     <div class="achievements">
+    <h3>Achievements</h3>
     {$achievements}
     </div>
     <div class="master">
