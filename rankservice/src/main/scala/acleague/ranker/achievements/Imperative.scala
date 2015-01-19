@@ -267,7 +267,7 @@ object Imperative {
 
   }
   case class Player(name: String, host: String, flags: Option[Int], frags: Int)
-  case class Team(name: String, players: Set[Player])
+  case class Team(name: String, players: Set[Player], flags: Option[Int])
   case class Game(id: String, date: String, duration: Int, acMap: AcMap, teams: Set[Team]) {
     private def game = this
     def playersAsUsers[UserId](userRepository: UserRepository[UserId]) = for {
@@ -286,7 +286,9 @@ object Imperative {
       teams = (for {
         team <- gameXml \ "team"
         teamName = team attText "name"
+        teamFlags = team.attribute("flags").toSeq.flatMap(x=>x).map(_.text.toInt).headOption
       } yield Team(name = teamName,
+        flags = teamFlags,
         players = (
           for {
             p <- team \ "player"
@@ -376,16 +378,18 @@ object Imperative {
       events += userId -> Slaughter
     }
 
+    // Maverick
     if ( game.acMap.mode == "ctf" ) {
       for {
-        team <- game.teams
-        teamFlags = team.players.flatMap(_.flags).sum
-        if teamFlags >= 5
-        enemyFlags = (game.teams - team).flatMap(_.players).flatMap(_.flags).sum
-        if teamFlags > enemyFlags
-        player <- team.players
+        winningTeam <- game.teams
+        winningTeamFlags <- winningTeam.flags
+        losingTeam <- game.teams
+        losingTeamFlags <- losingTeam.flags
+        if winningTeamFlags > losingTeamFlags
+        player <- winningTeam.players
         playerFlags <- player.flags
-        if teamFlags == playerFlags
+        if winningTeamFlags == playerFlags
+        if winningTeamFlags >= 5
         user <- userRepository(player)
         if !user.soloFlagger.isDefined
       } {

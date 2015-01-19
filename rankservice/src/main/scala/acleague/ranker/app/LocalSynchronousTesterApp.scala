@@ -53,8 +53,8 @@ object LocalSynchronousTesterApp extends App {
     }
   }
 
-  println(users("lucas").toXml)
-  println(users("s4m").toXml)
-//  events.filter(_.userId == "lucas").map(_.toXml).foreach(println)
+//  println(users("lucas").toXml)
+//  println(users("s4m").toXml)
+  events.filter(_.toXml.toString contains "solo-flag").map(_.toXml).foreach(println)
 
 }
