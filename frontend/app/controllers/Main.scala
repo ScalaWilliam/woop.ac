@@ -77,6 +77,7 @@ let $capture-achievement-bar :=
   achieved="{data($achievement/@achieved)}"
   achievementTitle="Capture Master"
   type="capture-master"
+  description="Complete the selected CTF maps, both sides 3 times"
   >
   {
   if ( $achievement/@achieved = "true" ) then (
@@ -101,6 +102,25 @@ return <achievement-card
       else if ($achievement/self::cube-addict) then ("Cube Addict: "||$level||"h")
       else (node-name($achievement))
    }"
+   description="{
+   if ($achievement/self::frag-master[@level='500']) then ("Well, that's a start.")
+   else if ($achievement/self::frag-master[@level='1000']) then ("Already lost count.")
+   else if ($achievement/self::frag-master[@level='2000']) then ("I'm quite good at this!")
+   else if ($achievement/self::frag-master[@level='5000']) then ("I've seen blood.")
+   else if ($achievement/self::frag-master[@level='10000']) then ("That Rambo guy got nothin' on me.")
+   else if ($achievement/self::flag-master[@level='50']) then ("What's that blue thing?")
+   else if ($achievement/self::flag-master[@level='100']) then ("I'm supposed to bring this back?")
+   else if ($achievement/self::flag-master[@level='200']) then ("What do you mean it's TDM?")
+   else if ($achievement/self::flag-master[@level='500']) then ("Yeah, I know where it goes.")
+   else if ($achievement/self::flag-master[@level='1000']) then ("Can I keep one at least?")
+   else if ($achievement/self::cube-addict[@level='5']) then ("Hey, this game looks fun.")
+   else if ($achievement/self::cube-addict[@level='10']) then ("I kinda like this game.")
+   else if ($achievement/self::cube-addict[@level='20']) then ("Not stopping now!")
+   else if ($achievement/self::cube-addict[@level='50']) then ("I love this game!")
+   else if ($achievement/self::cube-addict[@level='100']) then ("Just how many hours??")
+   else if ($achievement/self::cube-addict[@level='200']) then ("Wait, when did I start?")
+   else ()
+   }"
   type="{node-name($achievement)}"
   achievement-id="{node-name($achievement) ||"-"||data($achievement/@level)}"
   >
@@ -123,6 +143,16 @@ return <achievement-card
       achieved="{data($solo-flagger/@achieved)}">{
       if ( $solo-flagger/@achieved = "true" ) then (attribute when { /game[@id = data($solo-flagger/@at-game)]/@date }) else (
 
+      )
+      }<!----></achievement-card>
+    ,
+    let $terrible-game := $record/achievements/terrible-game
+    return <achievement-card
+      type="terrible-game"
+      achievementTitle="Terrible Game"
+      description="Score less than 15 frags."
+      achieved="{data($terrible-game/@achieved)}">{
+      if ( $terrible-game/@achieved = "true" ) then (attribute when { /game[@id = data($terrible-game/@at-game)]/@date }) else (
       )
       }<!----></achievement-card>
     ,
@@ -182,13 +212,29 @@ return <achievement-card
 
   let $achievements :=
   <div class="achievements">
-  {$capture-achievement-bar}
   {
-  for $a in ($simple-achievements, $progress-achievements)
-  order by not(empty($a/@progressInLevel)) descending, $a/@when descending
-  return $a
+  for $a in ($capture-achievement-bar, $simple-achievements, $progress-achievements)
 
+  let $b :=
+    if ( $a/@when )
+    then (
+      copy $b := $a
+      modify replace value of node $b/@when with substring($a/@when, 1, 10)
+      return $b
+    ) else ($a)
+  let $c :=
+    if ( $b/@totalInLevel )
+    then (
+      let $percentage := xs:int(100 * data($b/@progressInLevel) div data($b/@totalInLevel))
+      return
+        copy $c := $b
+        modify insert node (attribute progressPercent { $percentage }) into $c
+        return $c
+    ) else ($b)
+    order by $c/@achieved = "true" descending, $c/@when descending, xs:int($c/@progressPercent) descending, not(empty($c/@progressInLevel)) descending
+  return $c
   }
+
 
    </div>
 

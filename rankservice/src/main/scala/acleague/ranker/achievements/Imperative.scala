@@ -70,7 +70,7 @@ object Imperative {
   }
   class CubeAddict(var minutes: Int = 0) extends Achievement {
     def hours = minutes / 60
-    val levels: Set[Int] = Set(5, 10, 20, 50, 100)
+    val levels: Set[Int] = Set(5, 10, 20, 50, 100, 200)
     val starter = levels.min
     val cubeAddict = levels.max
     def currentLevel: Option[Int] = {
