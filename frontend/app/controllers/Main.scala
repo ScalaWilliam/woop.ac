@@ -10,6 +10,7 @@ import com.maxmind.geoip2.DatabaseReader
 import play.api.{Logger, Play}
 import play.api.mvc._
 import play.twirl.api.Html
+import plugins.NewUserEventsPlugin.UpdatedUserEvents
 import plugins.ServerUpdatesPlugin.{GiveStates, CurrentStates, ServerState}
 import plugins._
 import plugins.RegisteredUserManager.{RegisteredSession, GoogleEmailAddress, RegistrationDetail, SessionState}
@@ -74,7 +75,7 @@ let $capture-achievement-bar :=
   return
 <achievement-card
   achieved="{data($achievement/@achieved)}"
-  title="Capture Master"
+  achievementTitle="Capture Master"
   type="capture-master"
   >
   {
@@ -91,10 +92,10 @@ let $capture-achievement-bar :=
 
 let $progress-achievements :=
 for $achievement in ($record/achievements/flag-master, $record/achievements/frag-master, $record/achievements/cube-addict)
-let $level := (data($achievement/@next-level), data($achievement/@level))[1]
+let $level := data($achievement/@level)
 return <achievement-card
   achieved="{data($achievement/@achieved)}"
-  title="{
+  achievementTitle="{
       if ( $achievement/self::flag-master ) then ("Flag Master: "||$level)
       else if ( $achievement/self::frag-master ) then ("Frag Master: "||$level)
       else if ($achievement/self::cube-addict) then ("Cube Addict: "||$level||"h")
@@ -117,7 +118,7 @@ return <achievement-card
     let $solo-flagger := $record/achievements/solo-flagger
     return <achievement-card
       type="solo-flagger"
-      title="Solo Flagger"
+      achievementTitle="Solo Flagger"
       description="Achieve all winning team's flags, 5 minimum"
       achieved="{data($solo-flagger/@achieved)}">{
       if ( $solo-flagger/@achieved = "true" ) then (attribute when { /game[@id = data($solo-flagger/@at-game)]/@date }) else (
@@ -128,7 +129,7 @@ return <achievement-card
     let $slaughterer := $record/achievements/slaughterer
     return <achievement-card
       type="slaughterer"
-      title="Slaughterer"
+      achievementTitle="Slaughterer"
       description="Make at least 80 frags in a game."
       achieved="{data($slaughterer/@achieved)}">{
       if ( $slaughterer/@achieved = "true" ) then (attribute when { /game[@id = data($slaughterer/@at-game)]/@date }) else (
@@ -139,7 +140,7 @@ return <achievement-card
     let $dday := $record/achievements/slaughterer
     return <achievement-card
       type="dday"
-      title="D-Day"
+      achievementTitle="D-Day"
       description="Play at least 12 games in one day."
       achieved="{data($dday/@achieved)}">{
       if ( $dday/@achieved = "true" ) then (attribute when { /game[@id = data($dday/@at-game)]/@date }) else (
@@ -151,10 +152,14 @@ return <achievement-card
     return <achievement-card
     type="tdm-lover"
     achieved="{data($tdm-lover/@achieved)}"
-    title="TDM Lover"
+    achievementTitle="TDM Lover"
     description="{"Play at least " ||data($tdm-lover/@target)||" TDM games."}">{
       if ( $tdm-lover/@achieved = "true" ) then (attribute when { /game[@id = data($tdm-lover/@at-game)]/@date }) else (
-
+      (
+        attribute totalInLevel { data($tdm-lover/@target) },
+        attribute progressInLevel { data($tdm-lover/@progress) },
+        attribute remainingInLevel { data($tdm-lover/@remain) }
+        )
       )
       }<!----></achievement-card>
       ,
@@ -162,10 +167,14 @@ return <achievement-card
     return <achievement-card
     type="tosok-lover"
     achieved="{data($tosok-lover/@achieved)}"
-    title="TOSOK Lover"
+    achievementTitle="TOSOK Lover"
     description="{"Play at least " ||data($tosok-lover/@target)||" TOSOK games."}">{
       if ( $tosok-lover/@achieved = "true" ) then (attribute when { /game[@id = data($tosok-lover/@at-game)]/@date }) else (
-
+(
+        attribute totalInLevel { data($tosok-lover/@target) },
+        attribute progressInLevel { data($tosok-lover/@progress) },
+        attribute remainingInLevel { data($tosok-lover/@remain) }
+        )
       )
       }<!----></achievement-card>
 
@@ -194,13 +203,13 @@ let $master-table :=
         <th>{data($completion/@mode)} @ {data($completion/@map)}</th>
         {
           if ( $completion/@progress-rvsf = 0 ) then (<td class="rvsf incomplete">0/{data($completion/@target-rvsf)}</td>)
-          else if ( $is-completed ) then (<td class="rvsf complete">2/2</td>)
-          else if ( $completion/@progress-rvsf = $completion/@target-rvsf ) then (<td class="rvsf complete">2/2</td>)
+          else if ( $is-completed ) then (<td class="rvsf complete">{data($completion/@target-rvsf)}/{data($completion/@target-rvsf)}</td>)
+          else if ( $completion/@progress-rvsf = $completion/@target-rvsf ) then (<td class="rvsf complete">{data($completion/@target-rvsf)}/{data($completion/@target-rvsf)}</td>)
           else (<td class="rvsf partial">{data($completion/@progress-rvsf)}/{data($completion/@target-rvsf)}</td>)
         }
         {if ( $completion/@progress-cla = 0 ) then (<td class="cla incomplete">0/{data($completion/@target-cla)}</td>)
-          else if ( $is-completed ) then (<td class="cla complete">2/2</td>)
-          else if ( $completion/@progress-cla = $completion/@target-cla ) then (<td class="cla complete">2/2</td>)
+          else if ( $is-completed ) then (<td class="cla complete">{data($completion/@target-cla)}/{data($completion/@target-cla)}</td>)
+          else if ( $completion/@progress-cla = $completion/@target-cla ) then (<td class="cla complete">{data($completion/@target-cla)}/{data($completion/@target-cla)}</td>)
           else (<td class="cla partial">{data($completion/@progress-cla)}/{data($completion/@target-cla)}</td>)
         }
       </tr>
@@ -255,11 +264,10 @@ return <ol class="recent-games">{$subs}</ol>
         |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P2D"), ())) cast as xs:date
         |let $rus := /registered-user
         |for $game in $games
+        |order by $game/@date descending
         |let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
         |let $date := xs:date($dateTime cast as xs:date)
         |where ($game-id != 0) or ($date ge $earliest)
-        |where count($game//player) ge 4
-        |order by data($game/@date) descending
         |let $has-demo := exists(/local-demo[@game-id = data($game/@id)])
         |let $game-item := local:display-game($rus, $game, $has-demo)
         |return <game-card gameJson="{json:serialize($game-item)}">{comment { "loading..." }}</game-card>
@@ -271,20 +279,21 @@ return <ol class="recent-games">{$subs}</ol>
 //    |map { "ok": 1 }
 //  """.stripMargin
 
-  def read = stated { _ => implicit s =>
+  def homepage = stated { _ => implicit s =>
     import Play.current
-//        val header = using(conn.query("/article[@id='top']"))(_.execute())
+    val eventsF = NewUserEventsPlugin.newUserEventsPlugin.getEvents
+    val gamesF = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+      <rest:text>{PCData(getGameQueryText)}</rest:text>
+      <rest:variable name="game-id" value="0"/>
+    </rest:query>)
+    val currentStatesF = getCurrentStates
         for {
-          xmlContent <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
-            <rest:text>{PCData(getGameQueryText)}</rest:text>
-            <rest:variable name="game-id" value="0"/>
-          </rest:query>)
- st <-
-        getCurrentStates
+          xmlContent <- gamesF
+          events <- eventsF
+          st <- currentStatesF
         }
           yield
-
-      Ok(views.html.homepage(st, Html(xmlContent.body)))
+      Ok(views.html.homepage(st, events, Html(xmlContent.body)))
   }
   lazy val directory = {
     val f= new File(Play.current.configuration.getString("demos.directory").getOrElse(s"${scala.util.Properties.userHome}/demos")).getCanonicalFile
@@ -387,7 +396,7 @@ return <ol class="recent-games">{$subs}</ol>
       <rest:text><![CDATA[<ol>{
         for $ru in /registered-user
         order by $ru/@id ascending
-        return <li><a href="{"/player/"||data($ru/@id)}">{data($ru/@game-nickname)}</a></li>
+        return <li><a href="{"/player/"||data($ru/@id)||"/"}">{data($ru/@game-nickname)}</a></li>
         }</ol>
         ]]></rest:text></rest:query>)
     } yield Ok(views.html.viewPlayers(Html(r.body)))
@@ -497,6 +506,9 @@ return <ol class="recent-games">{$subs}</ol>
   def newGames = WebSocket.acceptWithActor[String, String] { request => out =>
     NewGamesActor.props(out)
   }
+  def newUserEvents = WebSocket.acceptWithActor[String, String] { request => out =>
+    NewUserEventsActor.props(out)
+  }
   import akka.actor._
 
   object ServerUpdatesActor {
@@ -514,19 +526,15 @@ return <ol class="recent-games">{$subs}</ol>
         map.valuesIterator.foreach(str => out ! str)
     }
   }
+
   object NewGamesActor {
     def props(out: ActorRef) = Props(new NewGamesActor(out))
   }
-  import akka.actor.ActorDSL._
   class NewGamesActor(out: ActorRef) extends Act {
     whenStarting {
       context.system.eventStream.subscribe(self, classOf[GotNewGame])
       import scala.concurrent.duration._
-//      context.system.scheduler.scheduleOnce(2.seconds, self, GotNewGame("1773084399"))
-//      context.system.scheduler.scheduleOnce(5.seconds, self, GotNewGame("1017769444"))
-//      context.system.scheduler.scheduleOnce(10.seconds, self, GotNewGame("1976486539"))
     }
-
     become {
       case GotNewGame(gameId) =>
         val gameDataF = for {r <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
@@ -535,12 +543,24 @@ return <ol class="recent-games">{$subs}</ol>
           </rest:text>
           <rest:variable name="game-id" value={gameId}/>
         </rest:query>)
-        } yield (r.xml \@ "gameJson")
+        } yield {r.xml \@ "gameJson"}
         import akka.pattern.pipe
         gameDataF pipeTo out
     }
   }
 
+  object NewUserEventsActor {
+    def props(out: ActorRef) = Props(new NewUserEventsActor(out))
+  }
+  class NewUserEventsActor(out: ActorRef) extends Act {
+    whenStarting {
+      context.system.eventStream.subscribe(self, classOf[UpdatedUserEvents])
+    }
+    become {
+      case UpdatedUserEvents(updatedJson) =>
+        out ! updatedJson
+    }
+  }
   def getCurrentStates: Future[CurrentStates] = {
     import akka.pattern.ask
     implicit val sys = play.api.libs.concurrent.Akka.system

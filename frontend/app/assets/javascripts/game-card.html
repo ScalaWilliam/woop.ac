@@ -125,7 +125,7 @@
                 <header>
                     <h2>
                         <template if="{{game.id}}">
-                            <a href="/game/{{game.id}}">{{game.mode}} @ {{game.map}} {{game.when}}</a>
+                            <a href="/game/{{game.id}}/">{{game.mode}} @ {{game.map}} {{game.when}}</a>
                         </template>
                         <template if="{{!game.id}}">
                             <a>{{game.mode}} @ {{game.map}} {{game.when}}</a>
@@ -168,7 +168,7 @@
                                 </template>
                                 <span class="name">
                                     <template if="{{player.user}}">
-                                        <a href="/player/{{player.user}}">{{player.name}}</a>
+                                        <a href="/player/{{player.user}}/">{{player.name}}</a>
                                     </template>
                                     <template if="{{!player.user}}">
                                         <span>{{player.name}}</span>

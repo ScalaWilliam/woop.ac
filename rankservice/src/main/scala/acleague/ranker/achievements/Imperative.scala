@@ -15,7 +15,7 @@ object Imperative {
     def isCompleted: Boolean
   }
   class DDayAchievement(var today: String = "", var counter: Int = 0) extends Achievement {
-    val target = 80
+    val target = 12
     def isCompleted: Boolean = counter == target
     def include(day: String): Unit = {
       if ( !isCompleted ) {
@@ -190,14 +190,14 @@ object Imperative {
           <tosok-lover achieved={isTosokLover.isDefined.toString} achieved-at-game={isTosokLover.orNull} progress={tosokLover.progress.toString} target={tosokLover.target.toString} remain={tosokLover.remaining.toString}/>
           {for { (level, atGame) <- hasFlagMasters } yield <flag-master achieved="true" at-game={atGame} level={level.toString}/>}
           { if ( !flagMaster.isCompleted ) {
-            <flag-master achieved="false" level={flagMaster.currentLevel.map(_.toString).orNull} next-level={flagMaster.nextLevel.map(_.toString).orNull}
+            <flag-master achieved="false" level={flagMaster.nextLevel.map(_.toString).orNull}
             total-in-level={flagMaster.nextLevel.flatMap(x => flagMaster.currentLevel.map(l => x - l)).map(_.toString).orNull}
             progress-in-level={flagMaster.currentLevel.map(n => flagMaster.flags -n).map(_.toString).orNull}
             remaining-in-level={flagMaster.remainingToNext.map(_.toString).orNull}/>
           }}
           { for { (level, atGame) <- hasFragMasters } yield <frag-master achieved="true" at-game={atGame} level={level.toString}/> }
           { if ( !fragMaster.isCompleted ) {
-            <frag-master achieved="false" level={fragMaster.currentLevel.map(_.toString).orNull} next-level={fragMaster.nextLevel.map(_.toString).orNull}
+            <frag-master achieved="false" level={fragMaster.nextLevel.map(_.toString).orNull}
             total-in-level={fragMaster.nextLevel.flatMap(x => fragMaster.currentLevel.map(l => x - l)).map(_.toString).orNull}
             progress-in-level={fragMaster.currentLevel.map(n => fragMaster.frags -n).map(_.toString).orNull}
             remaining-in-level={fragMaster.remainingToNext.map(_.toString).orNull}/>
@@ -205,7 +205,7 @@ object Imperative {
           }
           { for { (level, atGame) <- hasCubeAddicts } yield <cube-addict achieved="true" at-game={atGame} level={level.toString}/> }
           { if ( !cubeAddict.isCompleted ) {
-            <cube-addict achieved="false" level={cubeAddict.currentLevel.map(_.toString).orNull} next-level={cubeAddict.nextLevel.map(_.toString).orNull}
+            <cube-addict achieved="false" level={cubeAddict.nextLevel.map(_.toString).orNull}
             total-in-level={cubeAddict.nextLevel.flatMap(x => cubeAddict.currentLevel.map(l => x - l)).map(_.toString).orNull}
             progress-in-level={cubeAddict.currentLevel.map(n => cubeAddict.hours -n).map(_.toString).orNull}
             remaining-in-level={cubeAddict.hoursRemainingToNext.map(_.toString).orNull}/>

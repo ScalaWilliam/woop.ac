@@ -1,5 +1,9 @@
-@(states: plugins.ServerUpdatesPlugin.CurrentStates, result: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
+@(states: plugins.ServerUpdatesPlugin.CurrentStates, events: String, result: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
 @main("Woop AssaultCube Match league")(Html("")) {
+
+    <div id="live-events">
+        <live-events liveUrl="ws://127.0.0.1:9000/new-user-events" initialJson="@events"></live-events>
+    </div>
 
     @defining({
         import play.api.libs.json.{JsNull,Json,JsString,JsValue}

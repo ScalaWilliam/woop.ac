@@ -124,11 +124,11 @@ return <games first-game="{$first-game}" last-game="{$last-game}">{$context-game
       <rest:text>{PCData(s"""
       let $$fex := $foundEventXml
       for $$new-event in $$fex//user-event
-      let $$game-id := data($$new-event/@game-id)
+      let $$at-game := data($$new-event/@at-game)
       let $$user-id := data($$new-event/@user-id)
       let $$existing-event :=
         for $$event in db:open("$dbName")/user-event
-        where $$event/@game-id = $$game-id and $$event/@user-id = $$user-id
+        where $$event/@at-game = $$at-game and $$event/@user-id = $$user-id
         for $$item in $$event/*
         for $$new-item in $$new-event/*
         where deep-equal($$item, $$new-item)

@@ -5,3 +5,4 @@
 1705:plugins.RangerPlugin
 1707:plugins.ServerUpdatesPlugin
 1708:plugins.NewGamesPlugin
+1709:plugins.NewUserEventsPlugin

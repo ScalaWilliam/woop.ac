@@ -1,5 +1,6 @@
 @(title: String)(top:Html)(data: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
-<!doctype html><html>
+<!doctype html><!--suppress ALL -->
+<html>
 <head>
     <meta charset="utf-8"/>
     <title>@title</title>
@@ -11,6 +12,7 @@
     <link rel="import" href="/assets/javascripts/game-card.html">
     <link rel="import" href="/assets/javascripts/new-games.html">
     <link rel="import" href="/assets/javascripts/live-games.html">
+    <link rel="import" href="/assets/javascripts/live-events.html">
     <link rel="import" href="/assets/javascripts/achievement-card.html">
 </head>
 <body>
@@ -20,11 +22,11 @@
         <h2>by <a href="http://woop.us/" target="_blank">Woop clan</a></h2>
     </header>
     <div id="top">
-    <article><a href="/questions">Questions</a> &bull; <a href="/players/">Players</a> &bull; <a href="/servers">Servers</a>
+    <article><a href="/">Home</a> &bull; <a href="/questions/">Questions</a> &bull; <a href="/players/">Players</a> &bull; <a href="/servers/">Servers</a>
     @if(sessionState.profile.nonEmpty) {
-        &bull; <a href="/profile">View my profile</a>
+        &bull; <a href="/profile/">View my profile</a>
         } else {
-            &bull; <a href="/login">Log in with Google</a>
+            &bull; <a href="/login/">Log in with Google</a>
         }
     </article>
     </div>

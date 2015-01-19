@@ -1,11 +1,13 @@
-GET        /                     controllers.Main.read
+GET        /                     controllers.Main.homepage
 GET        /questions/           controllers.Main.questions
 GET        /questions            controllers.Main.questions
 GET        /servers/             controllers.Main.servers
 GET        /servers              controllers.Main.servers
+GET        /login/               controllers.Main.login
 GET        /login                controllers.Main.login
 GET        /server-updates       controllers.Main.serversUpdates
 GET        /new-games            controllers.Main.newGames
+GET        /new-user-events      controllers.Main.newUserEvents
 GET        /profile/             controllers.Main.viewMe
 GET        /profile              controllers.Main.viewMe
 GET        /players/              controllers.Main.viewPlayers
