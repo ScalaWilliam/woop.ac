@@ -194,7 +194,7 @@ return <achievement-card
       )
       }<!----></achievement-card>
     ,
-    let $dday := $record/achievements/slaughterer
+    let $dday := $record/achievements/dday
     return <achievement-card
       type="dday"
       achievementTitle="D-Day"
