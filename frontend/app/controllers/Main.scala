@@ -308,7 +308,7 @@ return <ol class="recent-games">{$subs}</ol>
       """
         |declare variable $game-id as xs:integer external;
         |let $games := if ( $game-id = 0 ) then (/game) else (/game[@id=$game-id])
-        |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P2D"), ())) cast as xs:date
+        |let $earliest := (adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P1D"), ())) cast as xs:date
         |let $rus := /registered-user
         |for $game in $games
         |order by $game/@date descending
