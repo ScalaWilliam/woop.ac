@@ -3,9 +3,12 @@ declare function local:game-header($game as node(), $has-demo as xs:boolean) as 
     let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
     let $date := xs:date($dateTime cast as xs:date)
     let $day-ago := adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P1D"), ()) cast as xs:date
+    let $ago := xs:dayTimeDuration(current-dateTime() - $dateTime)
     let $date-text :=
-        if ( $date = xs:date(current-date()) ) then (" today")
-        else if ( $date = $day-ago ) then (" yesterday")
+        if ( (current-dateTime() - $dateTime) le xs:dayTimeDuration("PT2H") ) then (" just now")
+        else if ( $ago le xs:dayTimeDuration("PT12H"))  then (" today")
+        else if ( $date = xs:date(current-date()) ) then (" today")
+        else if ( $ago le xs:dayTimeDuration("P2D")) then (" yesterday")
         else (" on "|| $date)
 
     return
@@ -19,10 +22,14 @@ declare function local:display-game($regs as node()*, $game as node(), $has-demo
 let $dateTime := adjust-dateTime-to-timezone(xs:dateTime(data($game/@date)), ())
 let $date := xs:date($dateTime cast as xs:date)
 let $day-ago := adjust-dateTime-to-timezone(current-dateTime() - xs:dayTimeDuration("P1D"), ()) cast as xs:date
+let $ago := xs:dayTimeDuration(current-dateTime() - $dateTime)
 let $date-text :=
-if ( $date = xs:date(current-date()) ) then (" today")
-else if ( $date = $day-ago ) then (" yesterday")
-else (" on "|| $date)
+    if ( (current-dateTime() - $dateTime) le xs:dayTimeDuration("PT2H") ) then (" just now")
+    else if ( $ago le xs:dayTimeDuration("PT12H"))  then (" today")
+    else if ( $date = xs:date(current-date()) ) then (" today")
+    else if ( $ago le xs:dayTimeDuration("P2D")) then (" yesterday")
+    else if ( $date = $day-ago ) then (" yesterday")
+    else (" on "|| $date)
 let $has-flags := not(empty($game//@flags))
 
 return

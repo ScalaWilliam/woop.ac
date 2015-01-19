@@ -34,10 +34,10 @@
     <script>
         Polymer("live-events", {
             initialJsonChanged: function(_, newValue) {
-                this.events = JSON.parse(newValue).slice(0,5);
+                this.events = JSON.parse(newValue).slice(0,7);
             },
             onMessage: function(msg) {
-                this.events = JSON.parse(msg.data).slice(0,5);
+                this.events = JSON.parse(msg.data).slice(0,7);
             },
             onClose: function() {
                 this.websocket = new WebSocket(this.liveUrl);
