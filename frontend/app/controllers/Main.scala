@@ -70,6 +70,30 @@ let $basics-table :=
   <tr><th>Games played</th><td>{data($record/counts/@games)}</td><th>Frags</th><td>{data($record/counts/@frags)}</td></tr>
   </table>
 
+let $master-table :=
+  <table class="map-master"><thead><tr><th>Map</th><th>RVSF</th><th>CLA</th></tr></thead>
+  <tbody>{
+    let $map-master := $user-record/achievements/capture-master
+    for $completion in $map-master/map-completion
+    let $is-completed := $completion/@is-completed = "true"
+    return
+      <tr class="{if ( $is-completed ) then ("complete") else ("incomplete")}">
+        <th>{data($completion/@mode)} @ {data($completion/@map)}</th>
+        {
+          if ( $completion/@progress-rvsf = 0 ) then (<td class="rvsf incomplete">0/{data($completion/@target-rvsf)}</td>)
+          else if ( $is-completed ) then (<td class="rvsf complete">{data($completion/@target-rvsf)}/{data($completion/@target-rvsf)}</td>)
+          else if ( $completion/@progress-rvsf = $completion/@target-rvsf ) then (<td class="rvsf complete">{data($completion/@target-rvsf)}/{data($completion/@target-rvsf)}</td>)
+          else (<td class="rvsf partial">{data($completion/@progress-rvsf)}/{data($completion/@target-rvsf)}</td>)
+        }
+        {if ( $completion/@progress-cla = 0 ) then (<td class="cla incomplete">0/{data($completion/@target-cla)}</td>)
+          else if ( $is-completed ) then (<td class="cla complete">{data($completion/@target-cla)}/{data($completion/@target-cla)}</td>)
+          else if ( $completion/@progress-cla = $completion/@target-cla ) then (<td class="cla complete">{data($completion/@target-cla)}/{data($completion/@target-cla)}</td>)
+          else (<td class="cla partial">{data($completion/@progress-cla)}/{data($completion/@target-cla)}</td>)
+        }
+      </tr>
+  }
+  </tbody></table>
+
 let $capture-achievement-bar :=
   let $achievement := $record/achievements/capture-master
   return
@@ -89,7 +113,10 @@ let $capture-achievement-bar :=
   attribute progressInLevel { data($achievement/@progress) },
   attribute remainingInLevel { data($achievement/@remaining) }
   ))
-  }<!----></achievement-card>
+  }  <div class="master">
+      {$master-table}
+    </div>
+    </achievement-card>
 
 let $progress-achievements :=
 for $achievement in ($record/achievements/flag-master, $record/achievements/frag-master, $record/achievements/cube-addict)
@@ -223,7 +250,7 @@ return <achievement-card
       return $b
     ) else ($a)
   let $c :=
-    if ( $b/@totalInLevel )
+    if ( $b/@totalInLevel and $b/@progressInLevel )
     then (
       let $percentage := xs:int(100 * data($b/@progressInLevel) div data($b/@totalInLevel))
       return
@@ -231,36 +258,12 @@ return <achievement-card
         modify insert node (attribute progressPercent { $percentage }) into $c
         return $c
     ) else ($b)
-    order by $c/@achieved = "true" descending, $c/@when descending, xs:int($c/@progressPercent) descending, not(empty($c/@progressInLevel)) descending
+    order by $c/@achieved = "true" descending, $c/@when descending, if ( $c/@progressPercent ) then (xs:int($c/@progressPercent)) else (0) descending, not(empty($c/@progressInLevel)) descending
   return $c
   }
 
 
    </div>
-
-let $master-table :=
-  <table class="map-master"><thead><tr><th>Map</th><th>RVSF</th><th>CLA</th></tr></thead>
-  <tbody>{
-    let $map-master := $user-record/achievements/capture-master
-    for $completion in $map-master/map-completion
-    let $is-completed := $completion/@is-completed = "true"
-    return
-      <tr class="{if ( $is-completed ) then ("complete") else ("incomplete")}">
-        <th>{data($completion/@mode)} @ {data($completion/@map)}</th>
-        {
-          if ( $completion/@progress-rvsf = 0 ) then (<td class="rvsf incomplete">0/{data($completion/@target-rvsf)}</td>)
-          else if ( $is-completed ) then (<td class="rvsf complete">{data($completion/@target-rvsf)}/{data($completion/@target-rvsf)}</td>)
-          else if ( $completion/@progress-rvsf = $completion/@target-rvsf ) then (<td class="rvsf complete">{data($completion/@target-rvsf)}/{data($completion/@target-rvsf)}</td>)
-          else (<td class="rvsf partial">{data($completion/@progress-rvsf)}/{data($completion/@target-rvsf)}</td>)
-        }
-        {if ( $completion/@progress-cla = 0 ) then (<td class="cla incomplete">0/{data($completion/@target-cla)}</td>)
-          else if ( $is-completed ) then (<td class="cla complete">{data($completion/@target-cla)}/{data($completion/@target-cla)}</td>)
-          else if ( $completion/@progress-cla = $completion/@target-cla ) then (<td class="cla complete">{data($completion/@target-cla)}/{data($completion/@target-cla)}</td>)
-          else (<td class="cla partial">{data($completion/@progress-cla)}/{data($completion/@target-cla)}</td>)
-        }
-      </tr>
-  }
-  </tbody></table>
 
 return
   <div class="main-info">
@@ -271,10 +274,7 @@ return
     <h3>Achievements</h3>
     {$achievements}
     </div>
-    <div class="master">
-      <p>Become the <strong>Capture Master</strong> by playing these maps.</p>
-      {$master-table}
-    </div>
+
   </div>
 }
 

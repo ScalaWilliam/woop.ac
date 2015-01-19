@@ -39,7 +39,7 @@
     }
     .achievement {
         margin-bottom:0.6em;
-        height: 85px;
+        min-height: 85px;
         padding: 1em;
         border-radius: 1em;
         background: rgba(20, 20, 30, 0.4);
@@ -107,6 +107,7 @@
                         <p class="description">{{description}}</p>
                     </template>
                 </header>
+                    <section class="content"><content></content></section>
                     <template if="{{when}}">
                         <p class="achieved-on">{{when}}</p>
                     </template>

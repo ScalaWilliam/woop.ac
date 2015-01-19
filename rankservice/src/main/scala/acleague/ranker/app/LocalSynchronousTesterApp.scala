@@ -54,6 +54,7 @@ object LocalSynchronousTesterApp extends App {
   }
 
   println(users("lucas").toXml)
-  events.filter(_.userId == "lucas").map(_.toXml).foreach(println)
+  println(users("s4m").toXml)
+//  events.filter(_.userId == "lucas").map(_.toXml).foreach(println)
 
 }
