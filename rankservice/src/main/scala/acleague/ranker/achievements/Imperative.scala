@@ -369,18 +369,20 @@ object Imperative {
       user.gamesPlayed = user.gamesPlayed + 1
     }
 
-    for {
-      firstTeam <- game.teams
-      secondTeam <- game.teams; if secondTeam != firstTeam
-      player <- firstTeam.players
-      if player.frags >= 80
-      if secondTeam.players.exists(userRepository(_).isDefined)
-      user <- userRepository(player)
-      userId = user.id
-      if !user.slaughterer.isDefined
-    } {
-      user.slaughterer = Option(game.id)
-      events += userId -> Slaughter
+    if ( game.acMap.mode == "ctf") {
+      for {
+        firstTeam <- game.teams
+        secondTeam <- game.teams; if secondTeam != firstTeam
+        player <- firstTeam.players
+        if player.frags >= 80
+        if secondTeam.players.exists(userRepository(_).isDefined)
+        user <- userRepository(player)
+        userId = user.id
+        if !user.slaughterer.isDefined
+      } {
+        user.slaughterer = Option(game.id)
+        events += userId -> Slaughter
+      }
     }
 
     // Maverick
