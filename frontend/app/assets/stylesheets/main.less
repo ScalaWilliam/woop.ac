@@ -118,6 +118,7 @@ th.score {
 a {
   color:wheat;
   transition:0.3s color;
+  text-decoration: none;
 }
 a:hover {
   color:brown;
@@ -255,10 +256,15 @@ code {
   }
 }
 #download-ac-button {
-  background:black;
   text-align: center;
-
-  & .norm {
-    text-transform: none;
+  background-color:rgba(31,31,31,0.8);
+  & a {
+    display:block;
+    padding-top:1em;
+    padding-bottom:1em;
+    vertical-align: bottom;
+    &:hover {
+      color:white;
+    }
   }
 }

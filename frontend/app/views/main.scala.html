@@ -11,7 +11,6 @@
     <script src="/assets/javascripts/bower_components/webcomponentsjs/webcomponents.min.js"></script>
     <link rel="import" href="/assets/javascripts/game-card.html">
     <link rel="import" href="/assets/javascripts/bower_components/core-icons/core-icons.html">
-    <link rel="import" href="/assets/javascripts/bower_components/paper-button/paper-button.html">
     <link rel="import" href="/assets/javascripts/game-card.html">
     <link rel="import" href="/assets/javascripts/new-games.html">
     <link rel="import" href="/assets/javascripts/live-games.html">
@@ -37,11 +36,10 @@
 
         @if(sessionState.profile.isEmpty) {
             <div id="download-ac-button">
-            <paper-button  class="colored custom" onclick="window.open ( 'http://sourceforge.net/projects/actiongame/files/AssaultCube%20Version%201.2.0.2/AssaultCube_v1.2.0.2.exe/download', '_blank' )">
+                <a href="https://github.com/assaultcube/AC/releases/download/v1.2.0.2/AssaultCube_v1.2.0.2.exe" target="_blank">
                 <core-icon icon="cloud-download"></core-icon>
-                    &nbsp;&nbsp;
-                    <span class="norm">Download AssaultCube first-person shooter v1.2.0.2 (45MB, Windows exe)</span>
-            </paper-button>
+                    Download the AssaultCube first-person shooter v1.2.0.2 (45MB, Windows exe)
+                </a>
             </div>
         }
     <div id="content">
