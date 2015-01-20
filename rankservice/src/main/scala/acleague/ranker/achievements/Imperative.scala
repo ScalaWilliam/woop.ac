@@ -370,8 +370,13 @@ object Imperative {
     }
 
     for {
-      (userId, user, player) <- game.playersAsUsers(userRepository)
+      firstTeam <- game.teams
+      secondTeam <- game.teams; if secondTeam != firstTeam
+      player <- firstTeam.players
       if player.frags >= 80
+      if secondTeam.players.exists(userRepository(_).isDefined)
+      user <- userRepository(player)
+      userId = user.id
       if !user.slaughterer.isDefined
     } {
       user.slaughterer = Option(game.id)
@@ -384,7 +389,10 @@ object Imperative {
         winningTeam <- game.teams
         winningTeamFlags <- winningTeam.flags
         losingTeam <- game.teams
+        if winningTeam != losingTeam
         losingTeamFlags <- losingTeam.flags
+        // require enemy player who is registered, not random noob
+        if losingTeam.players.exists(userRepository(_).isDefined)
         if winningTeamFlags > losingTeamFlags
         player <- winningTeam.players
         playerFlags <- player.flags

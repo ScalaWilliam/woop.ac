@@ -4,7 +4,7 @@ name := "rankservice"
 
 organization := "acleague"
 
-version := "2.01"
+version := "2.02"
 
 scalaVersion := "2.11.4"
 
