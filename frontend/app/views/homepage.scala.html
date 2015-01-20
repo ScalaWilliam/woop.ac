@@ -1,6 +1,7 @@
 @(states: plugins.ServerUpdatesPlugin.CurrentStates, events: String, result: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
 @main("Woop AssaultCube Match league")(Html("")) {
 
+
     <div id="live-events">
         <live-events liveUrl="ws://woop.ac/new-user-events" initialJson="@events"></live-events>
     </div>

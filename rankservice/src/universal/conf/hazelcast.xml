@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.2.xsd"
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.4.xsd"
            xmlns="http://www.hazelcast.com/schema/config"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <license-key>***REMOVED***</license-key>
@@ -54,7 +54,7 @@
            Possible values:
            BINARY (default): keys and values will be stored as binary data
            OBJECT : values will be stored in their object forms
-           OFFHEAP : values will be stored in non-heap region of JVM
+           NATIVE : values will be stored in non-heap region of JVM
         -->
         <in-memory-format>BINARY</in-memory-format>
 
@@ -69,18 +69,18 @@
         -->
         <async-backup-count>0</async-backup-count>
         <!--
-			Maximum number of seconds for each entry to stay in the map. Entries that are
-			older than <time-to-live-seconds> and not updated for <time-to-live-seconds>
-			will get automatically evicted from the map.
-			Any integer between 0 and Integer.MAX_VALUE. 0 means infinite. Default is 0.
-		-->
+            Maximum number of seconds for each entry to stay in the map. Entries that are
+            older than <time-to-live-seconds> and not updated for <time-to-live-seconds>
+            will get automatically evicted from the map.
+            Any integer between 0 and Integer.MAX_VALUE. 0 means infinite. Default is 0.
+        -->
         <time-to-live-seconds>0</time-to-live-seconds>
         <!--
-			Maximum number of seconds for each entry to stay idle in the map. Entries that are
-			idle(not touched) for more than <max-idle-seconds> will get
-			automatically evicted from the map. Entry is touched if get, put or containsKey is called.
-			Any integer between 0 and Integer.MAX_VALUE. 0 means infinite. Default is 0.
-		-->
+            Maximum number of seconds for each entry to stay idle in the map. Entries that are
+            idle(not touched) for more than <max-idle-seconds> will get
+            automatically evicted from the map. Entry is touched if get, put or containsKey is called.
+            Any integer between 0 and Integer.MAX_VALUE. 0 means infinite. Default is 0.
+        -->
         <max-idle-seconds>0</max-idle-seconds>
         <!--
             Valid values are:
@@ -105,6 +105,12 @@
         -->
         <eviction-percentage>25</eviction-percentage>
         <!--
+            Minimum time in milliseconds which should pass before checking
+            if a partition of this map is evictable or not.
+            Default value is 100 millis.
+        -->
+        <min-eviction-check-millis>100</min-eviction-check-millis>
+        <!--
             While recovering from split-brain (network partitioning),
             map entries in the small cluster will merge into the bigger cluster
             based on the policy set here. When an entry merge into the
@@ -114,12 +120,12 @@
             the policy set here. Default policy is PutIfAbsentMapMergePolicy
 
             There are built-in merge policies such as
-            com.hazelcast.map.merge.PassThroughMergePolicy; entry will be added if there is no existing entry for the key.
+            com.hazelcast.map.merge.PassThroughMergePolicy; entry will be overwritten if merging entry exists for the key.
             com.hazelcast.map.merge.PutIfAbsentMapMergePolicy ; entry will be added if the merging entry doesn't exist in the cluster.
             com.hazelcast.map.merge.HigherHitsMapMergePolicy ; entry with the higher hits wins.
             com.hazelcast.map.merge.LatestUpdateMapMergePolicy ; entry with the latest update wins.
         -->
-        <merge-policy>com.hazelcast.map.merge.PassThroughMergePolicy</merge-policy>
+        <merge-policy>com.hazelcast.map.merge.PutIfAbsentMapMergePolicy</merge-policy>
 
     </map>
 
@@ -161,6 +167,6 @@
         <portable-version>0</portable-version>
     </serialization>
 
-    <services enable-defaults="true" />
+    <services enable-defaults="true"/>
 
 </hazelcast>

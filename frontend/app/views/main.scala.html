@@ -10,12 +10,16 @@
     <meta name="keywords" content="online FPS, first person shooter, assaultcube league, assaultcube">
     <script src="/assets/javascripts/bower_components/webcomponentsjs/webcomponents.min.js"></script>
     <link rel="import" href="/assets/javascripts/game-card.html">
+    <link rel="import" href="/assets/javascripts/bower_components/core-icons/core-icons.html">
+    <link rel="import" href="/assets/javascripts/bower_components/paper-button/paper-button.html">
+    <link rel="import" href="/assets/javascripts/game-card.html">
     <link rel="import" href="/assets/javascripts/new-games.html">
     <link rel="import" href="/assets/javascripts/live-games.html">
     <link rel="import" href="/assets/javascripts/live-events.html">
     <link rel="import" href="/assets/javascripts/achievement-card.html">
 </head>
 <body>
+
     <div role="main">
     <header>
         <h1><a href="/">AssaultCube Match League</a></h1>
@@ -30,7 +34,20 @@
         }
     </article>
     </div>
+
+        @if(sessionState.profile.isEmpty) {
+            <div id="download-ac-button">
+            <paper-button  class="colored custom" onclick="window.open ( 'http://sourceforge.net/projects/actiongame/files/AssaultCube%20Version%201.2.0.2/AssaultCube_v1.2.0.2.exe/download', '_blank' )">
+                <core-icon icon="cloud-download"></core-icon>
+                    &nbsp;&nbsp;
+                    Download AssaultCube (45MB, Windows exe)
+            </paper-button>
+            </div>
+        }
     <div id="content">
+
+
+
         @data
     </div></div>
 </body>
