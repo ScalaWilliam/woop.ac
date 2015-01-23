@@ -71,7 +71,7 @@ object TeamModes {
 
     object IndividualScoreDisconnected {
       def unapply(input: String): Option[IndividualScoreDisconnected] = {
-        val capture = """\s+([^\s]+)\s+([^\s]+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
+        val capture = """\s*([^\s]+)\s+([^\s]+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
         for { capture(name, team, frag, death) <- Option(input) }
         yield IndividualScoreDisconnected(name, team, frag.toInt, death.toInt)
       }
@@ -118,7 +118,7 @@ object TeamModes {
     }
 
     object IndividualScoreDisconnected {
-      val capture = """\s+([^\s]+)\s+([^\s]+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
+      val capture = """\s*([^\s]+)\s+([^\s]+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+\-\s+\-\s+disconnected""".r
       def unapply(input: String): Option[IndividualScoreDisconnected] = {
         for { capture(name, team, flag, frag, death) <- Option(input) }
         yield IndividualScoreDisconnected(name, team, flag.toInt, frag.toInt, death.toInt)

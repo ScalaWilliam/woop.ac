@@ -238,6 +238,34 @@ class ParserSpec extends WordSpec with Inside with Inspectors with Matchers with
     }
 
 
+    "Not fail for this game" in {
+      val inputSequence =
+      """
+        |Status at 23-01-2015 16:53:02: 4 remote clients, 4.3 send, 2.2 rec (K/sec); Ping: #43|2108|74; CSL: #24|2280|72 (bytes)
+        |
+        |
+        |Game status: ctf on ac_depot, game finished, match, 4 clients
+        |cn name             team flag  score frag death tk ping role    host
+        |1 w00p|Lucas       RVSF    1    514   45    42  0  112 normal  138.231.142.200
+        |2 STK#holmes       CLA     1    427   42    33  1  278 normal  189.30.232.75
+        |3 .45|Chill        CLA     2    520   43    32  0  157 normal  188.192.135.226
+        |4 w00p|Drakas      RVSF    0    176   26    40  0  150 admin   77.44.45.26
+        |cUb3             SPEC    0    0     0  -    - disconnected
+        |Team  CLA:  2 players,   85 frags,    3 flags
+        |Team RVSF:  2 players,   71 frags,    1 flags
+        |
+        |
+        |Demo "Fri Jan 23 16:53:05 2015: ctf, ac_depot, 676.82kB" recorded.
+        |demo written to file "/home/tyr/ac/demos/1999/20150123_2153_local_ac_depot_15min_CTF.dmo" (6|93067 bytes)
+        |
+      """.stripMargin.split("\r?\n")
+      val outputs = inputSequence.scanLeft(NothingFound: ParserState)(_.next(_))
+
+      outputs foreach println
+      val foundGame = outputs.find(_.isInstanceOf[FoundGame]).value
+      println(foundGame)
+    }
+
 
     "Capture RSPC/CSPC" in {
 
