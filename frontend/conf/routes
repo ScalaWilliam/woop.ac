@@ -4,6 +4,7 @@ GET        /questions            controllers.Main.questions
 GET        /servers/             controllers.Main.servers
 GET        /servers              controllers.Main.servers
 GET        /login/               controllers.Main.login
+GET        /videos/              controllers.Main.videos
 GET        /login                controllers.Main.login
 GET        /server-updates       controllers.Main.serversUpdates
 GET        /new-games            controllers.Main.newGames

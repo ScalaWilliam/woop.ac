@@ -24,8 +24,8 @@
         <h2>by <a href="http://woop.us/" target="_blank">Woop clan</a></h2>
     </header>
     <div id="top">
-    <article><a href="/">Home</a> &bull; <a href="/questions/">Questions</a> &bull; <a href="/players/">Players</a> &bull; <a href="/servers/">Servers</a>
-    @if(sessionState.profile.nonEmpty) {
+    <article><a href="/">Home</a> &bull; <a href="/players/">Players</a> &bull; <a href="/videos/">Videos</a> &bull; <a href="/servers/">Servers</a> &bull; <a href="/questions/">Questions</a>
+        @if(sessionState.profile.nonEmpty) {
         &bull; <a href="/profile/">View my profile</a>
         } else {
             &bull; <a href="/login/">Log in with Google</a>

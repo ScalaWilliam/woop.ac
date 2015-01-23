@@ -642,4 +642,31 @@ return if ( empty($vids)) then() else (<ol id="vids">{$vids}</ol>)
       for { cs <- getCurrentStates }
         yield Ok(views.html.servers(cs))
   }
+  def videos = stated { _ => implicit s =>
+    import Play.current
+    val videosF = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+      <rest:text>{Text(processGameXQuery)}<![CDATA[
+let $vids :=
+  for $approved-video in /video-approved
+  let $id := data($approved-video/@id)
+  for $video in /video
+  where $video/@id = $id
+  let $games-ids := $video//game
+  order by $video/@published-at descending
+  let $uri := "//www.youtube-nocookie.com/embed/"||$id||"?rel=0"
+  let $game-ln :=
+    for $game in subsequence(/game[@id = $games-ids],1,1)
+    let $has-demo := exists(/local-demo[@game-id = data($game/@id)])
+    return <p class="game-ln">{local:game-header($game, $has-demo)}</p>
+  return <li><iframe width="480" height="270" src="{$uri}" frameborder="0" allowfullscreen="allowfullscreen"><!----></iframe>{$game-ln}</li>
+return if ( empty($vids) ) then() else (<ol id="vids">{$vids}</ol>)
+      ]]></rest:text>
+      <rest:variable name="game-id" value="0"/>
+    </rest:query>)
+    for {
+      xmlContent <- videosF
+    }
+    yield
+      Ok(views.html.videos(Html(xmlContent.body)))
+  }
 }
