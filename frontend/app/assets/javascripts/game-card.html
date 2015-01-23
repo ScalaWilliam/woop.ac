@@ -107,11 +107,17 @@
             .players ol li .name a {
                 text-decoration: none;
             }
-            a.demo-link, a.server-link {
+            a.demo-link, a.server-link, .time-remain {
                 font-size:0.6em;
                 margin-left:0.6em;
                 vertical-align: baseline;
                 text-decoration: none;
+            }
+            .time-remain {
+                text-align: center;
+                font-size:0.6em;
+                margin-top:0.4em;
+                margin-bottom:-0.4em;
             }
             .game.isNew {
                 box-shadow: darkred 3px 3px 2px, darkred -3px -3px 2px, darkred 3px -3px 2px, darkred -3px 3px 2px;
@@ -135,6 +141,11 @@
                         </template>
                         <template if="{{game.now}}">
                             <a class="server-link" href="assaultcube://{{game.now.server.canonicalName || game.now.server.server}}">on {{game.now.server.shortName}}</a>
+                            <p class="time-remain">
+                            <template if="{{game.minRemain == '0'}}">game finished</template>
+                            <template if="{{game.minRemain == '1'}}">1 minute remains</template>
+                            <template if="{{game.minRemain > 1}}">{{game.minRemain}} minutes remain</template>
+                            </p>
                         </template>
                     </h2>
                 </header>
