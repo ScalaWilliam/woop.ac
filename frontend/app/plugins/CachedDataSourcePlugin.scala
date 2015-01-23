@@ -17,6 +17,7 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin {
   import spray.util._
   import ExecutionContext.Implicits.global
   lazy val newGamesTopic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("new-games")
+  lazy val userUpdatesTopic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("user-updates")
   lazy val newUserEventsTopic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("user-events")
   lazy val demoDownloadTopic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("downloaded-demos")
 
@@ -47,15 +48,18 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin {
   var newGamesTopicTopicListenerId: String = _
   var newUserEventsTopicListenerId: String = _
   var demoDownloadTopicListenerId: String = _
+  var userUpdatesTopicListenerId: String = _
   override def onStart(): Unit = {
     newGamesTopicTopicListenerId = newGamesTopic.addMessageListener(clearerListener)
     newUserEventsTopicListenerId = newUserEventsTopic.addMessageListener(clearerListener)
     demoDownloadTopicListenerId = demoDownloadTopic.addMessageListener(clearerListener)
+    userUpdatesTopicListenerId = userUpdatesTopic.addMessageListener(clearerListener)
   }
   override def onStop(): Unit = {
     newGamesTopic.removeMessageListener(newGamesTopicTopicListenerId)
     newUserEventsTopic.removeMessageListener(newUserEventsTopicListenerId)
     demoDownloadTopic.removeMessageListener(demoDownloadTopicListenerId)
+    userUpdatesTopic.removeMessageListener(userUpdatesTopicListenerId)
   }
   import akka.actor.ActorDSL._
 
