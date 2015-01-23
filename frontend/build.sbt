@@ -5,7 +5,7 @@ organization := "acleague"
 
 name:="frontend"
 
-version := "2.12"
+version := "2.13"
 
 scalaVersion := "2.11.4"
 
@@ -22,6 +22,7 @@ libraryDependencies ++= Seq(
   "org.joda" % "joda-convert" % "1.7",
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "commons-net" % "commons-net" % "3.3",
+  "io.spray" %% "spray-caching" % "1.3.2",
   ws
 )
 
