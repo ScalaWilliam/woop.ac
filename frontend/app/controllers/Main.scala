@@ -289,6 +289,28 @@ let $subs := subsequence(
 return <ol class="recent-games">{$subs}</ol>
 }
 
+<section id="vids">
+<h2>Mentions on YouTube</h2>
+<p>Upload a video with a description that links to your games or profiles.<br/><i>Let us know when you upload one so we can approve it.</i></p>
+{
+let $vids :=
+  for $approved-video in /video-approved
+  let $id := data($approved-video/@id)
+  for $video in /video
+  where $video/@id = $id
+  let $games-ids := $video//game
+  where ($user-record//played-in-game/@game-id = $games-ids)
+    or ($video//player = data($u/@id))
+  order by $video/@published-at descending
+  let $uri := "//www.youtube-nocookie.com/embed/"||$id||"?rel=0"
+  let $game-ln :=
+    for $game in subsequence(/game[@id = $games-ids],1,1)
+    let $has-demo := exists(/local-demo[@game-id = data($game/@id)])
+    return <p class="game-ln">{local:game-header($game, $has-demo)}</p>
+  return <li><iframe width="480" height="270" src="{$uri}" frameborder="0" allowfullscreen="allowfullscreen"><!----></iframe>{$game-ln}</li>
+return if ( empty($vids)) then() else (<ol id="vids">{$vids}</ol>)
+}
+</section>
 </div></profile></player>]]>
       </rest:text>
       <rest:variable name="user-id" value={userId}/>
