@@ -106,7 +106,7 @@ let $capture-achievement-bar :=
   {
   if ( $achievement/@achieved = "true" ) then (
   (
-  attribute atGame { data(/game[@id = data($achievement/@at-game)]/@date) }
+  attribute when { data(/game[@id = data($achievement/@at-game)]/@date) }
   )
   ) else ((
   attribute totalInLevel { data($achievement/@target) },

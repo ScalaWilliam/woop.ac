@@ -69,7 +69,7 @@ class IndividualServerActor(serverId: String) extends Act with ActorLogging {
           lastMap = lastGameXml \@ "map"
           if lastMode == demoMode
           if lastMap == demoMap
-          gameDemo = GameDemoFound(id, recorded, written)
+          gameDemo = GameDemoFound(id, serverId, recorded, written)
         } {
           context.system.eventStream.publish(gameDemo)
         }
@@ -77,7 +77,7 @@ class IndividualServerActor(serverId: String) extends Act with ActorLogging {
       
   }
 }
-case class GameDemoFound(gameId: Int, demoRecorded: DemoRecorded, demoWritten: DemoWritten)
+case class GameDemoFound(gameId: Int, serverId: String, demoRecorded: DemoRecorded, demoWritten: DemoWritten)
 object GameDemoFound {
-  def example = GameDemoFound(2141423, DemoRecorded("a", "b", "c", "d"), DemoWritten("e", "f"))
+  def example = GameDemoFound(2141423, "wut", DemoRecorded("a", "b", "c", "d"), DemoWritten("e", "f"))
 }
