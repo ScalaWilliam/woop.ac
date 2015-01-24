@@ -39,6 +39,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
             exists(/game/team/player[@name = $game-nickname])
            (: and exists(/game/team/player[@name = $game-nickname and @host = $ip]) :)
             and not(exists(/registered-user[@game-nickname = $game-nickname]))
+            and not(exists(/registered-user/nickname[. = $game-nickname]))
             and not(exists(/registered-user[@name = $short-name]))
             and not(exists(/registered-user[@id = $user-id]))
       ) then (
@@ -51,7 +52,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
         email="{$email}"
         registration-ip="{$ip}"
         registration-date="{current-dateTime()}"
-        />,
+        ><nickname from="2014-12-12T00:00:00.00Z" country-code="{$country-code}">{$game-nickname}</nickname></registered-user>,
         "online-register")
       )
       else ()
@@ -85,6 +86,9 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
           let $nickname-available :=
             if ( exists(/registered-user[@game-nickname = $game-nickname]))
             then ("In-game nickname "||$game-nickname||" already taken.") else ()
+          let $nickname-used-already :=
+            if ( exists(/registered-user/nickname[. = $game-nickname]))
+            then ("In-game nickname "||$game-nickname||" has already been used.") else ()
           let $name-available :=
             if ( exists(/registered-user[@name = $short-name]))
             then ("Short name "||$short-name||" already taken.") else ()
@@ -92,7 +96,7 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
             if ( exists(/registered-user[@id = $user-id]))
             then ("User ID "||$user-id||" already taken.") else ()
           return <result>
-          { for $failure in ($nickname-found-in-game, $nickname-available,$name-available,$user-id-available)
+          { for $failure in ($nickname-found-in-game,$nickname-used-already, $nickname-available,$name-available,$user-id-available)
           return <failure>{$failure}</failure>}
           </result>
         ]]></rest:text>
