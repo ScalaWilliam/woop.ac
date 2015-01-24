@@ -1,6 +1,7 @@
 package plugins
 
 import play.api._
+import plugins.DataSourcePlugin.UserProfile
 import scala.concurrent.{Future, ExecutionContext}
 import scala.xml.{PCData, Text}
 
@@ -61,7 +62,8 @@ return array { $events[position() = 1 to 7] }
         return <li><a href="{"/player/"||data($ru/@id)||"/"}">{data($ru/@game-nickname)}</a></li>
         }</ol>
         ]]></rest:text></rest:query>)
-  def viewUser(userId: String): Future[Option[scala.xml.Elem]] = {
+
+  def viewUser(userId: String): Future[Option[UserProfile]] = {
     implicit val app = Play.current
     val theXml = <rest:query xmlns:rest="http://basex.org/rest">
       <rest:text>{Text(processGameXQuery)}<![CDATA[
@@ -346,8 +348,11 @@ return if ( empty($vids)) then() else (<ol id="vids">{$vids}</ol>)
       </rest:text>
       <rest:variable name="user-id" value={userId}/>
     </rest:query>
-    BasexProviderPlugin.awaitPlugin.query(theXml).map(x => Option(x).filter(_.body.nonEmpty).map(_.xml))
+    BasexProviderPlugin.awaitPlugin.query(theXml).map(x => Option(x).filter(_.body.nonEmpty).map(_.xml).map{
 
+    xml =>
+    UserProfile( name = (xml \\ "@name").text, profileData = (xml \\ "div").headOption.get.toString())
+    })
   }
 
   def getGame(id: String) = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
@@ -412,6 +417,8 @@ return if ( empty($vids) ) then() else (<ol id="vids">{$vids}</ol>)
 
 }
 object DataSourcePlugin {
+
+  case class UserProfile(name: String, profileData: String)
   def plugin: DataSourcePlugin = Play.current.plugin[DataSourcePlugin]
     .getOrElse(throw new RuntimeException("DataSourcePlugin plugin not loaded"))
 }

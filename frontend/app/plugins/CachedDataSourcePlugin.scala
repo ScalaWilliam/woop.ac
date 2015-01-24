@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 import com.hazelcast.core.{Message, MessageListener, Hazelcast}
 import play.api._
 import play.api.libs.concurrent.Akka
+import plugins.DataSourcePlugin.UserProfile
 import plugins.NewGamesPlugin.GotNewGame
 import plugins.NewUserEventsPlugin.{UpdatedUserEvents, GotNewUserEvent}
 import plugins.ServerUpdatesPlugin.{GotUpdate, ServerState, CurrentStates, GiveStates}
@@ -33,7 +34,7 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin {
   }
   implicit lazy val system = Akka.system
   
-  val userCache: Cache[Option[scala.xml.Elem]] = LruCache(timeToIdle = Duration(3, TimeUnit.MINUTES))
+  val userCache: Cache[Option[UserProfile]] = LruCache(timeToIdle = Duration(3, TimeUnit.MINUTES))
   val mainCache: Cache[String] = LruCache(timeToIdle = Duration(3, TimeUnit.MINUTES))
   val eventsCache: Cache[String] = LruCache(timeToIdle = Duration(3, TimeUnit.MINUTES))
   def viewUser(userId: String)(implicit ec: ExecutionContext) = {

@@ -3,6 +3,7 @@ package controllers
 import java.io.File
 import java.net.InetAddress
 import java.util.UUID
+import plugins.DataSourcePlugin.UserProfile
 import plugins.NewGamesPlugin.GotNewGame
 import akka.pattern.AskTimeoutException
 import akka.util.Timeout
@@ -140,15 +141,12 @@ object Main extends Controller {
   def viewPlayer(id: String) = stated {
     r => implicit s =>
       for { stuff <- CachedDataSourcePlugin.plugin.viewUser(id) }
-      yield {
+      yield
         stuff match {
           case None => NotFound
-          case Some(xml) =>
-            val name = (xml \\ "@name").text
-            val profileData = (xml \\ "div").headOption.get
-        Ok(views.html.viewProfile(name, Html(profileData.toString())))
-      }
-      }
+          case Some(UserProfile(name, profileData)) =>
+            Ok(views.html.viewProfile(name, Html(profileData)))
+        }
   }
 
   def getCountryCode(ip:String): Option[String] =
