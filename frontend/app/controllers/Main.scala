@@ -35,7 +35,7 @@ object Main extends Controller {
   def homepage = stated { _ => implicit s =>
     val eventsF = CachedDataSourcePlugin.plugin.getEvents
     val gamesF = CachedDataSourcePlugin.plugin.getGames
-    val currentStatesF = getCurrentStates
+    val currentStatesF = ServerUpdatesPlugin.serverUpdatesPlugin.getCurrentStatesJson
         for {
           xmlContent <- gamesF
           events <- eventsF
@@ -286,16 +286,9 @@ object Main extends Controller {
         out ! updatedJson
     }
   }
-  def getCurrentStates: Future[CurrentStates] = {
-    import akka.pattern.ask
-    implicit val sys = play.api.libs.concurrent.Akka.system
-    import concurrent.duration._
-    implicit val to = Timeout(5.seconds)
-    ask(ServerUpdatesPlugin.serverUpdatesPlugin.act, GiveStates).mapTo[CurrentStates]
-  }
   def servers = stated{
     request => implicit s =>
-      for { cs <- getCurrentStates }
+      for { cs <- ServerUpdatesPlugin.serverUpdatesPlugin.getCurrentStatesJson }
         yield Ok(views.html.servers(cs))
   }
   def videos = stated { _ => implicit s =>
