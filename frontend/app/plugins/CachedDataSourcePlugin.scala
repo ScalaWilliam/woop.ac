@@ -30,17 +30,43 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin {
       mainCache.clear()
       userCache.clear()
       eventsCache.clear()
+      refresherActor ! Refresh
     }
   }
   implicit lazy val system = Akka.system
+
+  import akka.actor.ActorDSL._
+  case object Refresh
+  lazy val refresherActor = actor(new Act {
+    case object Go
+    becomeStacked {
+      case Refresh =>
+        import concurrent.duration._
+        val schedule = context.system.scheduler.scheduleOnce(5.seconds, self, Go)
+        becomeStacked {
+          case Refresh =>
+            schedule.cancel()
+            unbecome()
+            self ! Refresh
+          case Go =>
+            unbecome()
+            reloadDefault()
+        }
+    }
+  })
+
+  def reloadDefault(): Unit = {
+    getGames
+    getEvents
+    viewUser("Drakas")
+  }
   
-  val userCache: Cache[Option[UserProfile]] = LruCache(timeToIdle = Duration(3, TimeUnit.MINUTES))
-  val mainCache: Cache[String] = LruCache(timeToIdle = Duration(3, TimeUnit.MINUTES))
-  val eventsCache: Cache[String] = LruCache(timeToIdle = Duration(3, TimeUnit.MINUTES))
+  val userCache: Cache[Option[UserProfile]] = LruCache(timeToLive = Duration(3, TimeUnit.HOURS))
+  val mainCache: Cache[String] = LruCache(timeToLive = Duration(3, TimeUnit.HOURS))
+  val eventsCache: Cache[String] = LruCache(timeToLive = Duration(3, TimeUnit.HOURS))
   def viewUser(userId: String)(implicit ec: ExecutionContext) = {
     userCache.apply(userId, () => DataSourcePlugin.plugin.viewUser(userId))
   }
-
   def getGames = {
     mainCache.apply(Unit, () => DataSourcePlugin.plugin.getGames)
   }
@@ -60,6 +86,7 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin {
     newUserEventsTopicListenerId = newUserEventsTopic.addMessageListener(clearerListener)
     demoDownloadTopicListenerId = demoDownloadTopic.addMessageListener(clearerListener)
     userUpdatesTopicListenerId = userUpdatesTopic.addMessageListener(clearerListener)
+    reloadDefault()
   }
   override def onStop(): Unit = {
     newGamesTopic.removeMessageListener(newGamesTopicTopicListenerId)
