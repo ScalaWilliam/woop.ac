@@ -5,34 +5,34 @@ import acleague.ranker.achievements.Imperative.User
 import acleague.ranker.actors.RankerActor
 import acleague.ranker.actors.RankerActor.RegisteredUser
 import acleague.ranker.actors.RankerSecond.{FoundEvent, UpdatedUser}
+import org.joda.time.{DateTimeComparator, DateTime}
 
 object LocalSynchronousTesterApp extends App {
   // no side effects: we'll only load the achievements
   val ipDatabase = RankerActor.getRanges.toList
   val registeredUsers = RankerActor.getUsers.toList
 
-  val nicknameToCountryUser = {
-    for {RegisteredUser(nickname, id, name, countryCode) <- registeredUsers}
-    yield nickname ->(countryCode, new User[String](id))
-  }.toMap
-
-  val users = {
-    for {(nickname, (countryCode, user)) <- nicknameToCountryUser}
-    yield user.id -> user
-  }
+  val registeredUsersUser = registeredUsers.map(u => u -> new User[String](u.id)).toMap
+  val users = registeredUsersUser.map(x => x._1.id -> x._2).toMap
 
   def ipToCountryCode(ip: String): Option[String] = {
     ipDatabase.find(_.ipIsInRange(ip)).flatMap(_.optionalCountryCode)
   }
+  val comparator = DateTimeComparator.getInstance
 
-  def userLookup(player: Imperative.Player): Option[Imperative.User[String]] = {
+  // todo implement lru cache
+  def userLookup(date: DateTime)(player: Imperative.Player): Option[Imperative.User[String]] = {
     for {
-      (countryCode, user) <- nicknameToCountryUser.get(player.name)
+      (ru, user) <- registeredUsersUser
       if player.host.nonEmpty
+      nick <- ru.nicknames
+      if player.name == nick.nickname
+      if comparator.compare(nick.from, date) == -1
+      if nick.to.isEmpty || nick.to.exists(toDate => comparator.compare(toDate, date) == 1)
       playerCountryCode <- ipToCountryCode(player.host)
-      if playerCountryCode == countryCode
+      if playerCountryCode == nick.countryCode
     } yield user
-  }
+  }.headOption
 
   val (_, _, games) = RankerActor.getGames(limit = 50000)
   val events = scala.collection.mutable.ArrayBuffer.empty[FoundEvent]
@@ -54,7 +54,7 @@ object LocalSynchronousTesterApp extends App {
   }
 
 //  println(users("lucas").toXml)
-  println(users("lozi").toXml)
-  events.filter(_.toXml.toString contains "solo").map(_.toXml).foreach(println)
+  println(users("sanzo").toXml)
+//  events.filter(_.toXml.toString contains "solo").map(_.toXml).foreach(println)
 
 }

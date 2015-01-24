@@ -21,6 +21,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "com.typesafe.akka" %% "akka-testkit"  % "2.3.8" % "test",
   "ch.qos.logback" % "logback-classic" % "1.1.2",
+  "joda-time" % "joda-time" % "2.6",
+  "org.joda" % "joda-convert" % "1.7",
   "com.typesafe.akka" %% "akka-slf4j" % "2.3.8"
 )
 

@@ -8,6 +8,7 @@ import acleague.ranker.app.AppConfig
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
+import org.joda.time.DateTime
 
 import scala.xml.{Elem, PCData}
 
@@ -66,11 +67,13 @@ return <games first-game="{$first-game}" last-game="{$last-game}">{$context-game
 ]]></rest:text>
     <rest:variable name="id" value={id}/>
   </rest:query>)).\\("game").headOption.map(_.asInstanceOf[Elem]).map(Imperative.createGameFromXml)
-  case class RegisteredUser(gameName: String, id: String, name: String, countryCode: String)
+  case class UserNickname(nickname: String, countryCode: String, from: DateTime, to: Option[DateTime])
+  case class RegisteredUser(gameName: String, id: String, name: String, countryCode: String, nicknames: Set[UserNickname])
   def getUsers = for {
     xmlContent <- Option(postDatabaseRequest(<rest:query xmlns:rest="http://basex.org/rest">
     <rest:text><![CDATA[<registered-users>{
-    /registered-user}</registered-users>
+    /registered-user
+    }</registered-users>
 ]]></rest:text>
   </rest:query>)).toIterator
     xml <- Option(scala.xml.XML.loadString(xmlContent)).toIterator
@@ -79,7 +82,13 @@ return <games first-game="{$first-game}" last-game="{$last-game}">{$context-game
       gameName = (u\"@game-nickname").text,
       id = (u\"@id").text,
       name = (u\"@name").text,
-      countryCode = (u\"@country-code").text
+      countryCode = (u\"@country-code").text,
+      nicknames = (for { nick <- (u \ "nickname").toList } yield UserNickname(
+        nickname = nick.text,
+        countryCode = nick \@ "country-code",
+        from = DateTime.parse(nick \@ "from"),
+        to = nick.attribute("to").toSeq.flatten.headOption.map(_.text).map(DateTime.parse)
+      )).toSet
     )
 
   def getRanges = for {

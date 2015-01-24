@@ -8,33 +8,34 @@ import LookupRange.IpRangeOptionalCountry
 import acleague.ranker.actors.RankerActor.RegisteredUser
 import akka.actor.ActorDSL._
 import akka.actor._
+import org.joda.time.{DateTimeComparator, DateTime}
 import scala.xml.Elem
 
 /** Actor not completely necessary, but we might want to have access to this data nonetheless **/
 class RankerSecond(ipDatabase: Set[IpRangeOptionalCountry], registeredUsers: Set[RegisteredUser]) extends Act with ActorLogging {
 
-  val nicknameToCountryUser = {
-    for {RegisteredUser(nickname, id, name, countryCode) <- registeredUsers}
-    yield nickname -> (countryCode, new User[String](id))
-  }.toMap
-
-  val users = {
-    for { (nickname, (countryCode, user)) <- nicknameToCountryUser }
-    yield user.id -> user
-  }
+  val registeredUsersUser = registeredUsers.map(u => u -> new User[String](u.id)).toMap
+  val users = registeredUsersUser.map(x => x._1.id -> x._2).toMap
 
   def ipToCountryCode(ip: String): Option[String] = {
     ipDatabase.find(_.ipIsInRange(ip)).flatMap(_.optionalCountryCode)
   }
 
-  def userLookup(player: Imperative.Player): Option[Imperative.User[String]] = {
+  val comparator = DateTimeComparator.getInstance
+
+  // todo implement lru cache
+  def userLookup(date: DateTime)(player: Imperative.Player): Option[Imperative.User[String]] = {
     for {
-      (countryCode, user) <- nicknameToCountryUser.get(player.name)
+      (ru, user) <- registeredUsersUser
       if player.host.nonEmpty
+      nick <- ru.nicknames
+      if player.name == nick.nickname
+      if comparator.compare(nick.from, date) == -1
+      if nick.to.isEmpty || nick.to.exists(toDate => comparator.compare(toDate, date) == 1)
       playerCountryCode <- ipToCountryCode(player.host)
-      if playerCountryCode == countryCode
+      if playerCountryCode == nick.countryCode
     } yield user
-  }
+  }.headOption
 
   become {
     case NewGameFound(game) =>

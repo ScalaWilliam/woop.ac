@@ -1,6 +1,7 @@
 package acleague.ranker.achievements
 
 import acleague.ranker.achievements.MapAchievements.AcMap
+import org.joda.time.DateTime
 
 import scala.xml.{Elem, Node}
 
@@ -169,6 +170,7 @@ object Imperative {
     def remaining = target - completed
   }
 
+  case class PlayedInGame(gameId: String, asNickname: String, ip: String)
   class User[UserId]
   (
     val id: UserId,
@@ -188,7 +190,7 @@ object Imperative {
     var hasFlagMasters: collection.mutable.Buffer[(Int, String)] = collection.mutable.Buffer.empty,
     var isFragMaster: Option[String] = None,
     var hasDDay: Option[String] = None,
-    val playedGames: collection.mutable.Set[String] = collection.mutable.Set.empty,
+    val playedGames: collection.mutable.Set[PlayedInGame] = collection.mutable.Set.empty,
     var isCaptureMaster: Option[String] = None,
     var socialiteEarned: Int = 0,
     var flagMaster: FlagMaster = new FlagMaster(),
@@ -208,8 +210,8 @@ object Imperative {
         id={s"$id"}
       >
         <counts flags={s"$flags"} frags={s"$frags"} games={s"$gamesPlayed"} time={s"PT${timePlayed}M"}/> {
-        for {gameId <- playedGames.toList}
-        yield <played-in-game game-id={gameId}/>
+        for {PlayedInGame(gameId, nickname, ip) <- playedGames.toList}
+        yield <played-in-game game-id={gameId} as-nickname={nickname} ip={ip}/>
         }
         <achievements>
           <solo-flagger achieved={soloFlagger.isDefined.toString} at-game={soloFlagger.orNull}/>
@@ -270,10 +272,10 @@ object Imperative {
   case class Team(name: String, players: Set[Player], flags: Option[Int])
   case class Game(id: String, date: String, duration: Int, acMap: AcMap, teams: Set[Team]) {
     private def game = this
-    def playersAsUsers[UserId](userRepository: UserRepository[UserId]) = for {
+    def playersAsUsers[UserId](dateTime: DateTime)(userRepository: UserRepository[UserId]) = for {
       team <- game.teams
       player <- team.players
-      user <- userRepository(player)
+      user <- userRepository(dateTime)(player)
     } yield (user.id, user, player)
   }
 
@@ -347,20 +349,21 @@ object Imperative {
     override def asXml = <became-tosok-lover/>
   }
   type EmmittedEvents[UserId] = collection.immutable.Set[(UserId, UserEvent)]
-  type UserRepository[UserId] = Player => Option[User[UserId]]
+  type UserRepository[UserId] = DateTime => Player => Option[User[UserId]]
   type AffectedUsers[UserId] = Set[UserId]
   case class AcceptanceResult[UserId](affectedUsers: Set[UserId], emmittedEvents: Set[(UserId, UserEvent)])
   def acceptGame[UserId](userRepository: UserRepository[UserId])(game: Game): AcceptanceResult[UserId] = {
     val events = scala.collection.mutable.Buffer.empty[(UserId, UserEvent)]
+    val gameDate = DateTime.parse(game.date)
     val affectedUsers = (
       for {
-        (userId, _, _) <- game.playersAsUsers(userRepository)
+        (userId, _, _) <- game.playersAsUsers(gameDate)(userRepository)
       } yield userId
       ).toSet
     for {
-      (userId, user, player) <- game.playersAsUsers(userRepository)
+      (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
     } {
-      user.playedGames += game.id
+      user.playedGames += PlayedInGame(game.id, player.name, player.host)
       for {addFlags <- player.flags} {
         user.flags = user.flags + addFlags
       }
@@ -375,8 +378,8 @@ object Imperative {
         secondTeam <- game.teams; if secondTeam != firstTeam
         player <- firstTeam.players
         if player.frags >= 80
-        if secondTeam.players.exists(userRepository(_).isDefined)
-        user <- userRepository(player)
+        if secondTeam.players.exists(userRepository(gameDate)(_).isDefined)
+        user <- userRepository(gameDate)(player)
         userId = user.id
         if !user.slaughterer.isDefined
       } {
@@ -394,13 +397,13 @@ object Imperative {
         if winningTeam != losingTeam
         losingTeamFlags <- losingTeam.flags
         // require enemy player who is registered, not random noob
-        if losingTeam.players.exists(userRepository(_).isDefined)
+        if losingTeam.players.exists(userRepository(gameDate)(_).isDefined)
         if winningTeamFlags > losingTeamFlags
         player <- winningTeam.players
         playerFlags <- player.flags
         if winningTeamFlags == playerFlags
         if winningTeamFlags >= 5
-        user <- userRepository(player)
+        user <- userRepository(gameDate)(player)
         if !user.soloFlagger.isDefined
       } {
         user.soloFlagger = Option(game.id)
@@ -409,7 +412,7 @@ object Imperative {
     }
 
     for {
-      (userId, user, player) <- game.playersAsUsers(userRepository)
+      (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
       if !user.hasTerribleGame.isDefined
       if player.frags <= 15
     } {
@@ -419,7 +422,7 @@ object Imperative {
 
     // dday in a day achievement
     for {
-      (userId, user, player) <- game.playersAsUsers(userRepository)
+      (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
       if !user.hasDDay.isDefined
     } {
       user.dDayAchievement.include(game.date.substring(0, 10))
@@ -431,7 +434,7 @@ object Imperative {
 
     if ( game.acMap.mode == "team one shot, one kill") {
       for {
-        (userId, user, player) <- game.playersAsUsers(userRepository)
+        (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
         if !user.isTosokLover.isDefined
       } {
         user.tosokLover.count = user.tosokLover.count + 1
@@ -443,7 +446,7 @@ object Imperative {
     }
     if ( game.acMap.mode == "team deathmatch") {
       for {
-        (userId, user, player) <- game.playersAsUsers(userRepository)
+        (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
         if !user.isTdmLover.isDefined
       } {
         user.tdmLover.count = user.tdmLover.count + 1
@@ -456,7 +459,7 @@ object Imperative {
     // flag master achievement
     if ( game.acMap.mode == "ctf") {
       for {
-        (userId, user, player) <- game.playersAsUsers(userRepository)
+        (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
         flags <- player.flags
         flagMaster = user.flagMaster
         if !user.isFlagMaster.isDefined
@@ -479,7 +482,7 @@ object Imperative {
     }
 
     for {
-      (userId, user, player) <- game.playersAsUsers(userRepository)
+      (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
       frags = player.frags
       fragMaster = user.fragMaster
       if !user.isFragMaster.isDefined
@@ -501,7 +504,7 @@ object Imperative {
     }
 
     for {
-      (userId, user, player) <- game.playersAsUsers(userRepository)
+      (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
       frags = player.frags
       if !user.isCubeAddict.isDefined
       cubeAddict = user.cubeAddict
@@ -526,7 +529,7 @@ object Imperative {
     for {
       team <- game.teams
       player <- team.players
-      user <- userRepository(player)
+      user <- userRepository(gameDate)(player)
       acMap = game.acMap
       mapCompletion <- user.captureMaster.maps get acMap
       if !mapCompletion.isCompleted
