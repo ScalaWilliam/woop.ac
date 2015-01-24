@@ -61,9 +61,9 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin {
     viewUser("Drakas")
   }
   
-  val userCache: Cache[Option[UserProfile]] = LruCache(timeToLive = Duration(3, TimeUnit.HOURS))
-  val mainCache: Cache[String] = LruCache(timeToLive = Duration(3, TimeUnit.HOURS))
-  val eventsCache: Cache[String] = LruCache(timeToLive = Duration(3, TimeUnit.HOURS))
+  val userCache: Cache[Option[UserProfile]] = LruCache(timeToLive = Duration(1, TimeUnit.HOURS))
+  val mainCache: Cache[String] = LruCache(timeToLive = Duration(1, TimeUnit.HOURS))
+  val eventsCache: Cache[String] = LruCache(timeToLive = Duration(1, TimeUnit.HOURS))
   def viewUser(userId: String)(implicit ec: ExecutionContext) = {
     userCache.apply(userId, () => DataSourcePlugin.plugin.viewUser(userId))
   }
