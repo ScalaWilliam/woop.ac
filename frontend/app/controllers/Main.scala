@@ -139,7 +139,7 @@ object Main extends Controller {
 
   def viewPlayer(id: String) = stated {
     r => implicit s =>
-      for { stuff <- DataSourcePlugin.plugin.viewUser(id) }
+      for { stuff <- CachedDataSourcePlugin.plugin.viewUser(id) }
       yield {
         stuff match {
           case None => NotFound
