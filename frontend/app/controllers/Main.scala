@@ -55,11 +55,11 @@ object Main extends Controller {
 
   def readGame(id: Int) = stated { _ => implicit s =>
     for {
-      xmlContent <- DataSourcePlugin.plugin.getGame(id.toString)
+      xmlContent <- CachedDataSourcePlugin.plugin.getGame(id.toString)
     }
     yield
         Ok(views.
-          html.main("Woop AssaultCube Match league")(Html(""))(Html(xmlContent.body)))
+          html.main("Woop AssaultCube Match league")(Html(""))(Html(xmlContent)))
   }
 
   def viewMe = registeredSync { _ => state =>
@@ -267,7 +267,7 @@ object Main extends Controller {
     }
     become {
       case GotNewGame(gameId) =>
-        val gameDataF = for {r <- DataSourcePlugin.plugin.getGame(gameId)
+        val gameDataF = for {r <- DataSourcePlugin.plugin.getGameX(gameId)
         } yield {r.xml \@ "gameJson"}
         import akka.pattern.pipe
         gameDataF pipeTo out

@@ -358,6 +358,11 @@ return if ( empty($vids)) then() else (<ol id="vids">{$vids}</ol>)
   def getGame(id: String) = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
     <rest:text>{PCData(getGameQueryText)}</rest:text>
     <rest:variable name="game-id" value={id.toString}/>
+  </rest:query>).map(_.body)
+
+  def getGameX(id: String) = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+    <rest:text>{PCData(getGameQueryText)}</rest:text>
+    <rest:variable name="game-id" value={id.toString}/>
   </rest:query>)
 
   def getGames = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">

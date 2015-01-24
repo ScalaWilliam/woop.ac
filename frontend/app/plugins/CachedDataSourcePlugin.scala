@@ -44,7 +44,9 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin {
   def getGames = {
     mainCache.apply(Unit, () => DataSourcePlugin.plugin.getGames)
   }
-
+  def getGame(id: String) = {
+    mainCache.apply(id, () => DataSourcePlugin.plugin.getGame(id))
+  }
   def getEvents = {
     eventsCache.apply(Unit, () => DataSourcePlugin.plugin.getEvents)
   }
