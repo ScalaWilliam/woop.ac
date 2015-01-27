@@ -3,7 +3,7 @@ package acleague.pinger
 import java.net.InetSocketAddress
 import acleague.pinger.Pinger._
 import acleague.pinger.PongParser._
-import akka.actor.Props
+import akka.actor.{ActorLogging, Props}
 import akka.io.{Udp, IO}
 import akka.util.ByteString
 import org.joda.time.DateTimeZone
@@ -175,7 +175,7 @@ object Pinger {
 
 import akka.actor.ActorDSL._
 
-class Pinger extends Act {
+class Pinger extends Act with ActorLogging {
   val serverStates = scala.collection.mutable.Map.empty[(String, Int), ServerStateMachine].withDefaultValue(NothingServerStateMachine)
   whenStarting {
     import context.system
@@ -204,10 +204,12 @@ class Pinger extends Act {
               context.system.eventStream.publish(newStatus)
               val newStatus2 = r.toGameNow(from._1, from._2)
               context.system.eventStream.publish(newStatus2)
+              log.debug(s"New status found: $newStatus, $newStatus2")
             case o =>
             //                println("Not collected", from, o, stuff)
           }
-        case SendPings(ip, port) =>
+        case sp @ SendPings(ip, port) =>
+          log.debug(s"Sending pings: $sp")
           val socket = new InetSocketAddress(ip, port + 1)
           udp ! Udp.Send(ByteString(1), socket)
           udp ! Udp.Send(ByteString(0, 1, 255), socket)

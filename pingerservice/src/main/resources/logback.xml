@@ -19,6 +19,7 @@
     <logger name="acleague" level="DEBUG"/>
     <root level="INFO">
         <appender-ref ref="file"/>
+        <appender-ref ref="stdout"/>
     </root>
 </configuration>
 
