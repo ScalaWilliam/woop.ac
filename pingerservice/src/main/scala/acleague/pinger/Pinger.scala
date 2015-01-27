@@ -206,6 +206,7 @@ class Pinger extends Act with ActorLogging {
               context.system.eventStream.publish(newStatus2)
               log.debug(s"New status found: $newStatus, $newStatus2")
             case o =>
+              log.debug(s"Not changed status found: $o")
             //                println("Not collected", from, o, stuff)
           }
         case sp @ SendPings(ip, port) =>
