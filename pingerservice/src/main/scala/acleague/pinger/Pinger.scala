@@ -3,7 +3,7 @@ package acleague.pinger
 import java.net.InetSocketAddress
 import acleague.pinger.Pinger._
 import acleague.pinger.PongParser._
-import akka.actor.{ActorLogging, Props}
+import akka.actor.{Kill, Terminated, ActorLogging, Props}
 import akka.io.{Udp, IO}
 import akka.util.ByteString
 import org.joda.time.DateTimeZone
@@ -186,11 +186,12 @@ class Pinger extends Act with ActorLogging {
     IO(Udp) ! Udp.Bind(self, new InetSocketAddress("0.0.0.0", 0))
   }
 
-  become {
+  becomeStacked {
     case Udp.Bound(boundTo) =>
       val udp = sender()
+      context.watch(udp)
       import PongParser.>>:
-      become {
+      becomeStacked {
         case Udp.Received(PongParser.GetInt(1, PongParser.GetServerInfoReply(stuff)), from) =>
           self ! GotParsedResponse(from, stuff)
         case Udp.Received(0 >>: 1 >>: _ >>: PongParser.GetPlayerCns(stuff), from) =>
@@ -222,6 +223,10 @@ class Pinger extends Act with ActorLogging {
           context.system.scheduler.scheduleOnce(0.millis, udp, Udp.Send(ByteString(1), socket))
           context.system.scheduler.scheduleOnce(10.millis, udp, Udp.Send(ByteString(0, 1, 255), socket))
           context.system.scheduler.scheduleOnce(20.millis, udp, Udp.Send(ByteString(0, 2, 255), socket))
+        case Terminated(act) if act == udp =>
+          unbecome()
+          import context.system
+          IO(Udp) ! Udp.Bind(self, new InetSocketAddress("0.0.0.0", 0))
         case other =>
           log.debug(s"Received other message: $other")
       }
