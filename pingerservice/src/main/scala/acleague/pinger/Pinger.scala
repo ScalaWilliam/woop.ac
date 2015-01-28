@@ -44,16 +44,20 @@ object Pinger {
         case p: PlayerCns =>
           this.copy(playerCnsO = Option(p))
         case p: PlayerInfoReply if playerCnsO.toSeq.flatMap(_.cns).contains(p.clientNum) =>
-          this.copy(playerInfoReplies = playerInfoReplies :+ p)
+          if ( !playerInfoReplies.exists(_.clientNum == p.clientNum)) {
+            this.copy(playerInfoReplies = playerInfoReplies :+ p)
+          } else this
         case s: ServerInfoReply =>
           this.copy(serverInfoReplyO = Option(s))
         case ts: TeamInfos =>
           this.copy(teamInfosO = Option(ts))
+        // might error here, actually.
+        case _ => this
       }
       nextResult match {
         case PartialServerStateMachine(Some(serverInfo), Some(PlayerCns(cns)), playerInfos, Some(teamInfos)) if playerInfos.size == cns.size =>
           CompletedServerStateMachine(serverInfo, playerInfos, Option(teamInfos))
-        case PartialServerStateMachine(Some(serverInfo), Some(PlayerCns(cns)), playerInfos, None) if cns.nonEmpty && playerInfos.size == cns.size && !teamModes.contains(serverInfo.mode) =>
+        case PartialServerStateMachine(Some(serverInfo), Some(PlayerCns(cns)), playerInfos, None) if cns.nonEmpty && playerInfos.size >= cns.size && !teamModes.contains(serverInfo.mode) =>
           CompletedServerStateMachine(serverInfo, playerInfos, None)
         case other => other
       }
@@ -198,23 +202,28 @@ class Pinger extends Act with ActorLogging {
         case GotParsedResponse(from, stuff) =>
           val nextState = serverStates(from).next(stuff)
           serverStates += from -> nextState
+          log.debug(s"Received response: $from, $stuff")
           nextState match {
             case r: CompletedServerStateMachine =>
               val newStatus = r.toStatus(from._1, from._2)
               context.system.eventStream.publish(newStatus)
               val newStatus2 = r.toGameNow(from._1, from._2)
               context.system.eventStream.publish(newStatus2)
-              log.debug(s"New status found: $newStatus, $newStatus2")
+              log.debug(s"Changed:  $r")
             case o =>
-              log.debug(s"Not changed status found: $o")
+              log.debug(s"Unchanged: $o")
             //                println("Not collected", from, o, stuff)
           }
         case sp @ SendPings(ip, port) =>
           log.debug(s"Sending pings: $sp")
           val socket = new InetSocketAddress(ip, port + 1)
-          udp ! Udp.Send(ByteString(1), socket)
-          udp ! Udp.Send(ByteString(0, 1, 255), socket)
-          udp ! Udp.Send(ByteString(0, 2, 255), socket)
+          import concurrent.duration._
+          import context.dispatcher
+          context.system.scheduler.scheduleOnce(0.millis, udp, Udp.Send(ByteString(1), socket))
+          context.system.scheduler.scheduleOnce(10.millis, udp, Udp.Send(ByteString(0, 1, 255), socket))
+          context.system.scheduler.scheduleOnce(20.millis, udp, Udp.Send(ByteString(0, 2, 255), socket))
+        case other =>
+          log.debug(s"Received other message: $other")
       }
 
 
