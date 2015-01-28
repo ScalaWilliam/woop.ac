@@ -204,9 +204,9 @@ object Main extends Controller {
                       case Some(reg) =>
                         if ( """.{3,15}""".r.unapplySeq(reg.gameNickname).isEmpty) {
                           Ok(views.html.createProfile(countryCode, List("Invalid game nickname specified")))
-                        } else if ( """[A-Za-z0-9]{3,12}""".r.unapplySeq(reg.shortName).isEmpty) {
+                        } else if ( """[A-Za-z]{3,12}""".r.unapplySeq(reg.shortName).isEmpty) {
                           Ok(views.html.createProfile(countryCode, List("Invalid short name specified")))
-                        } else if ( """[a-z0-9]{3,10}""".r.unapplySeq(reg.userId).isEmpty) {
+                        } else if ( """[a-z]{3,10}""".r.unapplySeq(reg.userId).isEmpty) {
                           Ok(views.html.createProfile(countryCode, List("Invalid username specified")))
                         } else {
                           val regDetail = await(RegisteredUserManager.userManagement.registerValidation(reg))
