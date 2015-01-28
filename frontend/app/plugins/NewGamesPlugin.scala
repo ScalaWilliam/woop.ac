@@ -44,7 +44,7 @@ class NewGamesPlugin(implicit app: Application) extends Plugin {
       act ! GotNewGame(message.getMessageObject)
     }
   })
-  lazy val demosThingyId = topic.addMessageListener(new MessageListener[String] {
+  lazy val demosThingyId = demosTopic.addMessageListener(new MessageListener[String] {
     override def onMessage(message: Message[String]): Unit = {
       act ! GotNewDemoFor(message.getMessageObject)
     }
