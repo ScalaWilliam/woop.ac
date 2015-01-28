@@ -180,11 +180,10 @@ object Main extends Controller {
     state match {
       case SessionState(_, None, _) =>
         Future{SeeOther(controllers.routes.Main.login().url)}
+      case SessionState(_, _, Some(profile)) =>
+        Future{SeeOther(controllers.routes.Main.viewPlayer(profile.userId).url)}
       case _ =>
         async {
-          if ( state.profile.nonEmpty ) {
-            SeeOther(controllers.routes.Main.viewPlayer(state.profile.get.userId).url)
-          }
           val ipAddress = if ( scala.util.Properties.osName == "Windows 7" ) { "77.44.45.26" } else request.remoteAddress
 
           getCountryCode(ipAddress) match {
