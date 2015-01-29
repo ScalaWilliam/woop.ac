@@ -190,9 +190,51 @@
                                 </ol>
                           </div>
                         </div>
-                        </template>
+                    </template>
+                </div>
 
+                <template if="{{game.spectators}}">
+                    <style scoped>
+                        .spectators {
+                            font-size:0.8em;
+                        }
+                        ul {
+                            list-style-type: none;
+                            width:auto;
+                            margin:0;
+                            padding:0;
+                            margin-left:auto;
+                            margin-right:auto;
+                            display:flex;
+                            justify-content: center;
+                        }
+                        li {
+                            display:inline-block;
+                            margin:0 0.2em;
+                            padding:0;
+                        }
+                        h4 {
+                            text-align: center;
+                            margin-bottom:0;
+                        }
+                    </style>
+                    <div class="spectators">
+
+                        <h4>Spectators:</h4>
+                        <ul>
+                            <template repeat="{{spectator in game.spectators}}">
+                                <li>
+                                    <template if="{{spectator.user}}">
+                                        <a href="/player/{{spectator.user}}/">{{spectator.name}}</a>
+                                    </template>
+                                    <template if="{{!spectator.user}}">
+                                        <span>{{spectator.name}}</span>
+                                    </template>
+                                </li>
+                            </template>
+                        </ul>
                     </div>
+                </template>
             </div>
         </article>
     </template>
@@ -202,15 +244,29 @@
             gameJsonChanged: function(_, newValue) {
                 var game = JSON.parse(newValue);
                 if ( "teams" in game ) {
-                    game.teams = game.teams.filter(function(x) {
+                    var tms = game.teams;
+                    game.teams = tms.filter(function(x) {
                         return x.name == "RVSF" || x.name == "CLA";
-                    })
+                    });
+                    var spectators = [];
+                    tms.filter(function(x) {
+                        if (!(x.name == "RVSF" || x.name == "CLA")) {
+                            x.players.forEach(function(p) {
+                                spectators.push(p);
+                            })
+                        }
+                    });
+                    if ( spectators.length ) {
+                        game.spectators = spectators;
+                    }  else {
+                        game.spectators = null;
+                    }
                 }
                 this.game = game;
             },
             toLowerCase: function(value) {
                 return value.toLowerCase();
-            },
+            }
         });
     </script>
 
