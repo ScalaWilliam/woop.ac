@@ -107,8 +107,8 @@ object Pinger {
   val playerStates = List("alive", "dead", "spawning", "lagged", "editing", "spectate").zipWithIndex.map(_.swap).toMap
   val guns = List("knife", "pistol", "carbine", "shotgun", "subgun", "sniper", "assault", "cpistol", "grenade", "pistol").zipWithIndex.map(_.swap).toMap
 
-  val connects = Map("62.210.131.155" -> "aura.woop.ac", "104.219.54.14" -> "tyr.woop.ac")
-  val shortName = Map("62.210.131.155" -> "Aura", "104.219.54.14" -> "Tyr")
+  val connects = Map("62.210.131.155" -> "aura.woop.ac", "104.219.54.14" -> "tyr.woop.ac", "188.166.53.198" -> "rc")
+  val shortName = Map("62.210.131.155" -> "Aura", "104.219.54.14" -> "Tyr", "188.166.53.198" -> "Rc")
 
   case class CompletedServerStateMachine(serverInfoReply: ServerInfoReply, playerInfoReplies: List[PlayerInfoReply], teamInfos: Option[TeamInfos]) extends ServerStateMachine {
     override def next(input: ParsedResponse) = NothingServerStateMachine.next(input)
@@ -118,7 +118,7 @@ object Pinger {
         updatedTime = ISODateTimeFormat.dateTimeNoMillis().withZone(DateTimeZone.forID("UTC")).print(System.currentTimeMillis()),
         now = CurrentGameNow(
           server = CurrentGameNowServer(
-            server = s"$ip:$port",
+            server = connects.getOrElse(ip, ip) + s":$port",
             connectName = connects.getOrElse(ip, ip) + s" $port",
             shortName = shortName.getOrElse(ip, ip) + s" $port",
             description = serverInfoReply.desc.replaceAll( """\f\d""", "")
