@@ -22,3 +22,5 @@ libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.1.0-RC2"
 )
 
+libraryDependencies += "org.scala-lang.modules" %% "scala-async" % "0.9.2"
+
