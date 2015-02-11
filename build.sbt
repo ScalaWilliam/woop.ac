@@ -30,7 +30,7 @@ libraryDependencies ++= {
   )
 }
 
-mainClass := Some("ac.woop.MainWebApp")
+mainClass in (Compile, run) := Some("ac.woop.MainWebApp")
 
 publishArtifact in (Compile, packageBin) := false
 
