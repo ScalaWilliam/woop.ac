@@ -23,7 +23,7 @@ object Shapper extends App {
     folder: LeftFolder[L, ByteString, addByteStrings.type]) = {
     gen.to(p).foldLeft(ByteString.empty)(addByteStrings)
   }
-  implicit class PacketFromPeerExtra(input: PacketFromPeer) {
+  implicit class packetFromPeerExtra(input: PacketFromPeer) {
     def reply(i: Int) = {
       input.replyWith(Compressor.intToByteString(i))
     }
