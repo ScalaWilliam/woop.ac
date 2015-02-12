@@ -17,7 +17,7 @@ import plugins._
 import plugins.RegisteredUserManager.{RegisteredSession, GoogleEmailAddress, RegistrationDetail, SessionState}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
-
+import scala.async.Async.{async, await}
 object Main extends Controller {
   import ExecutionContext.Implicits.global
   def using[T <: { def close(): Unit }, V](a: => T)(f: T=> V):V  = {
@@ -176,7 +176,7 @@ object Main extends Controller {
   case class ContinueRegistering(countryCode: String) extends Exception
   case class YouAlreadyHaveAProfile() extends Exception
   def createProfile = stated{implicit request => implicit state =>
-    import scala.async.Async.{async, await}
+
     state match {
       case SessionState(_, None, _) =>
         Future{SeeOther(controllers.routes.Main.login().url)}
@@ -297,5 +297,21 @@ object Main extends Controller {
     }
     yield
       Ok(views.html.videos(Html(xmlContent.body)))
+  }
+
+  def settings = registered {
+    request => implicit s =>
+      async { Ok(views.html.settings()) }
+  }
+
+  def settingsIssueKey = registered {
+    request => implicit s =>
+      async {
+        val userId = s.profile.userId
+        val authuri = Play.current.configuration.getString("auth.url").getOrElse(throw new RuntimeException("auth.url not set."))
+        val respo = await(play.api.libs.ws.WS.url(s"$authuri/user/$userId/key").put(""))
+//        val respo = await(play.api.libs.ws.WS.url(s"http://odin.duel.gg:8765/user/$userId/key").put(""))
+        Ok(respo.body)
+      }
   }
 }
