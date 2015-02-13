@@ -12,7 +12,7 @@ GET         /new-user-events             controllers.Main.newUserEvents
 GET         /profile/                    controllers.Main.viewMe
 GET         /profile                     controllers.Main.viewMe
 GET         /settings/                   controllers.Main.settings
-POST        /settings/issueKey/          controllers.Main.settingsIssueKey
+PUT         /settings/issueKey/          controllers.Main.settingsIssueKey
 GET         /players/                    controllers.Main.viewPlayers
 GET         /player/:id/                 controllers.Main.viewPlayer(id: String)
 GET         /player/:id                  controllers.Main.viewPlayer(id: String)
