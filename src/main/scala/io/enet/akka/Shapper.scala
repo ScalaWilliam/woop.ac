@@ -13,6 +13,7 @@ object Shapper extends App {
     implicit def caseInt = at[Int](Compressor.intToByteString)
     implicit def caseByte = at[Byte](ByteString(_))
     implicit def caseString = at[String](Compressor.stringToByteString)
+    implicit def caseByteString = at[ByteString](identity)
   }
   object addByteStrings extends Poly2 {
     implicit def default[T](implicit st: byteCompressor.Case.Aux[T, ByteString]) =
