@@ -1,0 +1,19 @@
+{
+  "name": "ui",
+  "version": "0.0.0",
+  "authors": [
+    "William Narmontas <william@scalawilliam.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "core-ajax": "Polymer/core-ajax#~0.5.4",
+    "polymer": "Polymer/polymer#~0.5.4"
+  }
+}

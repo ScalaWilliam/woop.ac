@@ -1,0 +1,50 @@
+<!doctype html>
+
+<html>
+<head>
+<script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+    <link rel="import" href="bower_components/core-ajax/core-ajax.html">
+</head>
+
+<body>
+
+<polymer-element name="wau-yau">
+    <template>
+<core-ajax auto url="yaah.json" on-core-response="{{gooo}}"></core-ajax>
+
+        <template if="{{currentView}}">
+        <svg width="1024" height="1024" style="transform:scale(0.7)">
+            <image xlink:href="mapshots/{{currentView.map}}.png" x="0" y="0" height="1024px" width="1024px" style="transform-origin:50% 50%; transform:scaleY(-1) translate(-95px, 00px)"/>
+            <template repeat="{{player in currentView.players}}">
+                <circle cx="{{player.x}}" cy="{{player.y}}" r="10" stroke="black"
+                        stroke-width="{{player.alive ? '5px' : '0px'}}"
+                        fill="{{ player.team == 0 ? 'red' : 'blue' }}"></circle>
+                <text x="{{player.x + 15}}" y="{{player.y+ 5}}" fill="{{player.alive ? 'lime' : 'gray'}}" style="font-family: 'Segoe UI'; font-size:1.6em; text-shadow: 1px 1px 1px black">{{player.name}}</text>
+            </template>
+        </svg>
+        </template>
+
+</template>
+    <script>
+        Polymer('wau-yau', {
+            indexChanged: function(_, newIndex) {
+                this.currentView = this.views[newIndex];
+            },
+            gooo: function(_, data, _) {
+                this.views = data.response;
+                this.index = 5;
+
+                setInterval(function() {
+                    this.index = (this.index + 1) % this.views.length;
+                }.bind(this),  30);
+            }
+        })
+                </script>
+    </polymer-element>
+
+<wau-yau></wau-yau>
+
+
+</body>
+
+</html>
