@@ -1,4 +1,5 @@
 @(title: String)(top:Html)(data: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
+@import org.joda.time.DateTime
 <!doctype html><!--suppress ALL -->
 <html>
 <head>
@@ -10,7 +11,6 @@
     <meta name="description" content="woop.ac is a match league for the AssaultCube multiplayer first-person shooter">
     <meta name="keywords" content="online FPS, first person shooter, assaultcube league, assaultcube">
     <script src="/assets/javascripts/bower_components/webcomponentsjs/webcomponents.min.js"></script>
-
     <link rel="import" href="/assets/javascripts/game-card.html">
     <link rel="import" href="/assets/javascripts/new-games.html">
     <link rel="import" href="/assets/javascripts/live-games.html">
@@ -42,6 +42,46 @@
                     Download the AssaultCube first-person shooter v1.2.0.2 (45MB, Windows exe)
                 </a>
             </div>
+        }
+        @if({
+
+
+            val dt = DateTime.parse("2015-02-16T04:00:00")
+            DateTime.now().isBefore(dt)
+
+
+
+
+        }) {
+
+            <link rel="import" href="/assets/javascripts/bower_components/core-localstorage/core-localstorage.html">
+            <link rel="import" href="/assets/javascripts/bower_components/paper-icon-button/paper-icon-button.html">
+            <link rel="import" href="/assets/javascripts/bower_components/paper-button/paper-button.html">
+            <link rel="import" href="/assets/javascripts/bower_components/core-icon/core-icon.html">
+            <template is="auto-binding" id="latins">
+                <style scoped>
+                    .hideMe {
+                        display:none;
+                    }
+                </style>
+                <div id="sprs" class="{{ {hideMe: hideMe} | tokenList }}">
+                    <div layout horizontal>
+                        <h2 flex>Latin Cup!</h2>
+                        <paper-button icon="clear" on-click="{{saveMe}}"><core-icon icon="clear"></core-icon></paper-button>
+                        </div>
+                    <p><a href="https://docs.google.com/spreadsheets/d/1WA9jje8xcdjOh0mmsglMsolp01_sdq3UgFatjJyP8PQ/edit?usp=sharing">View on Google Spreadsheet</a></p>
+                    <iframe src="https://docs.google.com/spreadsheets/d/1WA9jje8xcdjOh0mmsglMsolp01_sdq3UgFatjJyP8PQ/pubhtml?gid=0&amp;single=true&amp;chrome=false&amp;range=A1:L35&amp;widget=false&amp;headers=false"></iframe>
+                    <core-localstorage id="str" name="hideLatins" value="{{hideMe}}"></core-localstorage>
+
+                </div>
+            </template>
+                <script>
+                    var latins = document.querySelector('#latins');
+                    latins.saveMe = function() {
+                        this.hideMe = true;
+                        this.$.str.save();
+                    }.bind(latins);
+                </script>
         }
     <div id="content">
 

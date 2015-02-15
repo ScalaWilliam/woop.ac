@@ -23,6 +23,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "commons-net" % "commons-net" % "3.3",
   "io.spray" %% "spray-caching" % "1.3.2",
+  "joda-time"           % "joda-time" % "2.7",
   ws
 )
 
