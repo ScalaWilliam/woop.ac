@@ -82,6 +82,30 @@
                         this.$.str.save();
                     }.bind(latins);
                 </script>
+
+            <template is="auto-binding" id="twit">
+                <style scoped>
+                .hideMe {
+                display:none;
+                }
+                </style>
+                <div id="sprs" class="{{ {hideMe: hideMe} | tokenList }}">
+                    <div layout horizontal>
+                        <h2 flex>Twitch!</h2>
+                        <paper-button icon="clear" on-click="{{saveMe}}"><core-icon icon="clear"></core-icon></paper-button>
+                    </div>
+                    <iframe src="http://www.twitch.tv/woopclan/embed" frameborder="0" scrolling="no" height="378" width="620"></iframe><a href="http://www.twitch.tv/woopclan?tt_medium=live_embed&tt_content=text_link" style="padding:2px 0px 4px; display:block; width:345px; font-weight:normal; font-size:10px;text-decoration:underline;">Watch live video from woopclan on www.twitch.tv</a>
+                    <core-localstorage id="str" name="hidetwitch" value="{{hideMe}}"></core-localstorage>
+
+                </div>
+            </template>
+            <script>
+            var twit = document.querySelector('#twit');
+            twit.saveMe = function() {
+            this.hideMe = true;
+            this.$.str.save();
+            }.bind(twit);
+            </script>
         }
     <div id="content">
 
