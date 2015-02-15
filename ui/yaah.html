@@ -50,7 +50,7 @@
                         <!--fill="{{ player.team == 0 ? 'red' : 'blue' }}"></circle>-->
 
                 <path d="M{{player.x - 10}} {{player.y}}l10 25 l-20 0 z" fill="{{player.team == 1 ? 'blue' : 'red'}}"
-                        style="{{'transform: rotate(' + (0-player.yaw+60)+'deg); transform-origin: 50% 50%;'}}"
+                        style="{{'transform: rotate(' + (player.yaw+90-50)+'deg); transform-origin: 50% 50%;'}}"
                         stroke-width="{{player.alive ? '5px' : '0px'}}" stroke="black"
                         class="{{ {shooting: player.shooting} | tokenList }}"
                         />
