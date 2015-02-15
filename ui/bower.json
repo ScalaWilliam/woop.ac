@@ -14,6 +14,8 @@
   ],
   "dependencies": {
     "core-ajax": "Polymer/core-ajax#~0.5.4",
-    "polymer": "Polymer/polymer#~0.5.4"
+    "polymer": "Polymer/polymer#~0.5.4",
+    "paper-elements": "Polymer/paper-elements#~0.5.4",
+    "core-localstorage": "Polymer/core-localstorage#~0.5.4"
   }
 }

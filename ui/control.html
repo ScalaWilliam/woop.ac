@@ -1,0 +1,74 @@
+<!doctype html>
+
+<html>
+<head>
+    <script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+    <link rel="import" href="bower_components/core-ajax/core-ajax.html">
+    <link rel="import" href="bower_components/paper-input/paper-input.html">
+    <link rel="import" href="bower_components/paper-button/paper-button.html">
+    <link rel="import" href="bower_components/core-localstorage/core-localstorage.html">
+</head>
+
+<body>
+
+<polymer-element name="wau-yau">
+    <template>
+
+        <div>
+            <div layout horizontal>
+                <h2>ID</h2>
+                <paper-input value="{{user.id}}"></paper-input>
+            </div>
+            <div layout horizontal>
+                <h2>Data</h2>
+                <paper-input value="{{user.data}}"></paper-input>
+                </div>
+            <div layout horizontal>
+                <h2>Key</h2>
+                <paper-input value="{{user.key}}"></paper-input>
+            </div>
+            <paper-button raised on-click="{{pushMe}}">Push user data</paper-button>
+            <paper-button raised on-click="{{getKey}}">Get new key</paper-button>
+        </div>
+        <core-localstorage id="store" name="currentUser" value="{{user}}"></core-localstorage>
+
+        <core-ajax id="executeUser" method="PUT" url="/user/{{user.id}}" handleAs="json" on-core-response="{{gooo}}"></core-ajax>
+        <core-ajax id="executeKey" method="PUT" url="/user/{{user.id}}/key" handleAs="json" on-core-response="{{gooo}}"></core-ajax>
+
+    </template>
+    <script>
+        Polymer('wau-yau', {
+            pushMe: function() {
+                var fd = new FormData();
+                fd.append('data', this.user.data);
+                this.$.executeUser.body = fd;
+                this.$.executeUser.go();
+            },
+            getKey: function() {
+                this.$.executeKey.go();
+            },
+            ready:function() {
+            },
+            observe: {
+                'user.id': 'userChanged',
+                'user.data': 'userChanged',
+                'user.key': 'userChanged'
+            },
+            userChanged: function() {
+                this.$.store.save();
+            },
+            gooo: function(_, data, _) {
+                if ( data.response.user ) {
+                    this.user = data.response.user;
+                }
+            }
+        })
+    </script>
+</polymer-element>
+
+<wau-yau></wau-yau>
+
+
+</body>
+
+</html>

@@ -1,4 +1,5 @@
 main.db
+ui/mapshots
 /data/
 sb-*.log
 sb-*.json
