@@ -26,7 +26,9 @@ libraryDependencies ++= {
     "org.scala-lang.modules" %% "scala-async" % "0.9.2",
     "com.chuusai" %% "shapeless" % "2.0.0",
     "com.h2database" % "h2-mvstore" % "1.4.185",
-    "org.json4s" %% "json4s-jackson" % "3.2.10"
+    "org.json4s" %% "json4s-jackson" % "3.2.10",
+    "commons-io" % "commons-io" % "2.4"
+
   )
 }
 
