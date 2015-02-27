@@ -25,14 +25,14 @@
     <article><a href="/">Home</a> &bull; <a href="/players/">Players</a> &bull; <a href="/videos/">Videos</a> &bull; <a href="/servers/">Servers</a> &bull; <a href="/questions/">Questions</a>
         @if(sessionState.profile.nonEmpty) {
         &bull; <a href="/profile/">View my profile</a>
-        @*&bull; <a href="/settings/">Settings</a>*@
+        &bull; <a href="/settings/">Settings</a>
         } else {
             &bull; <a href="/login/">Log in with Google</a>
         }
     </article>
     </div>
 
-        @if(sessionState.profile.isEmpty) {
+        @if(!sessionState.profile.exists(_.hasAuth)) {
             <div id="download-ac-button">
                 <a href="/client/windows_client_1202.2.exe" target="_blank">
                     <span class="icon-download"></span>

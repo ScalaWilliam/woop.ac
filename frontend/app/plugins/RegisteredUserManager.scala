@@ -8,20 +8,56 @@ import play.api.mvc.Request
 import plugins.RegisteredUserManager.{RegistrationDetail, SessionState, RegisteredUser, GoogleEmailAddress}
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.Try
+import scala.xml.PCData
 
 object RegisteredUserManager {
   def userManagement: RegisteredUserManager = Play.current.plugin[RegisteredUserManager]
     .getOrElse(throw new RuntimeException("RegisteredUserManager plugin not loaded"))
   case class GoogleEmailAddress(email: String)
-  case class RegisteredUser(userId: String, email: String, gameName: String, shortName: String)
+  case class RegisteredUser(userId: String, email: String, gameName: String, shortName: String, hasAuth: Boolean)
   case class SessionState(sessionId: Option[String], googleEmailAddress: Option[GoogleEmailAddress], profile: Option[RegisteredUser])
   case class RegisteredSession(sessionId: String, profile: RegisteredUser)
   val SESSION_ID = "SESSION_ID"
   case class RegistrationDetail(gameNickname: String, shortName: String, userId: String, email: String, countryCode: String, ip: String)
 }
 class RegisteredUserManager(implicit app: Application) extends Plugin {
+  
+  lazy val authUri = Play.current.configuration.getString("auth.url").getOrElse(throw new RuntimeException("auth.url not set."))
 
-
+  def issueAuthUser(userId: String)(implicit ec: ExecutionContext): Future[Unit] = {
+    val theXml = <rest:query xmlns:rest="http://basex.org/rest"><rest:text><![CDATA[
+declare variable $user-id as xs:string external;
+for $ru in /registered-user[@id = $user-id]
+let $authed-user := /authed-user[@id = $user-id]
+let $do-issue-key := not($authed-user) or ((xs:dateTime(data($authed-user/@key-issued)[1]) + xs:dayTimeDuration("PT2H")) lt current-dateTime())
+let $new-key := if ( $do-issue-key ) then (
+  let $uri := ']]>{PCData(authUri)}<![CDATA[/user/'||$user-id||'/key'
+  let $key := string(json:parse(http:send-request(<http:request href='{$uri}' method='put'/>)[2])//key)
+  return $key) else ()
+return
+  if ( not($authed-user) ) then (
+    db:add("acleague", <authed-user id="{$user-id}" created="{current-dateTime()}" key-issued="{current-dateTime()}" key="{$new-key}"/>, "auth-stuff")
+  ) else ((
+    replace value of node ($authed-user/@key-issued)[1] with string(current-dateTime()),
+    if ( $new-key ) then (replace value of node ($authed-user/@key)[1] with $new-key) else ()
+  ))
+]]>
+    </rest:text>
+      <rest:variable name="user-id" value={userId}/>
+    </rest:query>
+    BasexProviderPlugin.awaitPlugin.query(theXml).map(_ => ())
+  }
+  
+  def getAuthKey(userId: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
+    BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest"><rest:text><![CDATA[
+    declare variable $user-id as xs:string external;
+    data(/authed-user[@id=$user-id]/@key)[1]
+    ]]></rest:text>
+      <rest:variable name="user-id" value={userId}/></rest:query>).map { x =>
+      Option(x.body).filter(_.nonEmpty)
+    }
+  }
+  
   lazy val sessionEmails = HazelcastPlugin.hazelcastPlugin.hazelcast.getMap[String, String]("session-emails")
   lazy val sessionTokens = HazelcastPlugin.hazelcastPlugin.hazelcast.getMap[String, String]("session-tokens")
   def registerUser(registrationDetail: RegistrationDetail)(implicit ec: ExecutionContext): Future[Unit] = {
@@ -144,8 +180,14 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
             <![CDATA[
             (: <registered-user id="harrek" game-nickname="w00p|Harrek" name="Harrek" country-code="FR"/> :)
             declare variable $email as xs:string external;
-            (/registered-user[@id and @game-nickname and @name and @country-code and @email = $email])[1]
-              ]]>
+            for $ru in (/registered-user[@id and @game-nickname and @name and @country-code and @email = $email])[1]
+            let $id := data($ru/@id)
+            let $nru :=
+              copy $ru := $ru
+              modify(if ( /authed-user[@id = $id] ) then (insert node (attribute is-auth {"true"}) into $ru) else ())
+              return $ru
+            return $nru
+            ]]>
           </rest:text><rest:variable name="email" value={email}/></rest:query>)
     } yield {
       if ( profileXml.body.isEmpty ) None
@@ -156,7 +198,8 @@ class RegisteredUserManager(implicit app: Application) extends Plugin {
           userId = x\@"id",
           gameName = x\@"game-nickname",
           shortName = x\@"name",
-          email=x\@"email"
+          email=x\@"email",
+          hasAuth = (x\@"is-auth")=="true"
         )
         )
       }

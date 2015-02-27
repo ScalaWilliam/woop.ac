@@ -20,16 +20,25 @@
     <body>
 
         <div role="main">
-            <header>
-                <h1><a href="/">AssaultCube Match League</a></h1>
-                <h2>by <a href="http://woop.us/" target="_blank">Woop clan</a></h2>
-            </header>
-            <div id="top">
-                <article><a href="/">Home</a> &bull; <a href="/players/">Players</a> &bull; <a href="/videos/">Videos</a> &bull; <a href="/servers/">Servers</a> &bull; <a href="/questions/">Questions</a>
-                            &bull; <a href="/profile/">View my profile</a>
-                            @*&bull; <a href="/settings/">Settings</a>*@
-                </article>
+        <header>
+            <h1><a href="/">AssaultCube Match League</a></h1>
+            <h2>by <a href="http://woop.us/" target="_blank">Woop clan</a></h2>
+        </header>
+        <div id="top">
+            <article><a href="/">Home</a> &bull; <a href="/players/">Players</a> &bull; <a href="/videos/">Videos</a> &bull; <a href="/servers/">Servers</a> &bull; <a href="/questions/">Questions</a>
+                &bull; <a href="/profile/">View my profile</a>
+                &bull; <a href="/settings/">Settings</a>
+            </article>
+        </div>
+
+        @if(!sessionState.profile.hasAuth) {
+            <div id="download-ac-button">
+                <a href="/client/windows_client_1202.2.exe" target="_blank">
+                    <span class="icon-download"></span>
+                    Download the Woop Clan AssaultCube Match Client v.1.2.0.2.2 (44MB, Windows exe)
+                </a>
             </div>
+        }
 
             <div id="content">
 

@@ -4,51 +4,7 @@
         <link rel="import" href="/assets/javascripts/bower_components/core-ajax/core-ajax.html">
         <link rel="import" href="/assets/javascripts/bower_components/paper-button/paper-button.html">
         <link rel="import" href="/assets/javascripts/bower_components/paper-input/paper-input.html">
-        <template is="auto-binding" id="auther">
-            <p>
-            <paper-button raised on-click="{{issueKey}}">Issue new auth key</paper-button>
-            </p>
-            <p>You just need to enter your key into AssaultCube, either by clicking the below link or copying the key into your AC settings.</p>
-            <p>This only has to be done once, but you may need to do it again if you lose your key. Do not share it with others.</p>
-            <core-ajax
-            id="ajax"
-                method="PUT"
-            url="/settings/issueKey/"
-            params='{}'
-            handleAs="json"
-            on-core-response="{{handleResponse}}"></core-ajax>
-            <template if="{{authKey && userId}}">
-                <table>
-                    <tbody>
-                        <tr>
-                            <th>Auth Link</th>
-                            <td><a href="assaultcube://authenticate/?id={{userId}}&key={{authKey}}">Click Here</a> (Match Client installation required)</td>
-                        </tr>
-                    <tr>
-                        <th>User ID</th>
-                        <td><paper-input value="{{userId}}" style="width:20em"></paper-input></td>
-                    </tr>
-                        <tr>
-                            <th>Auth Key</th>
-                            <td><style scoped>
-                            paper-input /deep/ input {
-                                text-overflow:ellipsis
-                            }
-                            </style><paper-input value="{{authKey}}" style="width:20em;"></paper-input></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </template>
-        </template>
-        <script>
-            var auther = document.querySelector('#auther');
-            auther.handleResponse = function(event, data, xhr) {
-                this.authKey = data.response.user.key;
-                this.userId = data.response.user.id;
-            }.bind(auther);
-            auther.issueKey = function() {
-                this.$.ajax.go();
-            }.bind(auther);
-        </script>
+        <link rel="import" href="/assets/javascripts/settings-page.html">
+        <settings-page userId="@sessionState.profile.userId" isJoined="@sessionState.profile.hasAuth"></settings-page>
     </article>
 }

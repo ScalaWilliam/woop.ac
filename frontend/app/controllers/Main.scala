@@ -3,6 +3,7 @@ package controllers
 import java.io.File
 import java.net.InetAddress
 import java.util.UUID
+import play.api.libs.json.Json
 import plugins.DataSourcePlugin.UserProfile
 import plugins.NewGamesPlugin.GotNewGame
 import akka.pattern.AskTimeoutException
@@ -303,15 +304,14 @@ object Main extends Controller {
     request => implicit s =>
       async { Ok(views.html.settings()) }
   }
-
+  
   def settingsIssueKey = registered {
     request => implicit s =>
       async {
         val userId = s.profile.userId
-        val authuri = Play.current.configuration.getString("auth.url").getOrElse(throw new RuntimeException("auth.url not set."))
-        val respo = await(play.api.libs.ws.WS.url(s"$authuri/user/$userId/key").put(""))
-//        val respo = await(play.api.libs.ws.WS.url(s"http://odin.duel.gg:8765/user/$userId/key").put(""))
-        Ok(respo.body)
+        await(RegisteredUserManager.userManagement.issueAuthUser(s.profile.userId))
+        val keySeq = await(RegisteredUserManager.userManagement.getAuthKey(s.profile.userId)).map(k => "key" -> k).toMap
+        Ok(Json.toJson(keySeq))
       }
   }
 }

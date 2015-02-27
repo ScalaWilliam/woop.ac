@@ -5,7 +5,6 @@ var GameCards = React.createClass({
         });
         return <div>{stuff}</div>
     }
-    
 });
 var MiniGameCard = React.createClass({
     render() {
@@ -238,8 +237,6 @@ function loadGames() {
         var liveGames = JSON.parse(gamesCnt.getAttribute('data-initial-live'));
         var newGames = [];
         var existingGames = JSON.parse(gamesCnt.getAttribute('data-existing'));
-        var liveSocket = new WebSocket(games.getAttribute('data-live-url'));
-        var newSocket = new WebSocket(games.getAttribute('data-new-url'));
         function getLiveGame(msg) {
             var liveGame = JSON.parse(msg.data);
             liveGames = liveGames.map(function(game) {
@@ -257,8 +254,22 @@ function loadGames() {
             newGames.unshift(newGame);
             renderGames(liveGames, newGames, existingGames);
         }
-        liveSocket.onmessage = getLiveGame;
-        newSocket.onmessage = getNewGame;
+        function prepareLiveSocket(uri) {
+            var liveSocket = new WebSocket(uri);
+            liveSocket.onmessage = getLiveGame;
+            liveSocket.onclose = function() {
+                prepareLiveSocket(uri);
+            }
+        }
+        function prepareNewSocket(uri) {
+            var newSocket = new WebSocket(uri);
+            newSocket.onmessage = getNewGame;
+            newSocket.onclose = function() {
+                prepareNewSocket(uri);
+            }
+        }
+        prepareLiveSocket(games.getAttribute('data-live-url'));
+        prepareNewSocket(games.getAttribute('data-new-url'));
     }
 }
 function loadProfile() {
@@ -277,20 +288,10 @@ function loadEvents() {
             <LiveEvents events={theDatas} />,
             eventsThing
         );
-        
-        //var theSocket = new WebSocket(theWsUrl);
-        //function getEvent() {
-        //    var theDataaam = JSON.parse(msg.data);
-        //    React.render(
-        //        <LiveEvents events={theDataaam} />,
-        //        document.querySelector('#live-events')
-        //    );
-        //}
-        //theSocket.onmessage = getEvent;
     }
 }
+
+// this runs after dom load, as jsx only compiled after load.
 loadProfile();
 loadGames();
 loadEvents();
-
-//window.addEventListener("DOMContentLoaded", loadGames, false);

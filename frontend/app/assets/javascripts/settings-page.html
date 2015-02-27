@@ -1,0 +1,45 @@
+<polymer-element name="settings-page" attributes="isJoined userId">
+
+    <template>
+
+        <style scoped>
+    paper-button {
+        background:darkslategray;
+    }
+            a { color:wheat;}
+        </style>
+        <template if="{{!(isJoined || authKey)}}">
+        <p><paper-button raised on-click="{{issueKey}}">Join Match Client Authentication</paper-button></p>
+            <p>You may use this authentication on our our Match Client servers to:</p>
+            <ol>
+                <li>Play competitive games</li>
+                <li>Lots more magic... just be patient...!</li>
+            </ol>
+        </template>
+        <template if="{{isJoined || authKey}}">
+        <paper-button raised on-click="{{issueKey}}">Retrieve my auth key</paper-button>
+        <template if="{{authKey}}">
+            <p><a href="assaultcube://authenticate/?id={{userId}}&key={{authKey}}"><paper-button raised>Install Key (Match Client installation required)</paper-button></a></p>
+            <p>Do not share your key with others.</p>
+        </template>
+        </template>
+        <core-ajax
+                id="ajax"
+                method="PUT"
+                url="/settings/issueKey/"
+                params='{}'
+                handleAs="json"
+                on-core-response="{{handleResponse}}"></core-ajax>
+    </template>
+    <script>
+        Polymer('settings-page', {
+            handleResponse: function (event, data, xhr) {
+                this.authKey = data.response.key;
+            },
+            issueKey: function () {
+                this.$.ajax.go();
+            },
+            isJoined: false
+        });
+    </script>
+</polymer-element>
