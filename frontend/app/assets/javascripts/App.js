@@ -240,7 +240,7 @@ function loadGames() {
         function getLiveGame(msg) {
             var liveGame = JSON.parse(msg.data);
             liveGames = liveGames.map(function(game) {
-                if ( game.now.server.server == liveGame.now.server.server ) {
+                if ( game.now && game.now.server && game.now.server.server == liveGame.now.server.server ) {
                     return liveGame;
                 } else {
                     return game;
@@ -258,14 +258,18 @@ function loadGames() {
             var liveSocket = new WebSocket(uri);
             liveSocket.onmessage = getLiveGame;
             liveSocket.onclose = function() {
-                prepareLiveSocket(uri);
+                setTimeout(function() {
+                    prepareLiveSocket(uri);
+                }, 5000);
             }
         }
         function prepareNewSocket(uri) {
             var newSocket = new WebSocket(uri);
             newSocket.onmessage = getNewGame;
             newSocket.onclose = function() {
-                prepareNewSocket(uri);
+                setTimeout(function() {
+                    prepareNewSocket(uri);
+                }, 5000);
             }
         }
         prepareLiveSocket(games.getAttribute('data-live-url'));
