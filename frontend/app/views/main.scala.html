@@ -10,12 +10,9 @@
     <link href='/assets/fontello-70221a6c/css/fontello.css' rel="stylesheet" type="text/css"/>
     <meta name="description" content="woop.ac is a match league for the AssaultCube multiplayer first-person shooter">
     <meta name="keywords" content="online FPS, first person shooter, assaultcube league, assaultcube">
-    <script src="/assets/javascripts/bower_components/webcomponentsjs/webcomponents.min.js"></script>
-    <link rel="import" href="/assets/javascripts/game-card.html">
-    <link rel="import" href="/assets/javascripts/new-games.html">
-    <link rel="import" href="/assets/javascripts/live-games.html">
-    <link rel="import" href="/assets/javascripts/live-events.html">
-    <link rel="import" href="/assets/javascripts/achievement-card.html">
+    <script src="/assets/javascripts/react-0.12.2/build/react.js"></script>
+    <script src="/assets/javascripts/react-0.12.2/build/JSXTransformer.js"></script>
+    <script type="text/jsx;harmony=true" src="/assets/javascripts/App.js"></script>
 </head>
 <body>
 
@@ -37,76 +34,13 @@
 
         @if(sessionState.profile.isEmpty) {
             <div id="download-ac-button">
-                <a href="https://github.com/assaultcube/AC/releases/download/v1.2.0.2/AssaultCube_v1.2.0.2.exe" target="_blank">
+                <a href="/client/windows_client_1202.2.exe" target="_blank">
                     <span class="icon-download"></span>
-                    Download the AssaultCube first-person shooter v1.2.0.2 (45MB, Windows exe)
+                    Download the Woop Clan AssaultCube Match Client v.1.2.0.2.2 (44MB, Windows exe)
                 </a>
             </div>
         }
-        @if({
 
-
-            val dt = DateTime.parse("2015-02-16T04:00:00")
-            DateTime.now().isBefore(dt)
-
-
-
-
-        }) {
-
-            <link rel="import" href="/assets/javascripts/bower_components/core-localstorage/core-localstorage.html">
-            <link rel="import" href="/assets/javascripts/bower_components/paper-icon-button/paper-icon-button.html">
-            <link rel="import" href="/assets/javascripts/bower_components/paper-button/paper-button.html">
-            <link rel="import" href="/assets/javascripts/bower_components/core-icon/core-icon.html">
-            <template is="auto-binding" id="latins">
-                <style scoped>
-                    .hideMe {
-                        display:none;
-                    }
-                </style>
-                <div id="sprs" class="{{ {hideMe: hideMe} | tokenList }}">
-                    <div layout horizontal>
-                        <h2 flex>Latin Cup!</h2>
-                        <paper-button icon="clear" on-click="{{saveMe}}"><core-icon icon="clear"></core-icon></paper-button>
-                        </div>
-                    <p><a href="https://docs.google.com/spreadsheets/d/1WA9jje8xcdjOh0mmsglMsolp01_sdq3UgFatjJyP8PQ/edit?usp=sharing">View on Google Spreadsheet</a></p>
-                    <iframe src="https://docs.google.com/spreadsheets/d/1WA9jje8xcdjOh0mmsglMsolp01_sdq3UgFatjJyP8PQ/pubhtml?gid=0&amp;single=true&amp;chrome=false&amp;range=A1:L35&amp;widget=false&amp;headers=false"></iframe>
-                    <core-localstorage id="str" name="hideLatins" value="{{hideMe}}"></core-localstorage>
-
-                </div>
-            </template>
-                <script>
-                    var latins = document.querySelector('#latins');
-                    latins.saveMe = function() {
-                        this.hideMe = true;
-                        this.$.str.save();
-                    }.bind(latins);
-                </script>
-
-            <template is="auto-binding" id="twit">
-                <style scoped>
-                .hideMe {
-                display:none;
-                }
-                </style>
-                <div id="sprs" class="{{ {hideMe: hideMe} | tokenList }}">
-                    <div layout horizontal>
-                        <h2 flex>Twitch!</h2>
-                        <paper-button icon="clear" on-click="{{saveMe}}"><core-icon icon="clear"></core-icon></paper-button>
-                    </div>
-                    <iframe src="http://www.twitch.tv/woopclan/embed" frameborder="0" scrolling="no" height="378" width="620"></iframe><a href="http://www.twitch.tv/woopclan?tt_medium=live_embed&tt_content=text_link" style="padding:2px 0px 4px; display:block; width:345px; font-weight:normal; font-size:10px;text-decoration:underline;">Watch live video from woopclan on www.twitch.tv</a>
-                    <core-localstorage id="str" name="hidetwitch" value="{{hideMe}}"></core-localstorage>
-
-                </div>
-            </template>
-            <script>
-            var twit = document.querySelector('#twit');
-            twit.saveMe = function() {
-            this.hideMe = true;
-            this.$.str.save();
-            }.bind(twit);
-            </script>
-        }
     <div id="content">
 
 

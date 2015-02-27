@@ -1,21 +1,10 @@
-@(states: plugins.ServerUpdatesPlugin.CurrentStatesJson, events: String, result: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
+@(states: plugins.ServerUpdatesPlugin.CurrentStatesJson, events: String, result: String)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
 @main("Woop AssaultCube Match league")(Html("")) {
 
 
-    <div id="live-events">
-        <live-events liveUrl="ws://woop.ac/new-user-events" initialJson="@events"></live-events>
+    <div id="live-events" data-live-url="ws://woop.ac/new-user-events" data-initial="@events">
     </div>
 
-    <div id="live-games">
-        <live-games liveUrl="ws://woop.ac/server-updates" initialJson="@states.j"></live-games>
+    <div id="games" data-new-url="ws://woop.ac/new-games" data-live-url="ws://woop.ac/server-updates" data-initial-live="@{states.j}" data-existing="@result">
     </div>
-
-    <div id="new-games">
-    <new-games liveUrl="ws://woop.ac/new-games"></new-games>
-    </div>
-
-    <div id="existing-games">
-    @result
-    </div>
-
 }

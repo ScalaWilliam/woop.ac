@@ -1,6 +1,6 @@
-@(name: String, data: Html)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
+@(name: String, data: String)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
 @main(s"Profile: $name")(Html("")){
-    <article id="profile">
-        @data
+    <article id="profile" data-profile="@data">
+
     </article>
 }

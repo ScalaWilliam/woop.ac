@@ -42,7 +42,7 @@ object Main extends Controller {
           st <- currentStatesF
         }
           yield
-      Ok(views.html.homepage(st, events, Html(xmlContent)))
+      Ok(views.html.homepage(st, events, xmlContent))
   }
   lazy val directory = {
     val f= new File(Play.current.configuration.getString("demos.directory").getOrElse(s"${scala.util.Properties.userHome}/demos")).getCanonicalFile
@@ -145,7 +145,7 @@ object Main extends Controller {
         stuff match {
           case None => NotFound
           case Some(UserProfile(name, profileData)) =>
-            Ok(views.html.viewProfile(name, Html(profileData)))
+            Ok(views.html.viewProfile(name, profileData))
         }
   }
 
