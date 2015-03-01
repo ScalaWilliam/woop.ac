@@ -1,5 +1,7 @@
 *.log.gz
 acleague-1.0.*
+main.db
+ui/mapshots
 /data/
 sb-*.log
 sb-*.json
