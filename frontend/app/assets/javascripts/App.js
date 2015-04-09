@@ -201,21 +201,19 @@ var GameCard = React.createClass({
 
         });
 
-        var spectatorsCnt = [];
-        if ( game.spectators ) {
-            var spectators = game.spectators.map(function(spectator) {
-                var spectatorName = <span>{spectator.name}</span>;
-                if ( spectator.user ) {
-                    var userLink = `/player/{ spectator.user }/`;
-                    spectatorName = <a href={userLink}>{spectator.name}</a>;
-                }
-                return <li key={spectator.name}>{spectatorName}</li>
-            });
-            spectatorsCnt.push(<div className="spectators">
+        var spectatorsCnt = game.teams.filter(team => team.name == 'SPECTATOR').filter(team => team.players.length > 0).map(spectatorsTeam =>
+            <div className="spectators">
                 <h4>Spectators:</h4>
-                <ul>{spectators}</ul>
-            </div>);
-        }
+                <ul>{spectatorsTeam.players.map(function(spectator) {
+                    var spectatorName = <span>{spectator.name}</span>;
+                    if ( spectator.user ) {
+                        var userLink = `/player/{ spectator.user }/`;
+                        spectatorName = <a href={userLink}>{spectator.name}</a>;
+                    }
+                    return <li key={spectator.name}>{spectatorName}</li>
+                })}</ul>
+            </div>
+        ).shift();
 
         return <article className={classes} style={style}>
             <div className="w">
@@ -252,7 +250,7 @@ function loadGames() {
         function getLiveGame(msg) {
             var liveGame = JSON.parse(msg.data);
             liveGames = liveGames.map(function(game) {
-                var thisServer = game.now.server.server == liveGame.now.server.server;
+                var thisServer = game.now && liveGame.now && game.now.server && liveGame.now.server && game.now.server.server == liveGame.now.server.server;
                 if ( thisServer ) {
                     return liveGame;
                 } else {
