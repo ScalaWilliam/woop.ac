@@ -8,6 +8,7 @@ import org.apache.commons.net.util.SubnetUtils
 import org.apache.http.client.fluent.Request
 import org.apache.http.client.utils.URIBuilder
 
+import scala.util.Try
 import scala.xml.Elem
 
 /**
@@ -64,8 +65,8 @@ object LookupRange {
   }
   private def lookupCountryByIp(ip: String): Option[String] = {
     for {
-      country <- Option(reader.country(InetAddress.getByName(ip)))
-      code <- Option(country.getCountry.getIsoCode)
+      country <- Try(reader.country(InetAddress.getByName(ip))).toOption
+      code <- Try(country.getCountry.getIsoCode).toOption.filter(_.nonEmpty)
     } yield code
   }
   private def parseXmlToRange(result: Elem) = {

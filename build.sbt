@@ -1,6 +1,6 @@
 organization := "acl"
 
-name := "root"
+name := "acleague"
 
 version := "1.0.2"
 
