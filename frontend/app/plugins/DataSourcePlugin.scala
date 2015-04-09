@@ -5,9 +5,9 @@ import plugins.DataSourcePlugin.UserProfile
 import scala.concurrent.{Future, ExecutionContext}
 import scala.xml.{PCData, Text}
 
-class DataSourcePlugin(implicit app: Application) extends Plugin {
+class DataSourcePlugin(implicit app: Application) extends Plugin with DataSourcePluginInterface {
   import scala.concurrent.ExecutionContext.Implicits.global
-  def getEvents = {
+  def getEvents: Future[String] = {
     for { r <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
       <rest:text><![CDATA[
 declare option output:method 'json';
@@ -78,7 +78,7 @@ return array { $events[position() = 1 to 7] }
     })
   }
 
-  def getGame(id: String) = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+  def getGame(id: String): Future[String] = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
     <rest:text>{PCData(getGameQueryText)}</rest:text>
     <rest:variable name="game-id" value={id.toString}/>
   </rest:query>).map(_.body)
@@ -88,7 +88,7 @@ return array { $events[position() = 1 to 7] }
     <rest:variable name="game-id" value={id.toString}/>
   </rest:query>)
 
-  def getGames = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+  def getGames: Future[String] = BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
     <rest:text>{PCData(getGameQueryText)}</rest:text>
     <rest:variable name="game-id" value="0"/>
   </rest:query>).map(_.body)

@@ -1,7 +1,8 @@
 var GameCards = React.createClass({
     render() {
         var stuff = this.props.games.map(function(game) {
-            return <GameCard game={game}/>;
+            var gameId = game.now ? game.now.server.server : game.id;
+            return <GameCard game={game} key={gameId}/>;
         });
         return <div>{stuff}</div>
     }
@@ -130,7 +131,8 @@ var LiveEvents = React.createClass({
     render() {
         var theEvents = this.props.events.map(function(event) {
             var userLink = `/player/${event.user}/`;
-            return <li><a href={userLink}>{event.title}</a> <span className="when">{event.when}</span></li>
+            var eventId = event.title;
+            return <li key={eventId}><a href={userLink}>{event.title}</a> <span className="when">{event.when}</span></li>
         });
         return <ol className="live-events LiveEvents">{theEvents}</ol>;
     }
@@ -181,12 +183,13 @@ var GameCard = React.createClass({
                     var playerLink = `/player/${ player.user }/`;
                     playerBit = <a href={playerLink}>{player.name}</a>;
                 }
-                return <li>
+                var playerId = player.name;
+                return <li key={playerId}>
                     {playerScore}
                     <span className="name">{playerBit}</span>
                 </li>
             });
-            return <div className={className}>
+            return <div className={className} key={team.name}>
                 <div className="team-header">
                     <h3><img src={teamImg}/></h3>
                     <div className="result">{teamScore}</div>
@@ -206,7 +209,7 @@ var GameCard = React.createClass({
                     var userLink = `/player/{ spectator.user }/`;
                     spectatorName = <a href={userLink}>{spectator.name}</a>;
                 }
-                return <li>{spectatorName}</li>
+                return <li key={spectator.name}>{spectatorName}</li>
             });
             spectatorsCnt.push(<div className="spectators">
                 <h4>Spectators:</h4>
@@ -225,6 +228,15 @@ var GameCard = React.createClass({
         </article>;
     }
 });
+function loadGame() {
+    var gameCnt = document.querySelector("#game");
+    if ( gameCnt ) {
+        var gamesJson = JSON.parse(gameCnt.getAttribute('data-game'));
+        if ( gamesJson ) {
+            React.render(<GameCards games={gamesJson}/>, gameCnt);
+        }
+    }
+}
 function loadGames() {
     var gamesCnt = document.querySelector('#games');
     function renderGames(liveGames, newGames, oldGames) {
@@ -240,12 +252,14 @@ function loadGames() {
         function getLiveGame(msg) {
             var liveGame = JSON.parse(msg.data);
             liveGames = liveGames.map(function(game) {
-                if ( game.now && game.now.server && game.now.server.server == liveGame.now.server.server ) {
+                var thisServer = game.now.server.server == liveGame.now.server.server;
+                if ( thisServer ) {
                     return liveGame;
                 } else {
                     return game;
                 }
             });
+            if ( liveGames.indexOf(liveGame) === -1 ) liveGames.push(liveGame);
             renderGames(liveGames, newGames, existingGames);
         }
         function getNewGame(msg) {
@@ -298,4 +312,5 @@ function loadEvents() {
 // this runs after dom load, as jsx only compiled after load.
 loadProfile();
 loadGames();
+loadGame();
 loadEvents();

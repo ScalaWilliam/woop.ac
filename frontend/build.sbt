@@ -5,7 +5,7 @@ organization := "acleague"
 
 name:="frontend"
 
-version := "2.14"
+version := "2.15"
 
 scalaVersion := "2.11.4"
 

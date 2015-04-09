@@ -32,10 +32,13 @@ object Main extends Controller {
     Ok(views.html.questions(s))
   }
 
+//  def dataSource = if ( scala.util.Properties.isWin ) DataSourcePlugin.plugin else CachedDataSourcePlugin.plugin
+  def dataSource = CachedDataSourcePlugin.plugin
+
 
   def homepage = stated { _ => implicit s =>
-    val eventsF = CachedDataSourcePlugin.plugin.getEvents
-    val gamesF = CachedDataSourcePlugin.plugin.getGames
+    val eventsF = dataSource.getEvents
+    val gamesF = dataSource.getGames
     val currentStatesF = ServerUpdatesPlugin.serverUpdatesPlugin.getCurrentStatesJson
         for {
           xmlContent <- gamesF
@@ -56,11 +59,9 @@ object Main extends Controller {
 
   def readGame(id: Int) = stated { _ => implicit s =>
     for {
-      xmlContent <- CachedDataSourcePlugin.plugin.getGame(id.toString)
+      jsonContent <- dataSource.getGame(id.toString)
     }
-    yield
-        Ok(views.
-          html.main("Woop AssaultCube Match league")(Html(""))(Html(xmlContent)))
+    yield Ok(views.html.viewGame(jsonContent))
   }
 
   def viewMe = registeredSync { _ => state =>
@@ -141,7 +142,7 @@ object Main extends Controller {
 
   def viewPlayer(id: String) = stated {
     r => implicit s =>
-      for { stuff <- CachedDataSourcePlugin.plugin.viewUser(id) }
+      for { stuff <- dataSource.viewUser(id) }
       yield
         stuff match {
           case None => NotFound

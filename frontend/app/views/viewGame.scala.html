@@ -1,0 +1,5 @@
+@(game: String)(implicit sessionState: plugins.RegisteredUserManager.SessionState)
+@main("Woop AssaultCube Match league")(Html("")) {
+    <div id="game" data-game="@game">
+    </div>
+}

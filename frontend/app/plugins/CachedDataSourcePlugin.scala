@@ -14,7 +14,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, ExecutionContext}
 import scala.xml.{PCData, Text}
 
-class CachedDataSourcePlugin(implicit app: Application) extends Plugin {
+class CachedDataSourcePlugin(implicit app: Application) extends Plugin with DataSourcePluginInterface {
   import scala.concurrent.Future
   import akka.actor.ActorSystem
   import spray.caching.{LruCache, Cache}
@@ -64,7 +64,7 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin {
   val userCache: Cache[Option[UserProfile]] = LruCache(timeToLive = Duration(1, TimeUnit.HOURS))
   val mainCache: Cache[String] = LruCache(timeToLive = Duration(1, TimeUnit.HOURS))
   val eventsCache: Cache[String] = LruCache(timeToLive = Duration(1, TimeUnit.HOURS))
-  def viewUser(userId: String)(implicit ec: ExecutionContext) = {
+  def viewUser(userId: String) = {
     userCache.apply(userId, () => DataSourcePlugin.plugin.viewUser(userId))
   }
   def getGames = {
