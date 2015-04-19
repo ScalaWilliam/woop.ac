@@ -6,24 +6,26 @@ organization := "acleague"
 
 version := "2.04"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.6"
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-  "org.scalactic" %% "scalactic" % "2.2.1",
+  "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+  "org.scalactic" %% "scalactic" % "2.2.4",
   "org.apache.httpcomponents" % "httpclient" % "4.3.6",
   "org.apache.httpcomponents" % "fluent-hc" % "4.3.6",
-  "com.typesafe.akka" %% "akka-actor" % "2.3.8",
+  "com.typesafe.akka" %% "akka-actor" % "2.3.9",
+  "com.typesafe.akka" %% "akka-slf4j" % "2.3.9",
   "commons-net" % "commons-net" % "3.3",
-  "org.scala-lang.modules" %% "scala-xml" % "1.0.2",
+  "org.scala-lang.modules" %% "scala-xml" % "1.0.3",
   "com.maxmind.geoip2"%"geoip2"%"2.1.0",
   "com.hazelcast" % "hazelcast" % "3.4",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "com.typesafe.akka" %% "akka-testkit"  % "2.3.8" % "test",
   "ch.qos.logback" % "logback-classic" % "1.1.2",
   "joda-time" % "joda-time" % "2.6",
-  "org.joda" % "joda-convert" % "1.7",
-  "com.typesafe.akka" %% "akka-slf4j" % "2.3.8"
+  "io.spray"            %%  "spray-can"     % "1.3.3",
+  "io.spray"            %%  "spray-routing" % "1.3.3",
+  "org.joda" % "joda-convert" % "1.7"
 )
 
 mainClass in Compile := Option("acleague.ranker.app.MasterRankerApp")
@@ -41,3 +43,5 @@ ideaExcludeFolders ++= Seq(".idea", ".idea_modules")
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 unmanagedClasspath in Runtime += baseDirectory.value / "src/universal/conf"
+
+Seq(com.atlassian.labs.gitstamp.GitStampPlugin.gitStampSettings: _*)

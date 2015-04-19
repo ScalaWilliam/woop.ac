@@ -12,7 +12,7 @@ import scala.concurrent.Future
 /**
  * Created by William on 18/01/2015.
  */
-object MasterRankerApp extends App with LazyLogging {
+object MasterRankerApp extends App with LazyLogging with HttpEndpoint {
   System.setProperty("hazelcast.logging.type", System.getProperty("hazelcast.logging.type", "slf4j"))
   logger.info(s"Application configuration: ${AppConfig.conf}")
   implicit val as = ActorSystem("MR")
