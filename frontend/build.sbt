@@ -44,3 +44,5 @@ publishArtifact in (Compile, packageBin) := false
 publishArtifact in (Universal, packageZipTarball) := true
 
 makeDeploymentSettings(Universal, packageZipTarball in Universal, "tgz")
+
+Seq(com.atlassian.labs.gitstamp.GitStampPlugin.gitStampSettings: _*)
