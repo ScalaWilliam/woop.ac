@@ -15,7 +15,7 @@ import scala.concurrent.Future
 object MasterRankerApp extends App with LazyLogging with HttpEndpoint {
   System.setProperty("hazelcast.logging.type", System.getProperty("hazelcast.logging.type", "slf4j"))
   logger.info(s"Application configuration: ${AppConfig.conf}")
-  implicit val as = ActorSystem("MR")
+  implicit lazy val as = ActorSystem("MR")
   val woot = actor(new Act with ActWithStash with ActorLogging {
 
     var masterRanker = context.actorOf(MasterRanker.props)
