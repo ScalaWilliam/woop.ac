@@ -7,7 +7,7 @@ name:="frontend"
 
 version := "2.15"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.6"
 
 enablePlugins(PlayScala)
 

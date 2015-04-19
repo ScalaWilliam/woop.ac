@@ -315,4 +315,13 @@ object Main extends Controller {
         Ok(Json.toJson(keySeq))
       }
   }
+  def version = Action {
+    r =>
+    def manifestGitSha = {
+       Try {
+            Option(new java.util.jar.Manifest(getClass.getClassLoader.getResourceAsStream("META-INF/MANIFEST.MF")).getMainAttributes.getValue("Git-Head-Rev"))
+          }.toOption.flatten.getOrElse("")
+        }
+    Ok(manifestGitSha)
+  }
 }
