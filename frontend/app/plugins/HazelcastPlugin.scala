@@ -5,6 +5,7 @@ import com.hazelcast.core.Hazelcast
 import play.api._
 import play.api.inject.ApplicationLifecycle
 import javax.inject._
+@Singleton
 class HazelcastPlugin @Inject()(applicationLifecycle: ApplicationLifecycle) {
 
   val hazelcast = {
