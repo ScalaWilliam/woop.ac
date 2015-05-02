@@ -2,6 +2,7 @@ package plugins
 
 import akka.actor.Kill
 import org.apache.commons.net.util.SubnetUtils
+import play.api.inject.ApplicationLifecycle
 import play.api.libs.concurrent.Akka
 import play.api.libs.ws.WS
 import play.api.{Play, Plugin, Application}
@@ -9,10 +10,12 @@ import akka.actor.ActorDSL._
 import plugins.RangerPlugin.IpRange
 import scala.concurrent._
 import concurrent.duration._
-class RangerPlugin(implicit app: Application) extends Plugin {
+import javax.inject._
+@Singleton
+class RangerPlugin @Inject()(applicationLifecycle: ApplicationLifecycle, basexProviderPlugin: BasexProviderPlugin) {
 
   import ExecutionContext.Implicits.global
-  implicit lazy val system = Akka.system
+  implicit lazy val system = Akka.system(Play.current)
 
   case class RangeExists(ip: String)
 
@@ -40,21 +43,19 @@ class RangerPlugin(implicit app: Application) extends Plugin {
   })
 
   def getRanges = for {
-    xmlContent <- BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+    xmlContent <- basexProviderPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
       <rest:text><![CDATA[<ranges>{/range}</ranges> ]]></rest:text>
     </rest:query>)
   } yield {
     val rangesSeq = xmlContent.xml \\ "@cidr" map (cidr => IpRange(cidr.text))
     rangesSeq.toSet
   }
-  override def onStart(): Unit = {
     akky ! UpdateRanges
-  }
 
-  override def onStop(): Unit = {
-    akky ! Kill
-  }
-
+  applicationLifecycle.addStopHook(() => {
+  import concurrent._
+  import ExecutionContext.Implicits.global
+  Future(blocking(akky ! Kill))})
 }
 
 object RangerPlugin {
@@ -69,6 +70,4 @@ object RangerPlugin {
     }
   }
 
-  def awaitPlugin: RangerPlugin = Play.current.plugin[RangerPlugin]
-    .getOrElse(throw new RuntimeException("RangerPlugin plugin not loaded"))
 }

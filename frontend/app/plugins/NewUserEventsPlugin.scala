@@ -2,16 +2,18 @@ package plugins
 
 import com.hazelcast.core.{Message, MessageListener, Hazelcast}
 import play.api._
+import play.api.inject.ApplicationLifecycle
 import play.api.libs.concurrent.Akka
 import plugins.NewGamesPlugin.GotNewGame
 import plugins.NewUserEventsPlugin.{UpdatedUserEvents, GotNewUserEvent}
 import plugins.ServerUpdatesPlugin.{GotUpdate, ServerState, CurrentStates, GiveStates}
+import javax.inject._
+@Singleton
+class NewUserEventsPlugin @Inject()(applicationLifecycle: ApplicationLifecycle, hazelcastPlugin: HazelcastPlugin, dataSourcePlugin: DataSourcePlugin) {
 
-class NewUserEventsPlugin(implicit app: Application) extends Plugin {
-
-  lazy val topic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("user-events")
+  lazy val topic = hazelcastPlugin.hazelcast.getTopic[String]("user-events")
   import akka.actor.ActorDSL._
-  implicit lazy val system = Akka.system
+  implicit lazy val system = Akka.system(Play.current)
 
 
   lazy val act = actor(name="new-user-events")(new Act {
@@ -26,7 +28,7 @@ class NewUserEventsPlugin(implicit app: Application) extends Plugin {
           case DumpEvents =>
             unbecome()
             import scala.concurrent.ExecutionContext.Implicits.global
-            for {json <- DataSourcePlugin.plugin.getEvents} {
+            for {json <- dataSourcePlugin.getEvents} {
               context.system.eventStream.publish(UpdatedUserEvents(json))
             }
         }
@@ -37,19 +39,20 @@ class NewUserEventsPlugin(implicit app: Application) extends Plugin {
       act ! GotNewUserEvent(message.getMessageObject)
     }
   })
-  override def onStart(): Unit = {
     act
     thingyId
-  }
-  override def onStop(): Unit = {
-    topic.removeMessageListener(thingyId)
-  }
+
+  applicationLifecycle.addStopHook(() => {
+
+    import concurrent._
+    import ExecutionContext.Implicits.global
+    Future(blocking(topic.removeMessageListener(thingyId)))
+
+  })
 
 }
 object NewUserEventsPlugin {
   case class GotNewUserEvent(xml: String)
   case class UpdatedUserEvents(json: String)
 //  case class ServerState(server: String, json: String)
-  def newUserEventsPlugin: NewUserEventsPlugin = Play.current.plugin[NewUserEventsPlugin]
-    .getOrElse(throw new RuntimeException("NewUserEventsPlugin plugin not loaded"))
 }

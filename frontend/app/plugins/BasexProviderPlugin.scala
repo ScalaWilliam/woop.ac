@@ -2,7 +2,7 @@ package plugins
 
 import akka.actor.{Kill, ActorRef}
 import play.api.libs.concurrent.Akka
-import play.api.libs.ws.{WSAuthScheme, WS}
+import play.api.libs.ws.{WSClient, WSAuthScheme, WS}
 import plugins.AwaitUserUpdatePlugin.{WaitForUser, UserUpdated}
 import akka.pattern.ask
 import concurrent.duration._
@@ -12,9 +12,10 @@ import play.api._
 import akka.actor.ActorDSL._
 
 import scala.xml.Elem
-
-class BasexProviderPlugin(implicit app: Application) extends Plugin {
-
+import javax.inject._
+@Singleton
+class BasexProviderPlugin @Inject()(application: Application, ws: WSClient) {
+  implicit def app: Application = application
   def url = Play.current.configuration.getString("basex.url").getOrElse{throw new RuntimeException("No basex url!")}
   def username = Play.current.configuration.getString("basex.username").getOrElse{throw new RuntimeException("No basex username!")}
   def password = Play.current.configuration.getString("basex.password").getOrElse{throw new RuntimeException("No basex password!")}
@@ -32,6 +33,4 @@ class BasexProviderPlugin(implicit app: Application) extends Plugin {
 }
 
 object BasexProviderPlugin {
-  def awaitPlugin: BasexProviderPlugin = Play.current.plugin[BasexProviderPlugin]
-    .getOrElse(throw new RuntimeException("BasexProviderPlugin plugin not loaded"))
 }

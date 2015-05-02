@@ -19,7 +19,17 @@ import plugins.RegisteredUserManager.{RegisteredSession, GoogleEmailAddress, Reg
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 import scala.async.Async.{async, await}
-object Main extends Controller {
+import javax.inject._
+
+class Main @Inject()
+(dataSource: CachedDataSourcePlugin,
+hazelcastPlugin: HazelcastPlugin,
+ registeredUserManager: RegisteredUserManager,
+serverUpdatesPlugin: ServerUpdatesPlugin,
+dataSourcePlugin: DataSourcePlugin,
+rangerPlugin: RangerPlugin,
+ awaitUserUpdatePlugin: AwaitUserUpdatePlugin
+  ) extends Controller {
   import ExecutionContext.Implicits.global
   def using[T <: { def close(): Unit }, V](a: => T)(f: T=> V):V  = {
     val i = a
@@ -33,13 +43,11 @@ object Main extends Controller {
   }
 
 //  def dataSource = if ( scala.util.Properties.isWin ) DataSourcePlugin.plugin else CachedDataSourcePlugin.plugin
-  def dataSource = CachedDataSourcePlugin.plugin
-
 
   def homepage = stated { _ => implicit s =>
     val eventsF = dataSource.getEvents
     val gamesF = dataSource.getGames
-    val currentStatesF = ServerUpdatesPlugin.serverUpdatesPlugin.getCurrentStatesJson
+    val currentStatesF = serverUpdatesPlugin.getCurrentStatesJson
         for {
           xmlContent <- gamesF
           events <- eventsF
@@ -73,19 +81,19 @@ object Main extends Controller {
       val sessionId = request.cookies.get(RegisteredUserManager.SESSION_ID).map(_.value).getOrElse(UUID.randomUUID().toString)
       val sessionCookie = Cookie(RegisteredUserManager.SESSION_ID, sessionId, maxAge = Option(200000))
       val newTokenValue = UUID.randomUUID().toString
-      RegisteredUserManager.userManagement.sessionTokens.put(sessionId, newTokenValue)
+      registeredUserManager.sessionTokens.put(sessionId, newTokenValue)
       val noCacheCookie = Cookie("nocache", "true", maxAge = Option(200000))
-      Future { SeeOther(RegisteredUserManager.userManagement.authUrl(newTokenValue)).withCookies(sessionCookie, noCacheCookie) }
+      Future { SeeOther(registeredUserManager.authUrl(newTokenValue)).withCookies(sessionCookie, noCacheCookie) }
   }
 
   def stated[V](f: Request[AnyContent] => SessionState => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
-      RegisteredUserManager.userManagement.getSessionState.flatMap { implicit session =>
+      registeredUserManager.getSessionState.flatMap { implicit session =>
         f(request)(session)
       }
   }
 
-  lazy val topic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("new-users")
+  lazy val topic = hazelcastPlugin.hazelcast.getTopic[String]("new-users")
 
   def statedSync[V](f: Request[AnyContent] => SessionState => Result): Action[AnyContent] =
     stated { a => b =>
@@ -115,17 +123,17 @@ object Main extends Controller {
       val code = request.queryString("code").head
       val state = request.queryString("state").head
       val sessionId = request.cookies(RegisteredUserManager.SESSION_ID).value
-      val expectedState = RegisteredUserManager.userManagement.sessionTokens.get(sessionId)
-      //      RegisteredUserManager.userManagement.sessionEmails.remove(sessionId)
-      RegisteredUserManager.userManagement.sessionTokens.remove(sessionId)
+      val expectedState = registeredUserManager.sessionTokens.get(sessionId)
+      //      registeredUserManager.sessionEmails.remove(sessionId)
+      registeredUserManager.sessionTokens.remove(sessionId)
       if ( state != expectedState ) {
         throw new RuntimeException(s"Expected $expectedState, got $state")
       }
 
       for {
-        user <- RegisteredUserManager.userManagement.acceptOAuth(code)
+        user <- registeredUserManager.acceptOAuth(code)
       } yield {
-        RegisteredUserManager.userManagement.sessionEmails.put(sessionId, user.email)
+        registeredUserManager.sessionEmails.put(sessionId, user.email)
         SeeOther(controllers.routes.Main.viewMe().absoluteURL())
       }
   }
@@ -136,7 +144,7 @@ object Main extends Controller {
   }
 
   def viewPlayers = stated { r => implicit s =>
-    for { r <- DataSourcePlugin.plugin.getPlayers
+    for { r <- dataSourcePlugin.getPlayers
     } yield Ok(views.html.viewPlayers(Html(r.body)))
   }
 
@@ -195,7 +203,7 @@ object Main extends Controller {
               state.googleEmailAddress match {
                 case None => Ok(views.html.createProfileNotAllowed(List("You do not appear to have an e-mail address. Please sign in again.")))
                 case Some(GoogleEmailAddress(emailAddress)) =>
-                  val ipExists = await(RangerPlugin.awaitPlugin.rangeExists(ipAddress))
+                  val ipExists = await(rangerPlugin.rangeExists(ipAddress))
                   if ( !ipExists ) {
                     Ok(views.html.createProfileNotAllowed(List(s"You do not appear to have have played with your current IP $ipAddress.")))
                   } else {
@@ -210,14 +218,14 @@ object Main extends Controller {
                         } else if ( """[a-z]{3,10}""".r.unapplySeq(reg.userId).isEmpty) {
                           Ok(views.html.createProfile(countryCode, List("Invalid username specified")))
                         } else {
-                          val regDetail = await(RegisteredUserManager.userManagement.registerValidation(reg))
+                          val regDetail = await(registeredUserManager.registerValidation(reg))
                           regDetail match {
                             case org.scalactic.Bad(stuff) =>
                               Ok(views.html.createProfile(countryCode, stuff.toList))
                             case _ =>
-                              await(RegisteredUserManager.userManagement.registerUser(reg))
+                              await(registeredUserManager.registerUser(reg))
                               topic.publish(reg.userId)
-                              await(AwaitUserUpdatePlugin.awaitPlugin.awaitUser(reg.userId).recover{case _: AskTimeoutException => "whatever"})
+                              await(awaitUserUpdatePlugin.awaitUser(reg.userId).recover{case _: AskTimeoutException => "whatever"})
                               SeeOther(controllers.routes.Main.viewPlayer(reg.userId).url)
                           }
                         }
@@ -268,7 +276,7 @@ object Main extends Controller {
     }
     become {
       case GotNewGame(gameId) =>
-        val gameDataF = for {r <- DataSourcePlugin.plugin.getGameX(gameId)
+        val gameDataF = for {r <- dataSourcePlugin.getGameX(gameId)
         } yield {r.xml \@ "gameJson"}
         import akka.pattern.pipe
         gameDataF pipeTo out
@@ -289,11 +297,11 @@ object Main extends Controller {
   }
   def servers = stated{
     request => implicit s =>
-      for { cs <- ServerUpdatesPlugin.serverUpdatesPlugin.getCurrentStatesJson }
+      for { cs <- serverUpdatesPlugin.getCurrentStatesJson }
         yield Ok(views.html.servers(cs))
   }
   def videos = stated { _ => implicit s =>
-    val videosF = DataSourcePlugin.plugin.getVideos
+    val videosF = dataSourcePlugin.getVideos
     for {
       xmlContent <- videosF
     }
@@ -310,8 +318,8 @@ object Main extends Controller {
     request => implicit s =>
       async {
         val userId = s.profile.userId
-        await(RegisteredUserManager.userManagement.issueAuthUser(s.profile.userId))
-        val keySeq = await(RegisteredUserManager.userManagement.getAuthKey(s.profile.userId)).map(k => "key" -> k).toMap
+        await(registeredUserManager.issueAuthUser(s.profile.userId))
+        val keySeq = await(registeredUserManager.getAuthKey(s.profile.userId)).map(k => "key" -> k).toMap
         Ok(Json.toJson(keySeq))
       }
   }

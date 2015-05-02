@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import com.hazelcast.core.{Message, MessageListener, Hazelcast}
 import play.api._
+import play.api.inject.ApplicationLifecycle
 import play.api.libs.concurrent.Akka
 import plugins.DataSourcePlugin.UserProfile
 import plugins.NewGamesPlugin.GotNewGame
@@ -14,16 +15,20 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, ExecutionContext}
 import scala.xml.{PCData, Text}
 
-class CachedDataSourcePlugin(implicit app: Application) extends Plugin with DataSourcePluginInterface {
+import javax.inject._
+
+@Singleton
+class CachedDataSourcePlugin @Inject()(hazelcastPlugin: HazelcastPlugin, applicationLifecycle: ApplicationLifecycle, dataSourcePlugin: DataSourcePlugin) extends DataSourcePluginInterface {
+  import Play.current
   import scala.concurrent.Future
   import akka.actor.ActorSystem
   import spray.caching.{LruCache, Cache}
   import spray.util._
   import ExecutionContext.Implicits.global
-  lazy val newGamesTopic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("new-games")
-  lazy val userUpdatesTopic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("user-updates")
-  lazy val newUserEventsTopic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("user-events")
-  lazy val demoDownloadTopic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("downloaded-demos")
+  lazy val newGamesTopic = hazelcastPlugin.hazelcast.getTopic[String]("new-games")
+  lazy val userUpdatesTopic = hazelcastPlugin.hazelcast.getTopic[String]("user-updates")
+  lazy val newUserEventsTopic = hazelcastPlugin.hazelcast.getTopic[String]("user-events")
+  lazy val demoDownloadTopic = hazelcastPlugin.hazelcast.getTopic[String]("downloaded-demos")
 
   lazy val clearerListener = new MessageListener[String] {
     override def onMessage(message: Message[String]): Unit = {
@@ -33,7 +38,7 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin with Data
       refresherActor ! Refresh
     }
   }
-  implicit lazy val system = Akka.system
+  implicit lazy val system = Akka.system(Play.current)
 
   import akka.actor.ActorDSL._
   case object Refresh
@@ -65,39 +70,38 @@ class CachedDataSourcePlugin(implicit app: Application) extends Plugin with Data
   val mainCache: Cache[String] = LruCache(timeToLive = Duration(1, TimeUnit.HOURS))
   val eventsCache: Cache[String] = LruCache(timeToLive = Duration(1, TimeUnit.HOURS))
   def viewUser(userId: String) = {
-    userCache.apply(userId, () => DataSourcePlugin.plugin.viewUser(userId))
+    userCache.apply(userId, () => dataSourcePlugin.viewUser(userId))
   }
   def getGames = {
-    mainCache.apply(Unit, () => DataSourcePlugin.plugin.getGames)
+    mainCache.apply(Unit, () => dataSourcePlugin.getGames)
   }
   def getGame(id: String) = {
-    mainCache.apply(id, () => DataSourcePlugin.plugin.getGame(id))
+    mainCache.apply(id, () => dataSourcePlugin.getGame(id))
   }
   def getEvents = {
-    eventsCache.apply(Unit, () => DataSourcePlugin.plugin.getEvents)
+    eventsCache.apply(Unit, () => dataSourcePlugin.getEvents)
   }
 
   var newGamesTopicTopicListenerId: String = _
   var newUserEventsTopicListenerId: String = _
   var demoDownloadTopicListenerId: String = _
   var userUpdatesTopicListenerId: String = _
-  override def onStart(): Unit = {
     newGamesTopicTopicListenerId = newGamesTopic.addMessageListener(clearerListener)
     newUserEventsTopicListenerId = newUserEventsTopic.addMessageListener(clearerListener)
     demoDownloadTopicListenerId = demoDownloadTopic.addMessageListener(clearerListener)
     userUpdatesTopicListenerId = userUpdatesTopic.addMessageListener(clearerListener)
     reloadDefault()
-  }
-  override def onStop(): Unit = {
+
+  import concurrent.blocking
+  applicationLifecycle.addStopHook(() => Future{blocking{
     newGamesTopic.removeMessageListener(newGamesTopicTopicListenerId)
     newUserEventsTopic.removeMessageListener(newUserEventsTopicListenerId)
     demoDownloadTopic.removeMessageListener(demoDownloadTopicListenerId)
     userUpdatesTopic.removeMessageListener(userUpdatesTopicListenerId)
-  }
-  import akka.actor.ActorDSL._
+  }  })
+
+    import akka.actor.ActorDSL._
 
 }
 object CachedDataSourcePlugin {
-  def plugin: CachedDataSourcePlugin = Play.current.plugin[CachedDataSourcePlugin]
-    .getOrElse(throw new RuntimeException("CachedDataSourcePlugin plugin not loaded"))
 }

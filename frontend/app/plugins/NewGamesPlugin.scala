@@ -3,16 +3,18 @@ package plugins
 import akka.actor.{Kill, ActorLogging}
 import com.hazelcast.core.{Message, MessageListener, Hazelcast}
 import play.api._
+import play.api.inject.ApplicationLifecycle
 import play.api.libs.concurrent.Akka
 import plugins.NewGamesPlugin.{GotNewDemoFor, GotNewGame}
 import plugins.ServerUpdatesPlugin.{GotUpdate, ServerState, CurrentStates, GiveStates}
+import javax.inject._
+@Singleton
+class NewGamesPlugin ()(applicationLifecycle: ApplicationLifecycle, hazelcastPlugin: HazelcastPlugin) {
 
-class NewGamesPlugin(implicit app: Application) extends Plugin {
-
-  lazy val topic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("new-games")
-  lazy val demosTopic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("downloaded-demos")
+  lazy val topic = hazelcastPlugin.hazelcast.getTopic[String]("new-games")
+  lazy val demosTopic = hazelcastPlugin.hazelcast.getTopic[String]("downloaded-demos")
   import akka.actor.ActorDSL._
-  implicit lazy val system = Akka.system
+  implicit lazy val system = Akka.system(Play.current)
   lazy val act = actor(name="new-games")(new Act with ActorLogging {
     // get a game --> publish in 10 seconds
     // get a game --> get a demo --> publish immediately
@@ -49,22 +51,24 @@ class NewGamesPlugin(implicit app: Application) extends Plugin {
       act ! GotNewDemoFor(message.getMessageObject)
     }
   })
-  override def onStart(): Unit = {
     act
     thingyId
     demosThingyId
-  }
-  override def onStop(): Unit = {
-    topic.removeMessageListener(thingyId)
-    demosTopic.removeMessageListener(demosThingyId)
-    act ! Kill
-  }
+
+  applicationLifecycle.addStopHook(() => {
+
+    import concurrent._
+
+    import ExecutionContext.Implicits.global
+    Future{blocking{
+      topic.removeMessageListener(thingyId)
+      demosTopic.removeMessageListener(demosThingyId)
+      act ! Kill}}
+  })
 
 }
 object NewGamesPlugin {
   case class GotNewGame(gameId: String)
   case class GotNewDemoFor(gameId: String)
   case class ServerState(server: String, json: String)
-  def newGamesPlugin: NewGamesPlugin = Play.current.plugin[NewGamesPlugin]
-    .getOrElse(throw new RuntimeException("NewGamesPlugin plugin not loaded"))
 }

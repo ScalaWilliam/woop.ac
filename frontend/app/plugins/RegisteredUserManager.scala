@@ -2,6 +2,7 @@ package plugins
 
 import org.scalactic._
 import play.api._
+import play.api.inject.ApplicationLifecycle
 import play.api.libs.json.{JsArray, JsString}
 import play.api.libs.ws.WS
 import play.api.mvc.Request
@@ -11,8 +12,6 @@ import scala.util.Try
 import scala.xml.PCData
 
 object RegisteredUserManager {
-  def userManagement: RegisteredUserManager = Play.current.plugin[RegisteredUserManager]
-    .getOrElse(throw new RuntimeException("RegisteredUserManager plugin not loaded"))
   case class GoogleEmailAddress(email: String)
   case class RegisteredUser(userId: String, email: String, gameName: String, shortName: String, hasAuth: Boolean)
   case class SessionState(sessionId: Option[String], googleEmailAddress: Option[GoogleEmailAddress], profile: Option[RegisteredUser])
@@ -20,7 +19,9 @@ object RegisteredUserManager {
   val SESSION_ID = "SESSION_ID"
   case class RegistrationDetail(gameNickname: String, shortName: String, userId: String, email: String, countryCode: String, ip: String)
 }
-class RegisteredUserManager(implicit app: Application) extends Plugin {
+import javax.inject._
+@Singleton
+class RegisteredUserManager @Inject()(applicationLifecycle: ApplicationLifecycle, hazelcastPlugin: HazelcastPlugin, basexProviderPlugin: BasexProviderPlugin) {
   
   lazy val authUri = Play.current.configuration.getString("auth.url").getOrElse(throw new RuntimeException("auth.url not set."))
 
@@ -45,11 +46,11 @@ return
     </rest:text>
       <rest:variable name="user-id" value={userId}/>
     </rest:query>
-    BasexProviderPlugin.awaitPlugin.query(theXml).map(_ => ())
+    basexProviderPlugin.query(theXml).map(_ => ())
   }
   
   def getAuthKey(userId: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
-    BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest"><rest:text><![CDATA[
+    basexProviderPlugin.query(<rest:query xmlns:rest="http://basex.org/rest"><rest:text><![CDATA[
     declare variable $user-id as xs:string external;
     data(/authed-user[@id=$user-id]/@key)[1]
     ]]></rest:text>
@@ -58,8 +59,8 @@ return
     }
   }
   
-  lazy val sessionEmails = HazelcastPlugin.hazelcastPlugin.hazelcast.getMap[String, String]("session-emails")
-  lazy val sessionTokens = HazelcastPlugin.hazelcastPlugin.hazelcast.getMap[String, String]("session-tokens")
+  lazy val sessionEmails = hazelcastPlugin.hazelcast.getMap[String, String]("session-emails")
+  lazy val sessionTokens = hazelcastPlugin.hazelcast.getMap[String, String]("session-tokens")
   def registerUser(registrationDetail: RegistrationDetail)(implicit ec: ExecutionContext): Future[Unit] = {
 
     val registerXml = <rest:query xmlns:rest='http://basex.org/rest'>
@@ -100,7 +101,7 @@ return
       <rest:variable name="country-code" value={registrationDetail.countryCode}/>
       <rest:variable name="ip" value={registrationDetail.ip}/>
     </rest:query>
-    BasexProviderPlugin.awaitPlugin.query(registerXml).map(x => if ( x.body.nonEmpty) throw new Exception("Expected empty response") else Unit)
+    basexProviderPlugin.query(registerXml).map(x => if ( x.body.nonEmpty) throw new Exception("Expected empty response") else Unit)
   }
   def registerValidation(registrationDetail: RegistrationDetail)(implicit ec: ExecutionContext): Future[Unit Or Every[ErrorMessage]] = {
     val xmlData = <rest:query xmlns:rest='http://basex.org/rest'>
@@ -143,7 +144,7 @@ return
       <rest:variable name="country-code" value={registrationDetail.countryCode}/>
       <rest:variable name="ip" value={registrationDetail.ip}/>
     </rest:query>
-    BasexProviderPlugin.awaitPlugin.query(xmlData).map { x =>
+    basexProviderPlugin.query(xmlData).map { x =>
 
       (x.xml \\ "failure").map(_.text).toList match {
         case first :: Nil => Bad(One(first))
@@ -154,7 +155,7 @@ return
   }
 
   def registerGoogleUser(email: String, data: String)(implicit ec: ExecutionContext): Future[Unit] = {
-    BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest='http://basex.org/rest'>
+    basexProviderPlugin.query(<rest:query xmlns:rest='http://basex.org/rest'>
         <rest:text><![CDATA[
           declare variable $email as xs:string external;
           declare variable $data as xs:string external;
@@ -165,7 +166,7 @@ return
   }
 
   def ipExists(ip: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest='http://basex.org/rest'>
+    basexProviderPlugin.query(<rest:query xmlns:rest='http://basex.org/rest'>
         <rest:text><![CDATA[
           declare variable $host as xs:string external;
         not(empty(/game/team/player[@host = $host]))
@@ -174,7 +175,7 @@ return
 
   def getRegisteredUser(email: String)(implicit ec: ExecutionContext): Future[Option[RegisteredUser]] = {
     for {
-      profileXml <- BasexProviderPlugin.awaitPlugin.query(
+      profileXml <- basexProviderPlugin.query(
         <rest:query xmlns:rest='http://basex.org/rest'>
           <rest:text>
             <![CDATA[
@@ -234,7 +235,7 @@ return
 
   def acceptOAuth(code: String)(implicit request : play.api.mvc.RequestHeader,  ec: ExecutionContext): Future[GoogleEmailAddress] = {
     for {
-      verifyTokenResponse <- WS.url("https://accounts.google.com/o/oauth2/token").post(Map(
+      verifyTokenResponse <- WS.url("https://accounts.google.com/o/oauth2/token")(Play.current).post(Map(
         "code" -> Seq(code),
         "client_id" -> Seq(clientId),
         "client_secret" -> Seq(clientSecret),
@@ -244,7 +245,7 @@ return
       token = (verifyTokenResponse.json \ "access_token").asOpt[JsString].map(_.value).getOrElse {
         throw new IllegalStateException(s"Access token not found, expected one in $verifyTokenResponse")
       }
-      personProfileResponse <- WS.url("https://content.googleapis.com/plus/v1/people/me").withHeaders("Authorization" -> s"Bearer $token").get()
+      personProfileResponse <- WS.url("https://content.googleapis.com/plus/v1/people/me")(Play.current).withHeaders("Authorization" -> s"Bearer $token").get()
       personProfileJson = personProfileResponse.json
       emailAddress = {
         val emails = for {

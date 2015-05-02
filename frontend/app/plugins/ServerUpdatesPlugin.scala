@@ -4,22 +4,26 @@ import akka.util.Timeout
 import com.hazelcast.core.{Message, MessageListener, Hazelcast}
 import org.json4s.jackson.Serialization._
 import play.api._
+import play.api.inject.ApplicationLifecycle
 import play.api.libs.concurrent.Akka
 import plugins.ServerUpdatesPlugin._
 
+import javax.inject._
+
 import scala.concurrent.Future
 
-class ServerUpdatesPlugin(implicit app: Application) extends Plugin {
+@Singleton
+class ServerUpdatesPlugin @Inject()(applicationLifecycle: ApplicationLifecycle, hazelcastPlugin: HazelcastPlugin, basexProviderPlugin: BasexProviderPlugin)  {
 
-  lazy val topic = HazelcastPlugin.hazelcastPlugin.hazelcast.getTopic[String]("server-status-updates")
+  lazy val topic = hazelcastPlugin.hazelcast.getTopic[String]("server-status-updates")
   import akka.actor.ActorDSL._
   lazy val currentState = scala.collection.mutable.Map.empty[String, String]
   var currentStateJson: String = "[]"
-  implicit lazy val system = Akka.system
+  implicit lazy val system = Akka.system(Play.current)
 
   def enrichUsers(json: String): Future[String] = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    BasexProviderPlugin.awaitPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
+    basexProviderPlugin.query(<rest:query xmlns:rest="http://basex.org/rest">
       <rest:text><![CDATA[
 declare option output:method 'json';
 declare variable $json as xs:string external;
@@ -91,12 +95,13 @@ return $jenny
       act ! GotUpdate(message.getMessageObject)
     }
   })
-    override def onStart(): Unit = {
       thingyId
-    }
-  override def onStop(): Unit = {
-    topic.removeMessageListener(thingyId)
-  }
+
+  applicationLifecycle.addStopHook(() => {
+    import concurrent._
+    import ExecutionContext.Implicits.global
+    Future(blocking(topic.removeMessageListener(thingyId)))
+  })
 
 }
 object ServerUpdatesPlugin {
@@ -115,6 +120,4 @@ object ServerUpdatesPlugin {
     }
   }
   case class ServerState(server: String, json: String)
-  def serverUpdatesPlugin: ServerUpdatesPlugin = Play.current.plugin[ServerUpdatesPlugin]
-    .getOrElse(throw new RuntimeException("ServerUpdatesPlugin plugin not loaded"))
 }

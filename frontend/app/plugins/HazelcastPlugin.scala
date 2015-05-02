@@ -3,23 +3,17 @@ package plugins
 import com.hazelcast.core.Hazelcast
 import com.hazelcast.core.Hazelcast
 import play.api._
-class HazelcastPlugin(implicit app: Application) extends Plugin {
+import play.api.inject.ApplicationLifecycle
+import javax.inject._
+class HazelcastPlugin @Inject()(applicationLifecycle: ApplicationLifecycle) {
 
-  lazy val hazelcast = {
+  val hazelcast = {
     val instance = Hazelcast.newHazelcastInstance()
     instance
   }
 
-  override def onStart(): Unit = {
-    hazelcast
-  }
+  import concurrent._
+  import ExecutionContext.Implicits.global
+  applicationLifecycle.addStopHook(() => Future(blocking(hazelcast.shutdown())))
 
-  override def onStop(): Unit = {
-    hazelcast.shutdown()
-  }
-
-}
-object HazelcastPlugin {
-  def hazelcastPlugin: HazelcastPlugin = Play.current.plugin[HazelcastPlugin]
-    .getOrElse(throw new RuntimeException("HazelcastPlugin plugin not loaded"))
 }

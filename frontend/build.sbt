@@ -35,3 +35,5 @@ publishArtifact in (Compile, packageBin) := false
 publishArtifact in (Universal, packageZipTarball) := true
 
 Seq(com.atlassian.labs.gitstamp.GitStampPlugin.gitStampSettings: _*)
+
+routesGenerator := InjectedRoutesGenerator
