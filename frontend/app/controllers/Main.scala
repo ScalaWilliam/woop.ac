@@ -185,7 +185,7 @@ rangerPlugin: RangerPlugin,
   case class UserRegistered(userId: String) extends Exception
   case class ContinueRegistering(countryCode: String) extends Exception
   case class YouAlreadyHaveAProfile() extends Exception
-  def createProfile = stated{implicit request => implicit state =>
+  def createProfile = stated{implicit request =>                             implicit state =>
 
     state match {
       case SessionState(_, None, _) =>
