@@ -12,8 +12,20 @@ scalacOptions += "-target:jvm-1.8"
 
 ideaExcludeFolders += ".idea_modules"
 
-lazy val root = (project in file(".")).aggregate(acm, next)
+val commonSettings = Seq(
+  scalaVersion := "2.11.6"
+)
 
-lazy val next = (project in file("next")).dependsOn(acm)
+lazy val root = (project in file(".")).aggregate(acm, frontend, logservice, pingerservice, rankservice)
 
-lazy val acm = project in file("acm")
+//lazy val next = project.dependsOn(acm).settings(commonSettings :_*)
+
+lazy val acm = project.settings(commonSettings :_*)
+
+lazy val frontend = project.enablePlugins(PlayScala, SbtWeb).settings(commonSettings :_*)
+
+lazy val logservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin).settings(commonSettings :_*)
+
+lazy val pingerservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin).settings(commonSettings :_*)
+
+lazy val rankservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin).settings(commonSettings :_*)

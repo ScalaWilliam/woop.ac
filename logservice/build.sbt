@@ -1,23 +1,22 @@
-enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
+
 organization := "acleague"
 name := "logservice"
-version := "1.0.23"
-scalaVersion := "2.11.4"
+version := "1.24"
 resolvers += "BaseX Maven Repository" at "http://files.basex.org/maven"
 libraryDependencies ++= Seq(
   "org.syslog4j" % "syslog4j" % "0.9.30",
-  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-  "org.scala-lang.modules" %% "scala-xml" % "1.0.2",
-  "ch.qos.logback" % "logback-classic" % "1.1.2",
-  "com.typesafe.akka" %% "akka-actor" % "2.3.6",
-  "com.typesafe.akka" %% "akka-slf4j" % "2.3.6",
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.6" % "test",
+  "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+  "org.scala-lang.modules" %% "scala-xml" % "1.0.4",
+  "ch.qos.logback" % "logback-classic" % "1.1.3",
+  "com.typesafe.akka" %% "akka-actor" % "2.3.10",
+  "com.typesafe.akka" %% "akka-slf4j" % "2.3.10",
+  "com.typesafe.akka" %% "akka-testkit" % "2.3.10" % "test",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
-  "com.hazelcast" % "hazelcast" % "3.4",
+  "com.hazelcast" % "hazelcast" % "3.4.2",
   "com.typesafe" % "config" % "1.2.1",
-  "joda-time" % "joda-time" % "2.6",
+  "joda-time" % "joda-time" % "2.7",
   "org.joda" % "joda-convert" % "1.7",
-  "org.basex" % "basex" % "8.0-20150113.211941-219" from "http://files.basex.org/maven/org/basex/basex/8.0-SNAPSHOT/basex-8.0-20150113.211941-219.jar"
+  "org.basex" % "basex" % "8.1.1"
 )
 
 mainClass in Compile := Option("acleague.app.LeagueApp")
