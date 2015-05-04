@@ -15,6 +15,7 @@ tsk := {
     Process(command = "cmd /c npm install", cwd = baseDirectory.value) !;
     Process(command = "cmd /c gulp build", cwd = baseDirectory.value) !
   } else {
-    Process(command = "npm install && gulp build", cwd = baseDirectory.value) !
+    Process(command = "npm install", cwd = baseDirectory.value) !
+    Process(command = "gulp build", cwd = baseDirectory.value) !
   }
 }
