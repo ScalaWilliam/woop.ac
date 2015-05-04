@@ -1,6 +1,6 @@
 package acl.hazy
 
-import acl.hazy.HazelcastSource.UpdateEvent
+import acl.hazy.HazelcastSource.{EntryListenerId, UpdateEvent}
 import akka.actor.{ActorLogging, Props}
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.Source
@@ -9,6 +9,8 @@ import com.hazelcast.core.{EntryEvent, MapEvent, EntryListener, IMap}
 import scala.annotation.tailrec
 
 object HazelcastSource {
+
+  case class EntryListenerId(entryListenerId: String)
   
   sealed trait UpdateEvent[K, V]
   case class EntryUpdated[K, V](key: K, value: Option[V], oldValue: Option[V]) extends UpdateEvent[K, V]
@@ -18,18 +20,18 @@ object HazelcastSource {
   case class MapCleared[K, V](event: MapEvent) extends UpdateEvent[K, V]
   case class MapEvicted[K, V](event: MapEvent) extends UpdateEvent[K, V]
 
-  def publisher[K, V](iMap: IMap[K, V]) = Source.actorPublisher[UpdateEvent[K, V]](Props(new HazelcastSource(iMap)))
+  def publisher[K, V](iMap: IMap[K, V], addEntryListener: EntryListener[K, V] => EntryListenerId) = Source.actorPublisher[UpdateEvent[K, V]](Props(new HazelcastSource(iMap, addEntryListener)))
 
 }
 import akka.actor.ActorDSL._
-class HazelcastSource[K, V](map: IMap[K, V]) extends ActorPublisher[UpdateEvent[K, V]] with ActorLogging with Act  {
+class HazelcastSource[K, V](map: IMap[K, V], addEntryListener: EntryListener[K, V] => EntryListenerId) extends ActorPublisher[UpdateEvent[K, V]] with ActorLogging with Act  {
 
   import akka.stream.actor.ActorPublisherMessage._
   import HazelcastSource._
 
   case class GotEvent(event: UpdateEvent[K, V])
 
-  lazy val listenerId = map.addEntryListener(new EntryListener[K, V]() {
+  lazy val listenerId = addEntryListener(new EntryListener[K, V]() {
     override def entryUpdated(event: EntryEvent[K, V]): Unit =
       self ! GotEvent(EntryUpdated(event.getKey, Option(event.getValue), Option(event.getOldValue)))
     override def entryEvicted(event: EntryEvent[K, V]): Unit =
@@ -42,7 +44,7 @@ class HazelcastSource[K, V](map: IMap[K, V]) extends ActorPublisher[UpdateEvent[
       self ! GotEvent(EntryRemoved(event.getKey, Option(event.getValue), Option(event.getOldValue)))
     override def mapCleared(event: MapEvent): Unit =
       self ! GotEvent(MapCleared(event))
-  }, true)
+  })
 
 
   whenStarting {
@@ -50,7 +52,7 @@ class HazelcastSource[K, V](map: IMap[K, V]) extends ActorPublisher[UpdateEvent[
   }
 
   whenStopping {
-    map.removeEntryListener(listenerId)
+    map.removeEntryListener(listenerId.entryListenerId)
   }
 
   val MaxBufferSize = 100
