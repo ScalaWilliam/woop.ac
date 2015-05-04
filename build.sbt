@@ -26,13 +26,15 @@ val commonSettings = Seq(
   )
 )
 
-lazy val root = (project in file(".")).aggregate(acm, frontend, logservice, pingerservice, rankservice, processing)
+lazy val root = (project in file(".")).aggregate(acm, frontend, logservice, pingerservice, rankservice, processing, hazy)
 
 //lazy val next = project.dependsOn(acm).settings(commonSettings :_*)
 
 lazy val acm = project.settings(commonSettings :_*)
 
 lazy val processing = project.settings(commonSettings :_*)
+
+lazy val hazy = project.settings(commonSettings :_*)
 
 lazy val frontend = project.enablePlugins(PlayScala, SbtWeb).settings(commonSettings :_*).dependsOn(processing)
 
