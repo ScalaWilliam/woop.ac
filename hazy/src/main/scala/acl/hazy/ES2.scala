@@ -1,26 +1,26 @@
-package acl
+package acl.hazy
 
 import java.util
 
-import acl.EventStore.EventStoreItem
 import com.hazelcast.core.MapStore
-import org.apache.http.client.HttpResponseException
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+import org.json4s.jackson.Serialization._
 
+import scala.beans.BeanProperty
 import scala.language.postfixOps
 import scala.xml.PCData
 
 
-import org.json4s.jackson.Serialization._
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
+case class EventStoreItem(@BeanProperty var timestamp: Long, @BeanProperty var jsonData: String)
 
-trait ES2 extends MapStore[String, EventStoreItem] {
+class ES2(kind: String, baseXConnector: BaseXConnector[Request]) extends MapStore[String, EventStoreItem] {
 
-  def httpUri: String
-  def auth: Request => Request
-  def kind: String
+  val httpUri = baseXConnector.httpUri
+
+  def auth(request: Request) = baseXConnector.auth(request)
 
   import collection.JavaConverters._
 
