@@ -1,6 +1,6 @@
 package controllers
 
-import java.io.{StringReader, InputStreamReader, FileReader, File}
+import java.io._
 import java.net.InetAddress
 import java.nio.file.Paths
 import java.util.UUID
@@ -27,31 +27,27 @@ import javax.inject._
 
 @Singleton
 class JSRenderPool() {
-  def stringData: List[String] = {
-    List( {
+  def inputData: InputStream = {
       val localPath = Paths.get("frontend-js", "build", "whut.js")
       if (localPath.toFile.exists()) {
-        scala.io.Source.fromFile(localPath.toFile).mkString
+        new FileInputStream(localPath.toFile)
       } else {
-        scala.io.Source.fromInputStream(getClass.getResourceAsStream("/whut.js")).mkString
-      } }
-    )
+        getClass.getResourceAsStream("/whut.js")
+      }
   }
-  val (compiled, engine) = {
+  val engine = {
     val engine = new ScriptEngineManager(null).getEngineByName("nashorn").asInstanceOf[NashornScriptEngine]
     engine.eval("var global = this;")
     engine.eval("var console = {}; console.debug = print; console.warn = print; console.log = print;")
-    engine.eval(stringData.mkString("\n"))
-    val compiled = engine.compile(stringData.mkString("\n"))
-    compiled.eval()
-    (compiled, engine)
+    engine.eval(new InputStreamReader(inputData))
+    engine
   }
   def execute(inputJson: String): String = {
-//    val bin = new SimpleBindings()
-//    bin.put("doIt", compiled)
-//    bin.put("inputStuff", inputJson)
-//    compiled.eval(bin)
-    engine.asInstanceOf[Invocable].invokeFunction("RenderMe", inputJson).asInstanceOf[String]
+    try engine.asInstanceOf[Invocable].invokeFunction("RenderMe", inputJson).asInstanceOf[String]
+    catch {
+      case e: Throwable =>
+        throw new RuntimeException(s"Failed to run script due to: $e. Script: $inputJson", e)
+    }
   }
 }
 
