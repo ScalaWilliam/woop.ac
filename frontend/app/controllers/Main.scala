@@ -4,7 +4,8 @@ import java.io.{StringReader, InputStreamReader, FileReader, File}
 import java.net.InetAddress
 import java.nio.file.Paths
 import java.util.UUID
-import javax.script.{ScriptEngine, Invocable, ScriptEngineManager}
+import javax.script._
+import jdk.nashorn.api.scripting.NashornScriptEngine
 import play.api.libs.json.Json
 import plugins.DataSourcePlugin.UserProfile
 import plugins.NewGamesPlugin.GotNewGame
@@ -26,20 +27,30 @@ import javax.inject._
 
 @Singleton
 class JSRenderPool() {
-  val engine = {
-    val engine = new ScriptEngineManager(null).getEngineByName("nashorn")
+  def stringData: List[String] = {
+    List( {
+      val localPath = Paths.get("frontend-js", "build", "whut.js")
+      if (localPath.toFile.exists()) {
+        scala.io.Source.fromFile(localPath.toFile).mkString
+      } else {
+        scala.io.Source.fromInputStream(getClass.getResourceAsStream("/whut.js")).mkString
+      } }
+    )
+  }
+  val (compiled, engine) = {
+    val engine = new ScriptEngineManager(null).getEngineByName("nashorn").asInstanceOf[NashornScriptEngine]
     engine.eval("var global = this;")
     engine.eval("var console = {}; console.debug = print; console.warn = print; console.log = print;")
-    val localPath = Paths.get("frontend-js", "build", "whut.js")
-    if ( localPath.toFile.exists() ) {
-      engine.eval(new FileReader(localPath.toFile))
-    } else {
-      val str = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/whut.js")).mkString
-      engine.eval(new StringReader(str))
-    }
-    engine
+    engine.eval(stringData.mkString("\n"))
+    val compiled = engine.compile(stringData.mkString("\n"))
+    compiled.eval()
+    (compiled, engine)
   }
   def execute(inputJson: String): String = {
+//    val bin = new SimpleBindings()
+//    bin.put("doIt", compiled)
+//    bin.put("inputStuff", inputJson)
+//    compiled.eval(bin)
     engine.asInstanceOf[Invocable].invokeFunction("RenderMe", inputJson).asInstanceOf[String]
   }
 }
