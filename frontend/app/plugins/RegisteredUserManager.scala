@@ -219,27 +219,24 @@ return
     sessionStateO.getOrElse(Future{SessionState(sessionIdO, None, None)})
   }
 
-  def mainUrl(implicit request : play.api.mvc.RequestHeader) =
-    controllers.routes.Main.oauth2callback().absoluteURL()
-
   val clientSecret = "ogosiu3tBdGniowsm46SPicS"
 
   val clientId = "220671553608-rkjg9fiun2l11enhqbs25ksimbd5k30a.apps.googleusercontent.com"
 
-  def authUrl(tokenValue: String)(implicit request : play.api.mvc.RequestHeader) = {
+  def authUrl(tokenValue: String)(implicit mainUrl: MainUrl) = {
     s"""https://accounts.google.com/o/oauth2/auth?scope=profile%20email&state=$tokenValue&""" +
-      s"""redirect_uri=$mainUrl&response_type=code&""" +
+      s"""redirect_uri=${mainUrl.mainUrl}&response_type=code&""" +
       s"""client_id=$clientId&""" +
       """access_type=offline"""
   }
 
-  def acceptOAuth(code: String)(implicit request : play.api.mvc.RequestHeader,  ec: ExecutionContext): Future[GoogleEmailAddress] = {
+  def acceptOAuth(code: String)(implicit request : play.api.mvc.RequestHeader,  ec: ExecutionContext, mainUrl: MainUrl): Future[GoogleEmailAddress] = {
     for {
       verifyTokenResponse <- WS.url("https://accounts.google.com/o/oauth2/token")(Play.current).post(Map(
         "code" -> Seq(code),
         "client_id" -> Seq(clientId),
         "client_secret" -> Seq(clientSecret),
-        "redirect_uri" -> Seq(mainUrl),
+        "redirect_uri" -> Seq(mainUrl.mainUrl),
         "grant_type" -> Seq("authorization_code")
       ))
       token = (verifyTokenResponse.json \ "access_token").asOpt[JsString].map(_.value).getOrElse {
@@ -260,3 +257,4 @@ return
   }
 
 }
+case class MainUrl(mainUrl: String)

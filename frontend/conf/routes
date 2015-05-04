@@ -3,22 +3,26 @@ GET         /questions/                  @controllers.Main.questions
 GET         /questions                   @controllers.Main.questions
 GET         /servers/                    @controllers.Main.servers
 GET         /servers                     @controllers.Main.servers
-GET         /login/                      @controllers.Main.login
 GET         /videos/                     @controllers.Main.videos
-GET         /login                       @controllers.Main.login
-GET         /server-updates              @controllers.Main.serversUpdates
-GET         /new-games                   @controllers.Main.newGames
-GET         /new-user-events             @controllers.Main.newUserEvents
+
+GET         /server-updates              @controllers.Streamed.serversUpdates
+GET         /new-games                   @controllers.Streamed.newGames
+GET         /new-user-events             @controllers.Streamed.newUserEvents
+
 GET         /profile/                    @controllers.Main.viewMe
 GET         /profile                     @controllers.Main.viewMe
-GET         /settings/                   @controllers.Main.settings
-PUT         /settings/issueKey/          @controllers.Main.settingsIssueKey
+
 GET         /players/                    @controllers.Main.viewPlayers
 GET         /player/:id/                 @controllers.Main.viewPlayer(id: String)
 GET         /player/:id                  @controllers.Main.viewPlayer(id: String)
-GET         /createProfile               @controllers.Main.createProfile
-POST        /createProfile               @controllers.Main.createProfile
-GET         /googleoauth2callback        @controllers.Main.oauth2callback
+
+GET         /login/                      @controllers.Accounting.login
+GET         /settings/                   @controllers.Accounting.settings
+PUT         /settings/issueKey/          @controllers.Accounting.settingsIssueKey
+GET         /createProfile               @controllers.Accounting.createProfile
+POST        /createProfile               @controllers.Accounting.createProfile
+GET         /googleoauth2callback        @controllers.Accounting.oauth2callback
+
 GET         /assets/*file                controllers.Assets.versioned(path="/public", file: Asset)
 GET         /game/:id/                   @controllers.Main.readGame(id: Int)
 GET         /game/:id                    @controllers.Main.readGame(id: Int)
