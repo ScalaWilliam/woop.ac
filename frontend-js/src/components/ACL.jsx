@@ -1,12 +1,5 @@
-var GameCards = React.createClass({
-    render() {
-        var stuff = this.props.games.map(function(game) {
-            var gameId = game.now ? game.now.server.server : game.id;
-            return <GameCard game={game} key={gameId}/>;
-        });
-        return <div>{stuff}</div>
-    }
-});
+var React = require("react");
+
 var MiniGameCard = React.createClass({
     render() {
         var game = this.props.game || this.props;
@@ -15,7 +8,7 @@ var MiniGameCard = React.createClass({
         return <li>
             <span>
                 <a href={`/game/${game.id}/`}>{game.mode} @ {game.map} {game.at}</a>
-            {gd}
+                {gd}
             </span>
         </li>;
     }
@@ -29,20 +22,20 @@ var YouTubeVideoCard = React.createClass({
         return <li>
             <iframe allowFullScreen="allowFullScreen" frameBorder="0" src={iframeSrc} height="270" width="480">
             </iframe>
-        {game}
+            {game}
         </li>;
     }
 });
 var PersonProfile = React.createClass({
     render() {
         var person = this.props.profile || this.props.person || this.props;
-        var achievements = person.achievements.map((a) => <AchievementCard achievement={a}/>);
+        var achievements = person.achievements.map((a) => <AchievementCard achievement={a} key={a.title}/>);
         var basics = <table className="basic-counts">
             <tr><th>Time played</th><td>{person.basics['time-played']}</td>
                 <th>Flags</th><td>{person.basics.flags}</td></tr>
             <tr><th>Games played</th><td>{person.basics['games-played']}</td>
                 <th>Frags</th><td>{person.basics.frags}</td></tr></table>;
-        var recentGames = person['recent-games'].map((g) => <MiniGameCard game={g}/>);
+        var recentGames = person['recent-games'].map((g) => <MiniGameCard game={g} key={g.game}/>);
         return <div className="profile">
             <h1>{person.nickname}</h1>
             <div className="main-info">
@@ -50,13 +43,13 @@ var PersonProfile = React.createClass({
                 <div className="achievements">
                     <h3>Achievements</h3>
                     <div className="achievements">
-                    {achievements}
+                        {achievements}
                     </div>
                 </div>
             </div>
             <h2>Recent games</h2>
             <ol className="recent-games">
-            {recentGames}
+                {recentGames}
             </ol>
             <section id="vids">
                 <h2>Mentions on YouTube</h2>
@@ -64,12 +57,12 @@ var PersonProfile = React.createClass({
                     <i>Let us know when you upload one so we can approve it.</i>
                 </p>
                 <ol id="vids">{
-                    person.youtubes.map((v) => <YouTubeVideoCard video={v}/>)
-                    }
+                    person.youtubes.map((v) => <YouTubeVideoCard video={v} key={v.id}/>)
+                }
                 </ol>
             </section>
         </div>
-        
+
     }
 });
 var AchievementCard = React.createClass({
@@ -77,17 +70,17 @@ var AchievementCard = React.createClass({
         var achievement = this.props.achievement || this.props;
         var className = [
             'AchievementCard',
-            `achievement-${this.props.type}`,
+            `achievement-${this.props.achievement.type}`,
             'achievement',
             achievement.achieved ? 'achieved' : 'notAchieved'
         ].join(" ");
         var progStyle = (function(progress) {
             if ( progress <= 50 ) {
                 var rightDeg = Math.round(90 + 3.6 * progress);
-                return {backgroundImage: "linear-gradient(90deg, #2f3439 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), linear-gradient("+rightDeg+"deg, #ff6347 50%, #2f3439 50%, #2f3439);"};
+                return {backgroundImage: "linear-gradient(90deg, #2f3439 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), linear-gradient("+rightDeg+"deg, #ff6347 50%, #2f3439 50%, #2f3439)"};
             } else {
                 var leftDeg = Math.round(3.6 * progress - 270);
-                return {backgroundImage: "linear-gradient("+leftDeg+"deg, #ff6347 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), linear-gradient(270deg, #ff6347 50%, #2f3439 50%, #2f3439);"};
+                return {backgroundImage: "linear-gradient("+leftDeg+"deg, #ff6347 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), linear-gradient(270deg, #ff6347 50%, #2f3439 50%, #2f3439)"};
             }
         })(achievement['progress-percent']);
         var achievementLeft;
@@ -97,11 +90,11 @@ var AchievementCard = React.createClass({
             achievementLeft = <div className="progress-radial" style={progStyle}><div className="overlay">{achievement['progress-percent']}%</div></div>
         } else {
             achievementLeft =  <div className="progress-radial progress-0"><div className="overlay"></div></div>
-        } 
+        }
         var achievementTable;
         if ( achievement.table ) {
             var maps = achievement.table.map(function (map) {
-                return <tr className={map.completed ? 'complete' : 'incomplete'}>
+                return <tr className={map.completed ? 'complete' : 'incomplete'} key={map.map}>
                     <th>{map.mode} @ {map.map}</th>
                     <td className={['cla', map['progress-cla'] == map['target-cla'] ? 'complete' : 'partial'].join(" ")}>{map['progress-cla']}/{map['target-cla']}</td>
                     <td className={['rvsf', map['progress-rvsf'] == map['target-rvsf'] ? 'complete' : 'partial'].join(" ")}>{map['progress-rvsf']}/{map['target-rvsf']}</td>
@@ -123,8 +116,8 @@ var AchievementCard = React.createClass({
                     <section className="content">{achievementTable} {this.props.children}</section>
                     <p className="achieved-on">{achievement.when}</p>
                 </div>
-                    </div>
-                    </div>
+            </div>
+        </div>
     }
 });
 var LiveEvents = React.createClass({
@@ -202,17 +195,17 @@ var GameCard = React.createClass({
         });
 
         var spectatorsCnt = game.teams.filter(team => team.name == 'SPECTATOR').filter(team => team.players.length > 0).map(spectatorsTeam =>
-            <div className="spectators">
-                <h4>Spectators:</h4>
-                <ul>{spectatorsTeam.players.map(function(spectator) {
-                    var spectatorName = <span>{spectator.name}</span>;
-                    if ( spectator.user ) {
-                        var userLink = `/player/{ spectator.user }/`;
-                        spectatorName = <a href={userLink}>{spectator.name}</a>;
-                    }
-                    return <li key={spectator.name}>{spectatorName}</li>
-                })}</ul>
-            </div>
+                <div className="spectators">
+                    <h4>Spectators:</h4>
+                    <ul>{spectatorsTeam.players.map(function(spectator) {
+                        var spectatorName = <span>{spectator.name}</span>;
+                        if ( spectator.user ) {
+                            var userLink = `/player/{ spectator.user }/`;
+                            spectatorName = <a href={userLink}>{spectator.name}</a>;
+                        }
+                        return <li key={spectator.name}>{spectatorName}</li>
+                    })}</ul>
+                </div>
         ).shift();
 
         return <article className={classes} style={style}>
@@ -226,89 +219,15 @@ var GameCard = React.createClass({
         </article>;
     }
 });
-function loadGame() {
-    var gameCnt = document.querySelector("#game");
-    if ( gameCnt ) {
-        var gamesJson = JSON.parse(gameCnt.getAttribute('data-game'));
-        if ( gamesJson ) {
-            React.render(<GameCards games={gamesJson}/>, gameCnt);
-        }
-    }
-}
-function loadGames() {
-    var gamesCnt = document.querySelector('#games');
-    var dynamicGamesCnt = document.querySelector('#dynamic-games');
-    function renderGames(liveGames, newGames) {
-        React.render(
-            <GameCards games={[].concat(liveGames.filter((g) => g.reasonablyActive), newGames)} />,
-            dynamicGamesCnt
-        );
-    }
-    if ( gamesCnt ) {
-        var liveGames = JSON.parse(gamesCnt.getAttribute('data-initial-live'));
-        var newGames = [];
-        function getLiveGame(msg) {
-            var liveGame = JSON.parse(msg.data);
-            liveGames = liveGames.map(function(game) {
-                var thisServer = game.now && liveGame.now && game.now.server && liveGame.now.server && game.now.server.server == liveGame.now.server.server;
-                if ( thisServer ) {
-                    return liveGame;
-                } else {
-                    return game;
-                }
-            });
-            if ( liveGames.indexOf(liveGame) === -1 ) liveGames.push(liveGame);
-            renderGames(liveGames, newGames);
-        }
-        function getNewGame(msg) {
-            var newGame = JSON.parse(msg.data);
-            newGame.isNew = true;
-            newGames.unshift(newGame);
-            renderGames(liveGames, newGames);
-        }
-        function prepareLiveSocket(uri) {
-            var liveSocket = new WebSocket(uri);
-            liveSocket.onmessage = getLiveGame;
-            liveSocket.onclose = function() {
-                setTimeout(function() {
-                    prepareLiveSocket(uri);
-                }, 5000);
-            }
-        }
-        function prepareNewSocket(uri) {
-            var newSocket = new WebSocket(uri);
-            newSocket.onmessage = getNewGame;
-            newSocket.onclose = function() {
-                setTimeout(function() {
-                    prepareNewSocket(uri);
-                }, 5000);
-            }
-        }
-        prepareLiveSocket(games.getAttribute('data-live-url'));
-        prepareNewSocket(games.getAttribute('data-new-url'));
-    }
-}
-function loadProfile() {
-    var profileThingy = document.querySelector('#profile');
-    if ( profileThingy ) {
-        var theDatas = JSON.parse(profileThingy.getAttribute('data-profile'));
-        React.render(<PersonProfile profile={theDatas}/>, profileThingy);
-    }
-}
-function loadEvents() {
-    var eventsThing = document.querySelector('#live-events');
-    if ( eventsThing ) {
-        var theWsUrl = eventsThing.getAttribute('data-live-url');
-        var theDatas = JSON.parse(eventsThing.getAttribute('data-initial'));
-        React.render(
-            <LiveEvents events={theDatas} />,
-            eventsThing
-        );
-    }
-}
 
-// this runs after dom load, as jsx only compiled after load.
-loadProfile();
-loadGames();
-loadGame();
-loadEvents();
+var GameCards = React.createClass({
+    render() {
+        var stuff = this.props.games.map(function(game) {
+            var gameId = game.now ? game.now.server.server : game.id;
+            return <GameCard game={game} key={gameId}/>;
+        });
+        return <div>{stuff}</div>
+    }
+});
+
+module.exports = {PersonProfile: PersonProfile, GameCards: GameCards};

@@ -1,0 +1,51 @@
+/* material-ui */
+@import "node_modules/material-ui/src/less/scaffolding.less";
+
+//Define a custom less file to override any variables defined in scaffolding.less
+@import "custom-overrides.less";
+
+@import "node_modules/material-ui/src/less/components.less";
+
+.example-page {
+  padding-top: 5em;
+  margin-left:25em;
+}
+.uw {
+  margin:1em;
+}
+
+.person {
+
+}
+.search-results {
+  display:flex;
+  flex-wrap: wrap;
+  align-content: space-around;
+  justify-content: space-around;
+}
+.search-item, .search-item > .mui-paper {
+  width:15em;
+}
+.search-item > .mui-paper {
+  background-repeat:no-repeat;
+  background-size: contain;
+}
+img {
+  max-width:100%;
+}
+.search-item {
+    & img {
+      max-width:10em;
+  }
+}
+.split {
+  display:flex;
+}
+
+.people-index {
+  width:30em;
+
+}
+.people {
+  flex:1;
+}

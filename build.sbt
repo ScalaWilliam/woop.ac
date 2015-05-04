@@ -26,7 +26,7 @@ val commonSettings = Seq(
   )
 )
 
-lazy val root = (project in file(".")).aggregate(acm, frontend, logservice, pingerservice, rankservice, processing, hazy)
+lazy val root = (project in file(".")).aggregate(acm, frontend, logservice, pingerservice, rankservice, processing, hazy, frontendJs)
 
 //lazy val next = project.dependsOn(acm).settings(commonSettings :_*)
 
@@ -36,10 +36,12 @@ lazy val processing = project.settings(commonSettings :_*)
 
 lazy val hazy = project.settings(commonSettings :_*)
 
-lazy val frontend = project.enablePlugins(PlayScala, SbtWeb).settings(commonSettings :_*).dependsOn(processing)
+lazy val frontend = project.enablePlugins(PlayScala, SbtWeb).settings(commonSettings :_*).dependsOn(processing, frontendJs)
 
 lazy val logservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin).settings(commonSettings :_*)
 
 lazy val pingerservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin).settings(commonSettings :_*)
 
 lazy val rankservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin).settings(commonSettings :_*)
+
+lazy val frontendJs = (project in file("frontend-js")).settings(scalaVersion := "2.11.6").enablePlugins(SbtJsEngine)

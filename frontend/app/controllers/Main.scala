@@ -1,8 +1,10 @@
 package controllers
 
-import java.io.File
+import java.io.{StringReader, InputStreamReader, FileReader, File}
 import java.net.InetAddress
+import java.nio.file.Paths
 import java.util.UUID
+import javax.script.{ScriptEngine, Invocable, ScriptEngineManager}
 import play.api.libs.json.Json
 import plugins.DataSourcePlugin.UserProfile
 import plugins.NewGamesPlugin.GotNewGame
@@ -17,10 +19,30 @@ import plugins.ServerUpdatesPlugin.{GiveStates, CurrentStates, ServerState}
 import plugins._
 import plugins.RegisteredUserManager.{RegisteredSession, GoogleEmailAddress, RegistrationDetail, SessionState}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
+import scala.util.{DynamicVariable, Try}
 import scala.async.Async.{async, await}
 import javax.inject._
 
+
+@Singleton
+class JSRenderPool() {
+  val engine = {
+    val engine = new ScriptEngineManager(null).getEngineByName("nashorn")
+    engine.eval("var global = this;")
+    engine.eval("var console = {}; console.debug = print; console.warn = print; console.log = print;")
+    val localPath = Paths.get("frontend-js", "build", "whut.js")
+    if ( localPath.toFile.exists() ) {
+      engine.eval(new FileReader(localPath.toFile))
+    } else {
+      val str = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/whut.js")).mkString
+      engine.eval(new StringReader(str))
+    }
+    engine
+  }
+  def execute(inputJson: String): String = {
+    engine.asInstanceOf[Invocable].invokeFunction("RenderMe", inputJson).asInstanceOf[String]
+  }
+}
 
 
 class Main @Inject()
@@ -30,7 +52,8 @@ val registeredUserManager: RegisteredUserManager,
 serverUpdatesPlugin: ServerUpdatesPlugin,
 dataSourcePlugin: DataSourcePlugin,
 rangerPlugin: RangerPlugin,
-awaitUserUpdatePlugin: AwaitUserUpdatePlugin
+awaitUserUpdatePlugin: AwaitUserUpdatePlugin,
+renderer: JSRenderPool
 ) extends Controller with SysActions {
 
   import ExecutionContext.Implicits.global
@@ -51,8 +74,9 @@ awaitUserUpdatePlugin: AwaitUserUpdatePlugin
           events <- eventsF
           st <- currentStatesF
         }
-          yield
-      Ok(views.html.homepage(st, events, xmlContent))
+          yield {
+            Ok(views.html.homepage(st, events, xmlContent, Html(renderer.execute(xmlContent))))
+          }
   }
 
   def readGame(id: Int) = stated { _ => implicit s =>
@@ -76,12 +100,16 @@ awaitUserUpdatePlugin: AwaitUserUpdatePlugin
 
   def viewPlayer(id: String) = stated {
     r => implicit s =>
-      for { stuff <- dataSource.viewUser(id) }
+      for { stuff <-
+//            Future.successful(Option(UserProfile("John", profileData = """{"name": "John"}""")))
+            dataSource.viewUser(id)
+      }
       yield
         stuff match {
           case None => NotFound
           case Some(UserProfile(name, profileData)) =>
-            Ok(views.html.viewProfile(name, profileData))
+            val profileDataHtml = Html(renderer.execute(profileData))
+            Ok(views.html.viewProfile(name, profileDataHtml))
         }
   }
 

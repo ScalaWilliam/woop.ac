@@ -9,3 +9,4 @@ addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0")
 
 addSbtPlugin("com.atlassian.labs" % "sbt-git-stamp" % "0.1.2")
+

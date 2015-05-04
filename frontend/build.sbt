@@ -2,7 +2,7 @@ organization := "acleague"
 
 name:="frontend"
 
-version := "2.16"
+version := "2.17"
 
 libraryDependencies ++= Seq(
   "com.hazelcast"%"hazelcast"%"3.4.2",
