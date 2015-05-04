@@ -15,6 +15,6 @@ trait BaseXMapStoreFactory extends MapStoreFactory[Any, Any] {
     override def auth(request: Request): Request = bx.auth(request)
   }
   override def newMapStore(mapName: String, properties: Properties): MapLoader[Any, Any] = {
-    (new ES2(kind = namePrefix(mapName), baseXConnector = basexConnector)).asInstanceOf[MapLoader[Any, Any]]
+    (new EventMapStore(kind = namePrefix(mapName), baseXConnector = basexConnector)).asInstanceOf[MapLoader[Any, Any]]
   }
 }

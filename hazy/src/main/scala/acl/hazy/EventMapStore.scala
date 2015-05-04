@@ -9,14 +9,10 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
 
-import scala.beans.BeanProperty
 import scala.language.postfixOps
 import scala.xml.PCData
 
-
-case class EventStoreItem(@BeanProperty var timestamp: Long, @BeanProperty var jsonData: String)
-
-class ES2(kind: String, baseXConnector: BaseXConnector[Request]) extends MapStore[String, EventStoreItem] {
+class EventMapStore(kind: String, baseXConnector: BaseXConnector[Request]) extends MapStore[String, EventStoreItem] {
 
   val httpUri = baseXConnector.httpUri
 

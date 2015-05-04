@@ -39,7 +39,7 @@ class EventStoreSpec extends WordSpec with BeforeAndAfterAll with Matchers {
 
   "Event Store" must {
 
-    val es = new ES2(kind = "whoa", baseXConnector = new BaseXConnector[Request] {
+    val es = new EventMapStore(kind = "whoa", baseXConnector = new BaseXConnector[Request] {
       override def httpUri: String = "http://127.0.0.1:8984/rest/kush"
       override def auth(request: Request): Request = request.addHeader("Authorization", "Basic YWRtaW46YWRtaW4=")
     })
