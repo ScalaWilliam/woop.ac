@@ -219,9 +219,9 @@ return
     sessionStateO.getOrElse(Future{SessionState(sessionIdO, None, None)})
   }
 
-  val clientSecret = Play.current.configuration.getString("google.clientsecret").getOrElse{throw new RuntimeException("'google.clientsecret' configuration required")}
+  lazy val clientSecret = Play.current.configuration.getString("google.clientsecret").getOrElse{throw new RuntimeException("'google.clientsecret' configuration required")}
 
-  val clientId = Play.current.configuration.getString("google.clientid").getOrElse{throw new RuntimeException("'google.clientid' configuration required")}
+  lazy val clientId = Play.current.configuration.getString("google.clientid").getOrElse{throw new RuntimeException("'google.clientid' configuration required")}
 
   def authUrl(tokenValue: String)(implicit mainUrl: MainUrl) = {
     s"""https://accounts.google.com/o/oauth2/auth?scope=profile%20email&state=$tokenValue&""" +
