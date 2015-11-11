@@ -356,23 +356,6 @@ object Imperative {
   def acceptGame[UserId](userRepository: UserRepository[UserId])(game: Game): AcceptanceResult[UserId] = {
     val events = scala.collection.mutable.Buffer.empty[(UserId, UserEvent)]
     val gameDate = DateTime.parse(game.date)
-    val affectedUsers = (
-      for {
-        (userId, _, _) <- game.playersAsUsers(gameDate)(userRepository)
-      } yield userId
-      ).toSet
-
-    // dday in a day achievement
-    for {
-      (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
-      if !user.hasDDay.isDefined
-    } {
-      user.dDayAchievement.include(game.date.substring(0, 10))
-      if ( user.dDayAchievement.isCompleted ) {
-        user.hasDDay = Option(game.id)
-        events += user.id -> AchievedDDay
-      }
-    }
 
     // flag master achievement
     if ( game.acMap.mode == "ctf") {
