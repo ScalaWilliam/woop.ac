@@ -29,7 +29,7 @@ object ExtractMessage {
       case matcher(date, serverId, message) => try {
         val dat = {
           val jdt = dateFmt.parseDateTime(date).withZone(DateTimeZone.UTC).getMillis
-          ZonedDateTime.ofInstant(Instant.ofEpochMilli(jdt), ZoneId.of("UTC"))
+          ZonedDateTime.ofInstant(Instant.ofEpochMilli(jdt), ZoneId.of("UTC")).withNano(0)
         }
 
         (dat, serverId, message)
