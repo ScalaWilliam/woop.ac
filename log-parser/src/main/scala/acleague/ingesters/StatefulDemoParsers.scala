@@ -3,6 +3,9 @@ package acleague.ingesters
 sealed trait DemoCollector {
   def next(input: String): DemoCollector
 }
+object DemoCollector {
+  def empty: DemoCollector = NoDemosCollected
+}
 case object NoDemosCollected extends DemoCollector {
   def next(input: String) = input match {
     case DemoRecorded(demo) => DemoRecordedCollected(demo)

@@ -16,13 +16,8 @@ object JsonGame {
   implicit val Af = Json.format[JsonGamePlayer]
   implicit val Bf = Json.format[JsonGameTeam]
   implicit val fmt = Json.format[JsonGame]
-}
 
-object EnrichFoundGame {
-
-  case class GameXmlReady(xml: String)
-
-  def jsonGame(foundGame: FoundGame, date: ZonedDateTime, serverId: String, duration: Int): JsonGame = {
+  def build(foundGame: FoundGame, date: ZonedDateTime, serverId: String, duration: Int): JsonGame = {
     val fdt = date.format(DateTimeFormatter.ISO_INSTANT)
 
     JsonGame(
@@ -49,6 +44,12 @@ object EnrichFoundGame {
       }
     )
   }
+}
+
+object EnrichFoundGame {
+
+  case class GameXmlReady(xml: String)
+
 
   def apply(foundGame: FoundGame)(date: DateTime, serverId: String, duration: Int): GameXmlReady = {
     val gameXml = foundGameXml(foundGame)

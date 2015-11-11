@@ -2,6 +2,14 @@ package acleague.ingesters
 
 sealed trait GameDuration {
   def next(input: String): GameDuration
+  def getOrElse(num: Int): Int = this match {
+    case GameFinished(n) => n
+    case GameInProgress(duration, _) => duration
+    case NoDurationFound => num
+  }
+}
+object GameDuration {
+  def empty: GameDuration = NoDurationFound
 }
 case object NoDurationFound extends GameDuration {
   override def next(input: String): GameDuration = {
@@ -38,6 +46,9 @@ case class GameFinished(duration: Int) extends GameDuration {
 
 sealed trait ParserState {
   def next(input: String): ParserState
+}
+object ParserState {
+  val empty: ParserState = NothingFound
 }
 case object NothingFound extends ParserState {
   def next(input: String): ParserState = {
