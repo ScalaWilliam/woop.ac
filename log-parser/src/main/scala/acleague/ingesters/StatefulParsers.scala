@@ -135,6 +135,7 @@ case class ReadingFlagScores(builder: FlagGameBuilder) extends ParserState {
 }
 case class FoundGame(header: GameFinishedHeader, game: Either[FlagGameBuilder, FragGameBuilder]) extends ParserState {
   def next(input: String) = NothingFound.next(input)
+
 }
 object FoundGame {
   val teamsMap = Map("RVSF" -> "RVSF", "CLA" -> "CLA", "RSPC"-> "RVSF", "CSPC" -> "CLA")

@@ -52,8 +52,6 @@ class IndividualServerActor(serverId: String) extends Act with ActorLogging {
         _ = { if ( !(averageFrags >= 15) ) log.info(s"Rejecting this game because average frags < 15: $averageFrags")}
         if averageFrags >= 15
 
-        jsonGame = EnrichFoundGame.jsonGame(fg, JodaTimeToZDT(date), serverId, duration)
-
       } {
         lastGameO = Option(enrichedGame)
         context.system.eventStream.publish(enrichedGame)
