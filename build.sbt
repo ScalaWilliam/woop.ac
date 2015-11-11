@@ -17,7 +17,10 @@ lazy val root = (project in file(".")).aggregate(
 lazy val logParser = Project(
   id = "log-parser",
   base = file("log-parser"))
+  .enablePlugins(JavaAppPackaging)
+  .enablePlugins(RpmPlugin)
   .settings(
+    rpmVendor := "typesafe",
     libraryDependencies += json
   )
 
