@@ -16,13 +16,15 @@ class RabbitMQPublisherActor(hostname: String, exchangeName: String) extends Act
   cf.setHost(hostname)
   val conn = cf.newConnection()
   val channel = conn.createChannel()
+  channel.exchangeDeclare(exchangeName, "fanout", true)
 
   whenStarting {
     log.info("Started up rabbitmq publisher")
+    channel.basicPublish(exchangeName, "test", null, "test".getBytes("UTF-8"))
+
   }
   become {
     case GameJsonFound(jsonGame) =>
-      channel.exchangeDeclare(exchangeName, "fanout")
       channel.basicPublish(exchangeName, "game-found", null, jsonGame.toJson.toString().getBytes("UTF-8"))
   }
 }
