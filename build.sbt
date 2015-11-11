@@ -22,7 +22,8 @@ lazy val logParser = Project(
   .settings(
     rpmVendor := "typesafe",
     libraryDependencies += json,
-    rpmBrpJavaRepackJars := true
+    rpmBrpJavaRepackJars := true,
+    version :="4.0"
   )
 
 lazy val achievements = Project(
