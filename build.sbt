@@ -32,7 +32,7 @@ lazy val achievements = Project(
   base = file("achievements"))
   .settings(
     libraryDependencies += json
-  )
+  ).dependsOn(logParser)
 
 lazy val frontend = project.enablePlugins(PlayScala, SbtWeb).dependsOn(frontendJs)
 

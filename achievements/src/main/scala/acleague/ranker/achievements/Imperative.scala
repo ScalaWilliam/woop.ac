@@ -9,6 +9,7 @@ import scala.xml.{Elem, Node}
  * Created by William on 10/01/2015.
  */
 object Imperative {
+
   implicit class attText(elem: Node) {
     def attText(name: String) = (elem \ s"@$name").text
   }
@@ -360,65 +361,6 @@ object Imperative {
         (userId, _, _) <- game.playersAsUsers(gameDate)(userRepository)
       } yield userId
       ).toSet
-    for {
-      (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
-    } {
-      user.playedGames += PlayedInGame(game.id, player.name, player.host)
-      for {addFlags <- player.flags} {
-        user.flags = user.flags + addFlags
-      }
-      user.frags = user.frags + player.frags
-      user.timePlayed = user.timePlayed + game.duration
-      user.gamesPlayed = user.gamesPlayed + 1
-    }
-
-    if ( game.acMap.mode == "ctf") {
-      for {
-        firstTeam <- game.teams
-        secondTeam <- game.teams; if secondTeam != firstTeam
-        player <- firstTeam.players
-        if player.frags >= 80
-        if secondTeam.players.exists(userRepository(gameDate)(_).isDefined)
-        user <- userRepository(gameDate)(player)
-        userId = user.id
-        if !user.slaughterer.isDefined
-      } {
-        user.slaughterer = Option(game.id)
-        events += userId -> Slaughter
-      }
-    }
-
-    // Maverick
-    if ( game.acMap.mode == "ctf" ) {
-      for {
-        winningTeam <- game.teams
-        winningTeamFlags <- winningTeam.flags
-        losingTeam <- game.teams
-        if winningTeam != losingTeam
-        losingTeamFlags <- losingTeam.flags
-        // require enemy player who is registered, not random noob
-        if losingTeam.players.exists(userRepository(gameDate)(_).isDefined)
-        if winningTeamFlags > losingTeamFlags
-        player <- winningTeam.players
-        playerFlags <- player.flags
-        if winningTeamFlags == playerFlags
-        if winningTeamFlags >= 5
-        user <- userRepository(gameDate)(player)
-        if !user.soloFlagger.isDefined
-      } {
-        user.soloFlagger = Option(game.id)
-        events += user.id -> SoloFlagger
-      }
-    }
-
-    for {
-      (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
-      if !user.hasTerribleGame.isDefined
-      if player.frags <= 15
-    } {
-      user.hasTerribleGame = Option(game.id)
-      events += userId -> TerribleGame
-    }
 
     // dday in a day achievement
     for {
@@ -432,30 +374,6 @@ object Imperative {
       }
     }
 
-    if ( game.acMap.mode == "team one shot, one kill") {
-      for {
-        (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
-        if !user.isTosokLover.isDefined
-      } {
-        user.tosokLover.count = user.tosokLover.count + 1
-        if ( user.tosokLover.isCompleted ) {
-          user.isTosokLover = Option(game.id)
-          events += user.id -> BecameTosokLover
-        }
-      }
-    }
-    if ( game.acMap.mode == "team deathmatch") {
-      for {
-        (userId, user, player) <- game.playersAsUsers(gameDate)(userRepository)
-        if !user.isTdmLover.isDefined
-      } {
-        user.tdmLover.count = user.tdmLover.count + 1
-        if ( user.tdmLover.isCompleted ) {
-          user.isTdmLover = Option(game.id)
-          events += user.id -> BecameTdmLover
-        }
-      }
-    }
     // flag master achievement
     if ( game.acMap.mode == "ctf") {
       for {
