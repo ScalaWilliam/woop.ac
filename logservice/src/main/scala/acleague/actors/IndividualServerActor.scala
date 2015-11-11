@@ -1,11 +1,14 @@
 package acleague.actors
 
+import java.time.ZonedDateTime
+
 import acleague.actors.ReceiveMessages.RealMessage
-import acleague.enrichers.EnrichFoundGame
+import acleague.enrichers.{JodaTimeToZDT, EnrichFoundGame}
 import acleague.enrichers.EnrichFoundGame.GameXmlReady
 import acleague.ingesters._
 import akka.actor.ActorDSL._
 import akka.actor.{ActorLogging, Props}
+import org.joda.time.format.ISODateTimeFormat
 
 object IndividualServerActor {
   def props(serverId: String) = Props(new IndividualServerActor(serverId))
@@ -49,9 +52,12 @@ class IndividualServerActor(serverId: String) extends Act with ActorLogging {
         _ = { if ( !(averageFrags >= 15) ) log.info(s"Rejecting this game because average frags < 15: $averageFrags")}
         if averageFrags >= 15
 
+        jsonGame = EnrichFoundGame.jsonGame(fg, JodaTimeToZDT(date), serverId, duration)
+
       } {
         lastGameO = Option(enrichedGame)
         context.system.eventStream.publish(enrichedGame)
+        context.system.eventStream.publish(jsonGame)
       }
 
       val previousDemoState = demoState

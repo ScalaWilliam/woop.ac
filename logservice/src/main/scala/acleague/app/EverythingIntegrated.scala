@@ -11,6 +11,7 @@ object AppConfig {
   val basexPort = conf.getInt("acleague.basex.port")
   val basexDatabaseName = conf.getString("acleague.basex.database")
   val journalPath = new File(conf.getString("acleague.journal.path")).getCanonicalFile
+  val eventJournalPath = new File(conf.getString("acleague.eventjournal.path")).getCanonicalFile
   val syslogHost = conf.getString("acleague.syslog.host")
   val syslogPort = conf.getInt("acleague.syslog.port")
   val syslogProtocol = conf.getString("acleague.syslog.protocol")
@@ -22,6 +23,8 @@ object AppConfig {
   val diagnosticEnable = conf.getBoolean("acleague.diagnostic.enable")
   val downloadDemos = conf.getBoolean("acleague.demos.download.enable")
   val downloadDemosPath = new File(conf.getString("acleague.demos.download.path")).getCanonicalFile
+  val rabbitHost = conf.getString("acleague.rabbitmq.host")
+  val rabbitExchangeName = conf.getString("acleague.rabbitmq.exchange-name")
 }
 
 object Util {

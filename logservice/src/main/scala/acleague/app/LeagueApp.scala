@@ -5,6 +5,7 @@ import acleague.actors.ReceiveMessages.RealMessage
 import acleague.actors.SyslogServerActor.SyslogServerOptions
 import acleague.actors._
 import acleague.enrichers.EnrichFoundGame.GameXmlReady
+import acleague.enrichers.GameJsonFound
 import acleague.publishers.GamePublisher.{NewlyAdded, ConnectionOptions}
 import acleague.syslog.SyslogServerEventIFScala
 import akka.actor.ActorSystem
@@ -93,6 +94,24 @@ object LeagueApp extends App with LazyLogging {
       channel = classOf[GameDemoFound]
     )
   }
+
+  val eventJournal = system.actorOf(
+    name = "eventJournal",
+    props = EventsJournallingActor.props(AppConfig.eventJournalPath)
+  )
+  system.eventStream.subscribe(
+    subscriber = eventJournal,
+    channel = classOf[GameJsonFound]
+  )
+  val rabbitPublisher = system.actorOf(
+    name = "rabbitPublisher",
+    props = RabbitMQPublisherActor.props(AppConfig.rabbitHost, AppConfig.rabbitExchangeName)
+  )
+  system.eventStream.subscribe(
+    subscriber = rabbitPublisher,
+    channel = classOf[GameJsonFound]
+  )
+
   if ( AppConfig.hazelcastEnable ) {
     val hazelcastInstance = system.actorOf(
       name = "hazelcastInstance",
