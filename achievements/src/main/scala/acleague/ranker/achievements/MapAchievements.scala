@@ -1,8 +1,5 @@
 package acleague.ranker.achievements
 
-/**
- * Created by William on 10/01/2015.
- */
 object MapAchievements {
   case class AcMap(mode: String, name: String)
   val captureMaster = {
