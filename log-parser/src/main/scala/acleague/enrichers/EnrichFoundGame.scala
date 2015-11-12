@@ -6,7 +6,7 @@ import java.util.{Date}
 import acleague.ingesters.{FlagGameBuilder, FoundGame, FragGameBuilder}
 import org.joda.time.{DateTimeZone, DateTime}
 import org.joda.time.format.ISODateTimeFormat
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsValue, Json, JsObject}
 import scala.util.hashing.MurmurHash3
 import scala.xml.UnprefixedAttribute
 
@@ -16,7 +16,7 @@ object JsonGame {
   implicit val Af = Json.format[JsonGamePlayer]
   implicit val Bf = Json.format[JsonGameTeam]
   implicit val fmt = Json.format[JsonGame]
-
+  def parse(jsValue: JsValue) = Json.fromJson[JsonGame](jsValue)(fmt)
   def build(foundGame: FoundGame, date: ZonedDateTime, serverId: String, duration: Int): JsonGame = {
     val fdt = date.format(DateTimeFormatter.ISO_INSTANT)
 

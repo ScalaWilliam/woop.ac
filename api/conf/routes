@@ -1,0 +1,2 @@
+GET        /recent/                  @controllers.ApiMain.recent
+GET        /achievements/:id/        @controllers.ApiMain.achievements(id: String)

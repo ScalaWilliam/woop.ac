@@ -5,13 +5,15 @@ lazy val root = (project in file(".")).aggregate(
   logParser,
   achievements,
   pingerservice,
-  rankservice
+  rankservice,
+  api
 ).dependsOn(
   logservice,
   achievements,
   logParser,
   pingerservice,
-  rankservice
+  rankservice,
+  api
 )
 
 lazy val logParser = Project(
@@ -31,17 +33,25 @@ lazy val achievements = Project(
   id = "achievements",
   base = file("achievements"))
   .settings(
-    libraryDependencies += json
+    libraryDependencies ++= Seq(
+      json
+    ),
+    resolvers += "bintray-jcenter" at "http://jcenter.bintray.com/"
   ).dependsOn(logParser)
 
-lazy val frontend = project.enablePlugins(PlayScala, SbtWeb).dependsOn(frontendJs)
+lazy val frontend = project
+  .enablePlugins(PlayScala, SbtWeb)
+  .dependsOn(frontendJs)
 
-lazy val logservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
-.dependsOn(logParser)
+lazy val logservice = project
+  .enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
+  .dependsOn(logParser)
 
 lazy val pingerservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
 
 lazy val rankservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, UniversalPlugin)
-.dependsOn(achievements)
+  .dependsOn(achievements)
 
 lazy val frontendJs = (project in file("frontend-js")).settings(scalaVersion := "2.11.6").enablePlugins(SbtJsEngine)
+
+lazy val api = project.enablePlugins(PlayScala).dependsOn(achievements)

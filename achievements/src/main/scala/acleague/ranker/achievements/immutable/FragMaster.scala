@@ -15,4 +15,17 @@ object FragMaster extends Incremental {
   override def filter(inputType: JsonGamePlayer): Option[Int] = {
     Option(inputType.frags)
   }
+
+  override def title(level: Int): String = s"Frag Master: $level"
+
+  override def description(level: Int): String = Map(
+    500 -> "Well, that's a start.",
+    1000 -> "Already lost count.",
+    2000 -> "I'm quite good at this!",
+    5000 -> "I've seen blood.",
+    10000 -> "That Rambo guy got nothin' on me."
+
+  ).getOrElse(level, s"Achieve $level frags")
+
+  override def completedEventTitle(level: Int): String = s"Frag Master level $level"
 }
