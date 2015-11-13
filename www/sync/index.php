@@ -10,11 +10,13 @@ if ( $_SERVER['HTTP_HOST'] == "alfa.actionfps.com" ) {
         if (ctype_alnum($sha)) {
             system("git fetch");
             system("git checkout $sha");
-            system("bash -c 'bower install | xargs echo'");
+            system("cd ..");
+            system("bower install | xargs echo");
         }
     }
 } else {
     system("git checkout master");
     system("git pull");
-    system("bash -c 'bower install | xargs echo'");
+    system("cd ..");
+    system("bower install | xargs echo");
 }
