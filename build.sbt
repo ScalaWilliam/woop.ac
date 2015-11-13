@@ -5,13 +5,15 @@ lazy val root = (project in file(".")).aggregate(
   logParser,
   achievements,
   pingerservice,
-  rankservice
+  rankservice,
+  api
 ).dependsOn(
   logservice,
   achievements,
   logParser,
   pingerservice,
-  rankservice
+  rankservice,
+  api
 )
 
 lazy val logParser = Project(
@@ -45,3 +47,5 @@ lazy val rankservice = project.enablePlugins(JavaAppPackaging, LinuxPlugin, Univ
 .dependsOn(achievements)
 
 lazy val frontendJs = (project in file("frontend-js")).settings(scalaVersion := "2.11.6").enablePlugins(SbtJsEngine)
+
+lazy val api = project.enablePlugins(PlayScala).dependsOn(achievements)
