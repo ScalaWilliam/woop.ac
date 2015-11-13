@@ -1,1 +1,2 @@
-GET        /recent/                  @controllers.ApiMain.recent
+GET        /recent/        @controllers.ApiMain.recent
+GET        /raw/           @controllers.ApiMain.raw
