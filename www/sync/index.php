@@ -5,6 +5,7 @@ if ( $_GET['sync-key'] !== $_SERVER['SYNC_KEY'] ) die("provided sync key is inva
 function bower() {
     echo "Launching bower";
     system("pwd");
+
     system("bash -c 'pwd && cd .. && pwd && { bower install | xargs echo; }'");
 }
 if ( $_SERVER['HTTP_HOST'] == "alfa.actionfps.com" ) {
