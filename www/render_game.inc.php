@@ -3,7 +3,7 @@ function render_game_team_player($game, $team, $player)
 {
     ?>
     <li>
-        <?php if ($player['flags']) { ?>
+        <?php if (isset($player['flags'])) { ?>
             <span class="score flags"><?php echo $player['flags']; ?></span>
         <?php } ?>
         <span class="subscore frags"><?php echo $player['frags']; ?></span>
@@ -46,14 +46,15 @@ function render_game($game)
         <div class="w">
             <header>
                 <h2>
-                    <a href="/game/?id=<?php echo $game['id']; ?>/">
+                    <a href="/game/?id=<?php echo $game['id']; ?>">
                         <?php echo $game['mode']; ?>
                         @
-                        <?php echo $game['map']; ?></a>
+                        <?php echo $game['map']; ?>
 
                     <time is="relative-time" datetime="<?php echo $game['gameTime']; ?>">
                         <?php echo $game['gameTime']; ?>
                     </time>
+                    </a>
                 </h2>
             </header>
             <div class="teams">
