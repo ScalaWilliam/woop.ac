@@ -3,6 +3,7 @@ if ( !isset($_SERVER['SYNC_KEY']) ) die("no SYNC_KEY set");
 if ( $_GET['sync-key'] !== $_SERVER['SYNC_KEY'] ) die("provided sync key is invalid");
 
 function bower() {
+    echo "Launching bower";
     system("bash -c 'cd .. && { bower install | xargs echo; }'");
 }
 if ( $_SERVER['HTTP_HOST'] == "alfa.actionfps.com" ) {
