@@ -13,12 +13,13 @@ if ( $_SERVER['HTTP_HOST'] == "alfa.actionfps.com" ) {
         if (ctype_alnum($sha)) {
             system("git fetch");
             system("git checkout $sha");
-            system("cd ..");
             bower();
+            echo "Completed fetching $sha.\n";
         }
     }
 } else {
     system("git checkout master");
     system("git pull");
     bower();
+    echo "Complete.\n";
 }
