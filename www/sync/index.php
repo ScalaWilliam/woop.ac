@@ -2,6 +2,9 @@
 if ( !isset($_SERVER['SYNC_KEY']) ) die("no SYNC_KEY set");
 if ( $_GET['sync-key'] !== $_SERVER['SYNC_KEY'] ) die("provided sync key is invalid");
 
+function bower() {
+    system("bash -c 'cd .. && { bower install | xargs echo; }'");
+}
 if ( $_SERVER['HTTP_HOST'] == "alfa.actionfps.com" ) {
     $post_body = file_get_contents('php://input');
     $json = json_decode($post_body, true);
@@ -11,12 +14,11 @@ if ( $_SERVER['HTTP_HOST'] == "alfa.actionfps.com" ) {
             system("git fetch");
             system("git checkout $sha");
             system("cd ..");
-            system("bower install | xargs echo");
+            bower();
         }
     }
 } else {
     system("git checkout master");
     system("git pull");
-    system("cd ..");
-    system("bower install | xargs echo");
+    bower();
 }
